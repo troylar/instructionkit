@@ -1,0 +1,11 @@
+name: Example Instructions
+description: Simple example to show folder structure
+version: 1.0.0
+
+instructions:
+  - name: quick-start
+    description: Simple example instruction
+    file: instructions/quick-start.md
+    tags:
+      - example
+      - demo
