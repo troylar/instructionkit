@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-[Quick Start](#-quick-start) • [Features](#-features) • [Installation](#installation) • [Usage](#-usage) • [Scope Management](#-scope-management)
+[Quick Start](#-quick-start) • [Features](#-features) • [Interactive TUI](#interactive-tui-browser) • [Library Management](#library-management) • [Usage](#-usage)
 
 </div>
 
@@ -17,9 +17,11 @@
 
 ## 🌟 Overview
 
-InstructionKit is a powerful CLI tool that enables developers to install, manage, and share instructions for AI coding assistants. Whether you're standardizing your team's coding practices, sharing best practices across projects, or building a personal library of prompts, InstructionKit makes it effortless.
+InstructionKit is a powerful CLI tool that enables developers to **browse, install, and manage** instructions for AI coding assistants. Download instruction repositories to your local library, browse them with an interactive TUI, and install exactly what you need. Whether you're standardizing your team's coding practices, sharing best practices across projects, or building a personal library of prompts, InstructionKit makes it effortless.
 
 **Supports:** Cursor • GitHub Copilot • Windsurf • Claude Code
+
+**New:** Interactive TUI for browsing and selecting instructions from your library!
 
 ## ✨ Features
 
@@ -27,29 +29,22 @@ InstructionKit is a powerful CLI tool that enables developers to install, manage
 <tr>
 <td width="50%">
 
-### 📦 **Flexible Sources**
-- Install from Git repositories (GitHub, GitLab, Bitbucket, self-hosted)
-- Install from local folders (perfect for testing and development)
-- Support for private repositories with standard Git authentication
+### 🎨 **Interactive TUI Browser**
+- Browse your instruction library with a beautiful terminal UI
+- Search and filter instructions by name, description, or repository
+- Select multiple instructions with checkboxes
+- Choose installation location and target tools interactively
+- See exactly where files will be installed before confirming
 
 </td>
 <td width="50%">
 
-### 🎯 **Smart Management**
-- Auto-detect installed AI coding tools
-- Track all installed instructions with metadata
-- Smart conflict resolution (skip, rename, overwrite)
-- Easy uninstall functionality
-
-</td>
-</tr>
-<tr>
-<td>
-
-### 📚 **Bundle Support**
-- Group related instructions into bundles
-- Install multiple instructions with a single command
-- Perfect for onboarding or project setup
+### 📚 **Local Library Management**
+- Download instruction repositories to your local library
+- Keep multiple repositories organized in one place
+- Update repositories to get the latest instructions
+- List and delete repositories from your library
+- Fast offline browsing once downloaded
 
 </td>
 </tr>
@@ -61,6 +56,27 @@ InstructionKit is a powerful CLI tool that enables developers to install, manage
 - Install per-project (specific to current project)
 - Automatic project root detection
 - Scope-aware listing and uninstall
+- See installation paths for each AI tool
+
+</td>
+<td>
+
+### 📦 **Flexible Sources**
+- Download from Git repositories (GitHub, GitLab, Bitbucket, self-hosted)
+- Download from local folders (perfect for testing and development)
+- Support for private repositories with standard Git authentication
+- Bundle support for installing multiple instructions at once
+
+</td>
+</tr>
+<tr>
+<td>
+
+### 🎯 **Smart Management**
+- Auto-detect installed AI coding tools
+- Track all installed instructions with metadata
+- Smart conflict resolution (skip, rename, overwrite)
+- Easy uninstall functionality
 
 </td>
 <td>
@@ -83,34 +99,165 @@ InstructionKit is a powerful CLI tool that enables developers to install, manage
 pip install instructionkit
 ```
 
-### Install Your First Instruction
+### The New Way: Library + Interactive TUI
+
+**Step 1: Download instructions to your library**
 
 ```bash
-# Install globally (default - available across all projects)
+# Download from GitHub
+instructionkit download --repo https://github.com/company/instructions
+
+# Download from local folder (for testing)
+instructionkit download --repo ./my-instructions
+```
+
+**Step 2: Browse and install with the TUI**
+
+```bash
+# Launch the interactive browser
+instructionkit install
+```
+
+This opens a beautiful terminal UI where you can:
+- 🔍 Search and filter instructions
+- ☑️  Select multiple instructions with Space/Enter
+- 📍 Choose installation location (Global or Project)
+- 🎯 Pick which AI tools to install to
+- 📦 Install with confirmation
+
+**Step 3: Manage your library**
+
+```bash
+# See what's in your library
+instructionkit list library
+
+# Update to get latest changes
+instructionkit update --all
+
+# Remove a repository
+instructionkit delete <repo-namespace>
+```
+
+### Alternative: Direct Installation
+
+For quick one-off installs without using the library:
+
+```bash
+# Direct install (bypasses library)
 instructionkit install python-best-practices --repo https://github.com/company/instructions
 
-# Install to current project only
-instructionkit install python-best-practices --repo https://github.com/company/instructions --scope project
-
-# From a local folder
-instructionkit install python-best-practices --repo ./my-instructions
-```
-
-### List Available Instructions
-
-```bash
-# From any source
+# See what's available from a repo
 instructionkit list available --repo https://github.com/company/instructions
-instructionkit list available --repo ./my-instructions
-```
-
-### See What's Installed
-
-```bash
-instructionkit list installed
 ```
 
 ## 📖 Usage
+
+### Library Management
+
+<details>
+<summary><b>Download Instructions to Your Library</b></summary>
+
+Build your local library of instruction repositories:
+
+```bash
+# Download from Git repository
+instructionkit download --repo https://github.com/company/instructions
+
+# Download from local folder
+instructionkit download --repo ./my-instructions
+
+# Re-download to get latest updates
+instructionkit download --repo https://github.com/company/instructions --force
+```
+
+Your library is stored in `~/.instructionkit/library/` and organized by repository namespace.
+
+</details>
+
+<details>
+<summary><b>List Your Library Contents</b></summary>
+
+```bash
+# Show all repositories in library
+instructionkit list library
+
+# Show individual instructions
+instructionkit list library --instructions
+
+# Filter by repository
+instructionkit list library --repo company
+```
+
+</details>
+
+<details>
+<summary><b>Update Library Repositories</b></summary>
+
+```bash
+# Update a specific repository
+instructionkit update --namespace github.com_company_instructions
+
+# Update all repositories in library
+instructionkit update --all
+```
+
+</details>
+
+<details>
+<summary><b>Delete from Library</b></summary>
+
+```bash
+# Delete a repository (keeps installed instructions)
+instructionkit delete github.com_company_instructions
+
+# Skip confirmation
+instructionkit delete github.com_company_instructions --force
+```
+
+Note: Deleting from library doesn't uninstall instructions. Use `instructionkit uninstall` for that.
+
+</details>
+
+### Interactive TUI Browser
+
+<details>
+<summary><b>Using the TUI to Browse and Install</b></summary>
+
+Launch the interactive browser:
+
+```bash
+instructionkit install
+```
+
+**TUI Features:**
+- **Search**: Type `/` to search by name or description
+- **Filter**: Select repository from dropdown
+- **Select**: Use `Space` or `Enter` to toggle instruction selection
+- **Select All**: Press `Ctrl+A` or click "Select All" button
+- **Installation Location**: Choose Global (user config) or Project (current folder)
+- **Target Tools**: Check boxes for Cursor, Windsurf, Claude Code, etc.
+- **Install**: Review summary and click "📦 Install Selected"
+
+The TUI shows exactly where files will be installed before you confirm.
+
+</details>
+
+<details>
+<summary><b>Install Specific Instruction by Name</b></summary>
+
+Install directly from library without TUI:
+
+```bash
+# Install by name (opens selection if multiple matches)
+instructionkit install python-style
+
+# The command will:
+# 1. Search your library for "python-style"
+# 2. If found in multiple repos, ask which one
+# 3. Install the selected instruction
+```
+
+</details>
 
 ### Installing Instructions
 
@@ -144,8 +291,12 @@ instructionkit list installed
 
 </details>
 
+### Advanced: Direct Installation (Bypasses Library)
+
 <details>
-<summary><b>Install from Git Repository</b></summary>
+<summary><b>Install Directly from Repository</b></summary>
+
+For one-off installs without downloading to library first:
 
 ```bash
 # Basic install (global)
@@ -194,10 +345,30 @@ instructionkit install python-backend --bundle --repo https://github.com/company
 
 </details>
 
-### Listing Instructions
+### Listing & Viewing
 
 <details>
-<summary><b>List Available Instructions</b></summary>
+<summary><b>List Installed Instructions</b></summary>
+
+```bash
+# Show all installed instructions (both global and project)
+instructionkit list installed
+
+# Filter by AI tool
+instructionkit list installed --tool cursor
+
+# Filter by source repository
+instructionkit list installed --repo https://github.com/company/instructions
+```
+
+Shows where each instruction is installed and which tools have it.
+
+</details>
+
+<details>
+<summary><b>List Available Instructions (Without Library)</b></summary>
+
+Directly query a repository without downloading it:
 
 ```bash
 # From Git repository
@@ -211,26 +382,9 @@ instructionkit list available --repo https://github.com/company/instructions --t
 
 # Show only bundles
 instructionkit list available --repo https://github.com/company/instructions --bundles-only
-
-# Show only individual instructions
-instructionkit list available --repo https://github.com/company/instructions --instructions-only
 ```
 
-</details>
-
-<details>
-<summary><b>List Installed Instructions</b></summary>
-
-```bash
-# Show all installed instructions
-instructionkit list installed
-
-# Filter by AI tool
-instructionkit list installed --tool cursor
-
-# Filter by source repository
-instructionkit list installed --repo https://github.com/company/instructions
-```
+**Tip:** For regular use, it's better to `download` the repo to your library and browse with the TUI!
 
 </details>
 
@@ -260,9 +414,16 @@ instructionkit uninstall python-best-practices --force
 instructionkit tools
 ```
 
-## 📂 Installation Tracking
+## 📂 Storage & Tracking
 
-InstructionKit automatically tracks all installed instructions:
+InstructionKit stores everything locally:
+
+**Library Storage:**
+- Downloaded repositories: `~/.instructionkit/library/`
+- Organized by repository namespace (e.g., `github.com_company_instructions/`)
+- Browse offline after downloading
+
+**Installation Tracking:**
 
 **Global Installations:**
 - Tracked in `~/.instructionkit/installations.json`
@@ -273,7 +434,7 @@ InstructionKit automatically tracks all installed instructions:
 - Tracked in `<project-root>/.instructionkit/installations.json`
 - Contains metadata only for this project's instructions
 - Created automatically when you install with `--scope project`
-- Should be added to `.gitignore` (or committed to share with team)
+- Can be added to `.gitignore` or committed to share with team
 
 The `list installed` command automatically shows instructions from both scopes when run from within a project.
 
@@ -355,48 +516,70 @@ bundles:
 ### For Enterprise Teams
 
 ```bash
-# Install company-wide standards globally (available in all projects)
-instructionkit install company-standards --bundle --repo git@github.com:company/instructions
+# Step 1: Download company instruction repository
+instructionkit download --repo git@github.com:company/instructions
 
-# Install project-specific instructions to current project only
-instructionkit install microservices-guide --repo git@github.com:company/instructions --scope project
+# Step 2: Browse and install with TUI
+instructionkit install
+# - Select company-wide standards
+# - Choose "Global" scope (available in all projects)
+# - Select all your AI tools
+# - Install!
 
-# Install project architecture guidelines for this specific project
-instructionkit install project-architecture --repo git@github.com:company/instructions --scope project
+# For project-specific instructions
+cd /path/to/project
+instructionkit install
+# - Select project-specific guidelines
+# - Choose "Project" scope
+# - Install to current project only
 ```
 
 ### For Open Source Projects
 
 ```bash
-# Contributors install project-specific guidelines
-instructionkit install contributing --repo https://github.com/project/instructions --scope project
+# Contributors set up project guidelines
+instructionkit download --repo https://github.com/project/instructions
+instructionkit install
+# Select "contributing" and choose "Project" scope
 
-# Project maintainers can include instructions in the repo
-# Contributors just run: instructionkit install project-guidelines --repo . --scope project
+# Keep personal standards separate
+instructionkit download --repo ~/my-instructions
+instructionkit install
+# Select personal preferences and choose "Global" scope
 
-# Keep your personal global standards while working on the project
-instructionkit install my-personal-style --repo ~/my-instructions  # global
-instructionkit install project-style --repo . --scope project      # project-specific
+# Now you have both: personal global + project-specific!
 ```
 
 ### For Personal Productivity
 
 ```bash
-# Build your personal library of prompts
-instructionkit install my-python-helpers --repo ~/Documents/my-instructions
+# Build your personal library
+instructionkit download --repo ~/Documents/my-instructions
+instructionkit download --repo https://github.com/awesome/prompts
 
-# Test new instructions before publishing
-instructionkit install draft-instruction --repo ./instruction-drafts
+# Browse and pick what you need
+instructionkit install
+# Search, filter, and install your favorites globally
+
+# Test new instructions locally before publishing
+instructionkit download --repo ./instruction-drafts --force
+instructionkit install  # test them out
 ```
 
 ### For Education
 
 ```bash
-# Share course materials with students
-instructionkit install course-101 --bundle --repo https://github.com/university/course-instructions
+# Instructors: Set up course materials
+instructionkit download --repo https://github.com/university/course-materials
 
-# Provide assignment-specific guidance
-instructionkit install assignment-1 --repo https://github.com/university/course-instructions
+# Students: Install course instructions
+instructionkit install
+# Select course-specific instructions with "Global" scope
+
+# Assignment-specific guidance (per project)
+cd assignment-1
+instructionkit install
+# Select assignment-1 instructions with "Project" scope
 ```
 
 ## 🛠 Requirements

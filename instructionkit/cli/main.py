@@ -24,9 +24,9 @@ app.add_typer(list_app, name="list")
 
 @app.command()
 def install(
-    name: Optional[str] = typer.Argument(
+    names: Optional[list[str]] = typer.Argument(
         None,
-        help="Instruction name to install (omit to browse library with TUI)",
+        help="Instruction name(s) to install (omit to browse library with TUI). Can specify multiple.",
     ),
     repo: Optional[str] = typer.Option(
         None,
@@ -34,11 +34,11 @@ def install(
         "-r",
         help="Git repository URL or local directory path (for direct install)",
     ),
-    tool: Optional[str] = typer.Option(
+    tools: Optional[list[str]] = typer.Option(
         None,
         "--tool",
         "-t",
-        help="AI tool to install to (cursor, copilot, windsurf, claude)",
+        help="AI tool(s) to install to (cursor, copilot, windsurf, claude). Can specify multiple times.",
     ),
     conflict: str = typer.Option(
         "skip",
@@ -69,6 +69,12 @@ def install(
       # Install specific instruction from library
       instructionkit install python-style
 
+      # Install multiple instructions at once
+      instructionkit install python-style testing-guide api-design
+
+      # Install to specific tools only
+      instructionkit install python-style --tool cursor --tool windsurf
+
     CLASSIC WORKFLOW (Direct from repo):
       # Install directly from repository
       instructionkit install python-style --repo https://github.com/company/instructions
@@ -86,9 +92,9 @@ def install(
       instructionkit install
     """
     exit_code = install_instruction_unified(
-        name=name,
+        names=names,
         repo=repo,
-        tool=tool,
+        tools=tools,
         conflict_strategy=conflict,
         bundle=bundle,
         scope=scope,

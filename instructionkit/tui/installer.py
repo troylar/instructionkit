@@ -6,10 +6,12 @@ from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.screen import Screen
-from textual.widgets import Button, DataTable, Footer, Header, Input, Label, Select, Static
+from textual.widgets import Button, Checkbox, DataTable, Footer, Header, Input, Label, Select, Static
 
+from instructionkit.ai_tools.detector import get_detector
 from instructionkit.core.models import InstallationScope, LibraryInstruction
 from instructionkit.storage.library import LibraryManager
+from instructionkit.utils.project import find_project_root
 
 
 class InstructionInstallerScreen(Screen):
@@ -20,9 +22,22 @@ class InstructionInstallerScreen(Screen):
         background: $background;
     }
 
+    #title-container {
+        height: 3;
+        background: $boost;
+        padding: 1;
+        border-bottom: solid $primary;
+    }
+
+    #app-title {
+        text-align: center;
+        text-style: bold;
+    }
+
     #search-container {
         height: 3;
         padding: 0 1;
+        margin-top: 1;
     }
 
     #filter-container {
@@ -34,10 +49,28 @@ class InstructionInstallerScreen(Screen):
         height: 1fr;
     }
 
-    #status-bar {
-        height: 3;
+    #installation-settings {
+        height: auto;
         padding: 1;
         background: $panel;
+        border-top: solid $primary;
+    }
+
+    #tools-container {
+        height: auto;
+        padding: 0 1;
+    }
+
+    #scope-container {
+        height: auto;
+        padding: 0 1;
+        margin-bottom: 1;
+    }
+
+    #status-bar {
+        height: auto;
+        padding: 1;
+        background: $surface;
     }
 
     #actions-container {
@@ -49,13 +82,28 @@ class InstructionInstallerScreen(Screen):
         margin: 0 1;
     }
 
+    Checkbox {
+        margin: 0 2;
+    }
+
     .selected-row {
         background: $accent;
+    }
+
+    .setting-label {
+        text-style: bold;
+        color: $primary;
+    }
+
+    .help-text {
+        color: $text-muted;
     }
     """
 
     BINDINGS = [
         ("escape", "quit", "Quit"),
+        ("space", "toggle_selection", "Toggle Selection"),
+        ("enter", "toggle_selection", "Toggle Selection"),
         ("ctrl+a", "select_all", "Select All"),
         ("ctrl+d", "deselect_all", "Deselect All"),
         ("ctrl+l", "clear_search", "Clear Search"),
@@ -73,25 +121,41 @@ class InstructionInstallerScreen(Screen):
 
         Args:
             library: Library manager instance
-            scope: Installation scope (global or project)
-            tool: AI tool to install to (None = all)
+            scope: Installation scope (ignored - user must select)
+            tool: AI tool to install to (ignored - user must select)
         """
         super().__init__()
         self.library = library
-        self.scope = scope
-        self.tool = tool
+        # No default scope - user must select
+        self.scope: Optional[InstallationScope] = None
         self.instructions = library.list_instructions()
         self.filtered_instructions = self.instructions.copy()
         self.selected_ids: set[str] = set()
 
+        # Get current directory info for display
+        from pathlib import Path
+        self.current_dir = Path.cwd()
+        self.project_root = find_project_root()
+
+        # Detect available AI tools
+        detector = get_detector()
+        self.available_tools = detector.detect_installed_tools()
+
+        # No default tool selection - user must explicitly select
+        self.selected_tools: set[str] = set()
+
     def compose(self) -> ComposeResult:
         """Create child widgets."""
-        yield Header()
+        yield Header(show_clock=True)
+
+        # Branded title section
+        with Container(id="title-container"):
+            yield Static("🎯 [bold cyan]InstructionKit[/bold cyan] [dim]│[/dim] Browse & Install Instructions", id="app-title")
 
         # Search container
         with Container(id="search-container"):
             yield Input(
-                placeholder="Search instructions...",
+                placeholder="🔍 Search instructions by name or description...",
                 id="search-input"
             )
 
@@ -102,43 +166,64 @@ class InstructionInstallerScreen(Screen):
             repos = {inst.repo_namespace: inst.repo_name for inst in self.instructions}
             repo_options.extend([(name, namespace) for namespace, name in repos.items()])
 
-            yield Label("Repo:")
+            yield Label("Filter by Repo:")
             yield Select(
                 options=repo_options,
                 value="",
                 id="repo-filter",
             )
 
-            # Tool filter (if not already specified)
-            if not self.tool:
-                tool_options = [
-                    ("All Tools", ""),
-                    ("Cursor", "cursor"),
-                    ("GitHub Copilot", "copilot"),
-                    ("Windsurf", "windsurf"),
-                    ("Claude Code", "claude"),
-                ]
-                yield Label("Tool:")
-                yield Select(
-                    options=tool_options,
-                    value="",
-                    id="tool-filter",
-                )
-
-            # Scope selector
-            scope_options = [
-                ("Global", "global"),
-                ("Project", "project"),
-            ]
-            yield Label("Scope:")
-            yield Select(
-                options=scope_options,
-                value=self.scope.value,
-                id="scope-select",
-            )
-
         # Instructions table
         yield DataTable(id="instructions-table")
+
+        # Installation Settings Section
+        with Container(id="installation-settings"):
+            yield Label("⚙️  Installation Settings (REQUIRED)", classes="setting-label")
+
+            # Scope selector with clear descriptions
+            with Vertical(id="scope-container"):
+                yield Label("Where to install: *")
+
+                # Build scope options with current folder name
+                folder_name = self.current_dir.name
+                scope_options = [
+                    ("-- Select installation location --", ""),
+                    ("Global (user config directory)", "global"),
+                    (f"Project ({folder_name})", "project"),
+                ]
+                yield Select(
+                    options=scope_options,
+                    value="",  # No default - user must select
+                    id="scope-select",
+                    prompt="-- Select installation location --",
+                )
+
+                # Help text for scope
+                if self.scope is None:
+                    help_text = "⚠️  Please select where to install instructions"
+                elif self.scope == InstallationScope.GLOBAL:
+                    help_text = "Files will be installed to each tool's global configuration directory"
+                else:
+                    if self.project_root:
+                        help_text = f"Files will be installed to: {self.project_root}/<tool-specific-dir>/instructions"
+                    else:
+                        help_text = f"Files will be installed to: {self.current_dir}/<tool-specific-dir>/instructions"
+                yield Static(help_text, id="scope-help", classes="help-text")
+
+            # Target tools selection
+            with Vertical(id="tools-container"):
+                yield Label("Install to which AI tools: *")
+                if self.available_tools:
+                    for tool in self.available_tools:
+                        tool_id = tool.tool_type.value
+                        # Start with nothing checked - user must select
+                        yield Checkbox(
+                            f"{tool.tool_name}",
+                            value=False,
+                            id=f"tool-{tool_id}",
+                        )
+                else:
+                    yield Static("⚠️  No AI coding tools detected!", classes="help-text")
 
         # Status bar
         with Container(id="status-bar"):
@@ -148,8 +233,8 @@ class InstructionInstallerScreen(Screen):
         with Horizontal(id="actions-container"):
             yield Button("Cancel", variant="default", id="cancel-btn")
             yield Button("Select All", variant="primary", id="select-all-btn")
-            yield Button("Deselect All", variant="default", id="deselect-all-btn")
-            yield Button("Install", variant="success", id="install-btn")
+            yield Button("Clear Selection", variant="default", id="deselect-all-btn")
+            yield Button("📦 Install Selected", variant="success", id="install-btn")
 
         yield Footer()
 
@@ -169,6 +254,9 @@ class InstructionInstallerScreen(Screen):
         # Populate table
         self.refresh_table()
         self.update_status()
+
+        # Set focus to the table instead of search input
+        table.focus()
 
     def refresh_table(self) -> None:
         """Refresh the table with filtered instructions."""
@@ -203,14 +291,26 @@ class InstructionInstallerScreen(Screen):
         """Update the status bar."""
         status = self.query_one("#status-text", Static)
         total = len(self.filtered_instructions)
-        selected = len(self.selected_ids)
+        selected_instructions = len(self.selected_ids)
+        selected_tools_count = len(self.selected_tools)
 
-        scope_text = self.scope.value.capitalize()
-        tool_text = self.tool.capitalize() if self.tool else "All tools"
+        # Scope text
+        if self.scope is None:
+            scope_text = "⚠️  Not selected"
+        else:
+            scope_text = self.scope.value.capitalize()
+
+        # Tools text
+        if selected_tools_count == 0:
+            tools_text = "⚠️  None selected"
+        elif selected_tools_count == len(self.available_tools):
+            tools_text = f"All {selected_tools_count} tools"
+        else:
+            tools_text = f"{selected_tools_count} tool(s)"
 
         status.update(
-            f"Selected: {selected} | Showing: {total} instructions | "
-            f"Scope: {scope_text} | Tool: {tool_text}"
+            f"Instructions: {selected_instructions} selected | {total} shown | "
+            f"Target: {tools_text} | Scope: {scope_text}"
         )
 
     def filter_instructions(
@@ -260,14 +360,42 @@ class InstructionInstallerScreen(Screen):
     @on(Select.Changed, "#scope-select")
     def on_scope_changed(self, event: Select.Changed) -> None:
         """Handle scope selection changes."""
-        self.scope = InstallationScope(event.value)
+        # Handle empty string (no selection)
+        if not event.value or event.value == "":
+            self.scope = None
+            help_text = "⚠️  Please select where to install instructions"
+        else:
+            self.scope = InstallationScope(event.value)
+
+            # Update help text based on selection
+            if self.scope == InstallationScope.GLOBAL:
+                help_text = "Files will be installed to each tool's global configuration directory"
+            else:
+                if self.project_root:
+                    help_text = f"Files will be installed to: {self.project_root}/<tool-specific-dir>/instructions"
+                else:
+                    help_text = f"Files will be installed to: {self.current_dir}/<tool-specific-dir>/instructions"
+
+        # Update help text
+        scope_help = self.query_one("#scope-help", Static)
+        scope_help.update(help_text)
+
         self.update_status()
 
-    @on(Select.Changed, "#tool-filter")
-    def on_tool_changed(self, event: Select.Changed) -> None:
-        """Handle tool filter changes."""
-        self.tool = str(event.value) if event.value else None
-        self.update_status()
+    @on(Checkbox.Changed)
+    def on_tool_checkbox_changed(self, event: Checkbox.Changed) -> None:
+        """Handle tool checkbox changes."""
+        # Extract tool name from checkbox ID (format: "tool-cursor")
+        checkbox_id = event.checkbox.id
+        if checkbox_id and checkbox_id.startswith("tool-"):
+            tool_name = checkbox_id[5:]  # Remove "tool-" prefix
+
+            if event.value:
+                self.selected_tools.add(tool_name)
+            else:
+                self.selected_tools.discard(tool_name)
+
+            self.update_status()
 
     @on(DataTable.RowSelected)
     def on_row_selected(self, event: DataTable.RowSelected) -> None:
@@ -297,6 +425,28 @@ class InstructionInstallerScreen(Screen):
         self.refresh_table()
         self.update_status()
 
+    def action_toggle_selection(self) -> None:
+        """Toggle selection of the currently highlighted row."""
+        table = self.query_one("#instructions-table", DataTable)
+
+        # Get the currently highlighted row
+        if table.cursor_row is not None and table.cursor_row >= 0:
+            # Get all row keys as a list
+            row_keys = list(table.rows.keys())
+            if table.cursor_row < len(row_keys):
+                row_key = row_keys[table.cursor_row]
+                # Access the .value property of the RowKey to get the actual instruction ID
+                instruction_id = str(row_key.value)
+
+                # Toggle selection
+                if instruction_id in self.selected_ids:
+                    self.selected_ids.remove(instruction_id)
+                else:
+                    self.selected_ids.add(instruction_id)
+
+                self.refresh_table()
+                self.update_status()
+
     def action_clear_search(self) -> None:
         """Clear search input."""
         search_input = self.query_one("#search-input", Input)
@@ -315,8 +465,22 @@ class InstructionInstallerScreen(Screen):
     @on(Button.Pressed, "#install-btn")
     def on_install_pressed(self) -> None:
         """Handle install button press."""
+        # Validate all required selections
+        errors = []
+
         if not self.selected_ids:
-            # TODO: Show error message
+            errors.append("Please select at least one instruction")
+
+        if self.scope is None:
+            errors.append("Please select installation location (Global or Project)")
+
+        if not self.selected_tools:
+            errors.append("Please select at least one AI tool")
+
+        # Show all errors
+        if errors:
+            for error in errors:
+                self.app.notify(error, severity="error", timeout=4)
             return
 
         # Get selected instructions
@@ -325,16 +489,19 @@ class InstructionInstallerScreen(Screen):
             if inst.id in self.selected_ids
         ]
 
-        # Return result
+        # Return result with selected tools as a list
         self.dismiss({
             "instructions": selected_instructions,
             "scope": self.scope,
-            "tool": self.tool,
+            "tools": list(self.selected_tools),  # Return as list
         })
 
 
 class InstructionInstallerApp(App):
     """Application for installing instructions."""
+
+    TITLE = "InstructionKit Installer"
+    SUB_TITLE = "Browse, Select & Install Instructions"
 
     def __init__(
         self,
