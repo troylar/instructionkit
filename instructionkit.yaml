@@ -1,0 +1,22 @@
+name: InstructionKit Official Examples
+description: Official examples and templates for creating InstructionKit repositories
+version: 1.0.0
+author: InstructionKit
+repository: https://github.com/troylar/instructionkit
+
+instructions:
+  - name: quick-start
+    description: Simple example instruction
+    file: example-instructions/instructions/quick-start.md
+    tags:
+      - example
+      - demo
+
+  - name: create-instruction-repo
+    description: Guide for creating your own InstructionKit-compatible repository
+    file: example-instructions/instructions/create-instruction-repo.md
+    tags:
+      - tutorial
+      - template
+      - setup
+      - documentation
