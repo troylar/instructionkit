@@ -78,6 +78,13 @@ def get_instructionkit_data_dir() -> Path:
     return data_dir
 
 
+def get_library_dir() -> Path:
+    """Get InstructionKit library directory for downloaded instructions."""
+    library_dir = get_instructionkit_data_dir() / 'library'
+    library_dir.mkdir(parents=True, exist_ok=True)
+    return library_dir
+
+
 def get_installation_tracker_path() -> Path:
     """Get path to installation tracking JSON file."""
     return get_instructionkit_data_dir() / 'installations.json'
