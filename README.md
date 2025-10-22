@@ -428,7 +428,7 @@ Contributions are welcome! Here's how you can help:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/instructionkit.git
+git clone https://github.com/troylar/instructionkit.git
 cd instructionkit
 
 # Install in development mode
@@ -485,6 +485,6 @@ Built with:
 
 **Made with ❤️ for the AI coding community**
 
-[Report Bug](https://github.com/yourusername/instructionkit/issues) • [Request Feature](https://github.com/yourusername/instructionkit/issues)
+[Report Bug](https://github.com/troylar/instructionkit/issues) • [Request Feature](https://github.com/troylar/instructionkit/issues)
 
 </div>
