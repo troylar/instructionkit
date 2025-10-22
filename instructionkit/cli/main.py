@@ -5,7 +5,7 @@ from typing import Optional
 
 from instructionkit.cli.delete import delete_from_library
 from instructionkit.cli.download import download_instructions
-from instructionkit.cli.install import install_instruction
+from instructionkit.cli.install_new import install_instruction_unified
 from instructionkit.cli.list import list_available, list_installed, list_library
 from instructionkit.cli.uninstall import uninstall_instruction
 from instructionkit.cli.tools import show_tools
@@ -24,8 +24,16 @@ app.add_typer(list_app, name="list")
 
 @app.command()
 def install(
-    name: str = typer.Argument(..., help="Instruction or bundle name to install"),
-    repo: str = typer.Option(..., "--repo", "-r", help="Git repository URL or local directory path"),
+    name: Optional[str] = typer.Argument(
+        None,
+        help="Instruction name to install (omit to browse library with TUI)",
+    ),
+    repo: Optional[str] = typer.Option(
+        None,
+        "--repo",
+        "-r",
+        help="Git repository URL or local directory path (for direct install)",
+    ),
     tool: Optional[str] = typer.Option(
         None,
         "--tool",
@@ -52,30 +60,32 @@ def install(
     ),
 ) -> None:
     """
-    Install an instruction from a Git repository or local folder.
+    Install instructions from your library or directly from a repository.
 
-    Examples:
+    NEW WORKFLOW (Library-based):
+      # Browse and select instructions with TUI
+      instructionkit install
 
-      # Install globally (default)
-      instructionkit install python-best-practices --repo https://github.com/company/instructions
+      # Install specific instruction from library
+      instructionkit install python-style
+
+    CLASSIC WORKFLOW (Direct from repo):
+      # Install directly from repository
+      instructionkit install python-style --repo https://github.com/company/instructions
 
       # Install to current project
-      instructionkit install python-best-practices --repo https://github.com/company/instructions --scope project
-
-      # Install from local folder
-      instructionkit install python-best-practices --repo ./my-instructions
-      instructionkit install python-best-practices --repo /path/to/instructions
-
-      # Install to specific tool
-      instructionkit install python-best-practices --repo https://github.com/company/instructions --tool cursor
+      instructionkit install python-style --repo https://github.com/company/instructions --scope project
 
       # Install bundle
       instructionkit install python-backend --bundle --repo https://github.com/company/instructions
 
-      # Handle conflicts by renaming
-      instructionkit install python-best-practices --repo https://github.com/company/instructions --conflict rename
+    First, download instructions to your library:
+      instructionkit download --repo https://github.com/company/instructions
+
+    Then browse and install with the interactive TUI:
+      instructionkit install
     """
-    exit_code = install_instruction(
+    exit_code = install_instruction_unified(
         name=name,
         repo=repo,
         tool=tool,
