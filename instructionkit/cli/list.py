@@ -6,9 +6,12 @@ import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
+from rich.table import Table
+
 from instructionkit.core.git_operations import GitOperations
 from instructionkit.core.models import AIToolType
 from instructionkit.core.repository import RepositoryParser
+from instructionkit.storage.library import LibraryManager
 from instructionkit.storage.tracker import InstallationTracker
 from instructionkit.utils.ui import (
     format_instructions_table,
@@ -189,5 +192,98 @@ def list_installed(
     
     # Summary
     console.print(f"Total: {len(records)} installed instruction(s)")
-    
+
+    return 0
+
+
+def list_library(
+    repo_filter: Optional[str] = None,
+    show_instructions: bool = False,
+) -> int:
+    """
+    List repositories and instructions in the local library.
+
+    Args:
+        repo_filter: Filter by repository namespace
+        show_instructions: Show individual instructions
+
+    Returns:
+        Exit code (0 for success)
+    """
+    library = LibraryManager()
+    repositories = library.list_repositories()
+
+    if not repositories:
+        print_info("Library is empty. Use 'instructionkit download' to add repositories.")
+        return 0
+
+    # Filter if specified
+    if repo_filter:
+        repositories = [r for r in repositories if repo_filter.lower() in r.namespace.lower()]
+        if not repositories:
+            print_error(f"No repositories matching: {repo_filter}")
+            return 1
+
+    # Show repositories
+    if not show_instructions:
+        table = Table(title="Library Repositories", show_header=True, header_style="bold cyan")
+        table.add_column("Namespace", style="cyan", no_wrap=True)
+        table.add_column("Name", style="green")
+        table.add_column("Version", style="yellow")
+        table.add_column("Instructions", style="magenta")
+        table.add_column("Downloaded", style="blue")
+
+        for repo in sorted(repositories, key=lambda r: r.name):
+            table.add_row(
+                repo.namespace,
+                repo.name,
+                repo.version,
+                str(len(repo.instructions)),
+                repo.downloaded_at.strftime("%Y-%m-%d")
+            )
+
+        console.print()
+        console.print(table)
+        console.print()
+        console.print(f"Total: {len(repositories)} repository(ies) in library")
+        console.print()
+        console.print("[dim]Use 'instructionkit install' to install instructions from library[/dim]")
+
+    # Show instructions
+    else:
+        table = Table(
+            title="Library Instructions",
+            show_header=True,
+            header_style="bold cyan"
+        )
+        table.add_column("Name", style="cyan")
+        table.add_column("Description")
+        table.add_column("Repository", style="green")
+        table.add_column("Version", style="yellow")
+        table.add_column("Tags", style="magenta")
+
+        all_instructions = []
+        for repo in repositories:
+            all_instructions.extend(repo.instructions)
+
+        for inst in sorted(all_instructions, key=lambda i: i.name):
+            tags_str = ", ".join(inst.tags[:3]) if inst.tags else "-"
+            if len(inst.tags) > 3:
+                tags_str += f" +{len(inst.tags) - 3}"
+
+            table.add_row(
+                inst.name,
+                inst.description[:60] + "..." if len(inst.description) > 60 else inst.description,
+                inst.repo_name,
+                inst.version,
+                tags_str
+            )
+
+        console.print()
+        console.print(table)
+        console.print()
+        console.print(f"Total: {len(all_instructions)} instruction(s) in library")
+        console.print()
+        console.print("[dim]Use 'instructionkit install' to install these instructions[/dim]")
+
     return 0

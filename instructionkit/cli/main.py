@@ -3,11 +3,13 @@
 import typer
 from typing import Optional
 
+from instructionkit.cli.delete import delete_from_library
 from instructionkit.cli.download import download_instructions
 from instructionkit.cli.install import install_instruction
-from instructionkit.cli.list import list_available, list_installed
+from instructionkit.cli.list import list_available, list_installed, list_library
 from instructionkit.cli.uninstall import uninstall_instruction
 from instructionkit.cli.tools import show_tools
+from instructionkit.cli.update import update_repository
 
 app = typer.Typer(
     name="instructionkit",
@@ -184,6 +186,109 @@ def list_installed_cmd(
       instructionkit list installed --repo https://github.com/company/instructions
     """
     exit_code = list_installed(tool=tool, repo=repo)
+    raise typer.Exit(code=exit_code)
+
+
+@list_app.command("library")
+def list_library_cmd(
+    repo: Optional[str] = typer.Option(
+        None,
+        "--repo",
+        "-r",
+        help="Filter by repository namespace",
+    ),
+    instructions: bool = typer.Option(
+        False,
+        "--instructions",
+        "-i",
+        help="Show individual instructions instead of repositories",
+    ),
+) -> None:
+    """
+    List repositories and instructions in your local library.
+
+    Examples:
+
+      # List all repositories in library
+      instructionkit list library
+
+      # Show individual instructions
+      instructionkit list library --instructions
+
+      # Filter by repository
+      instructionkit list library --repo company
+    """
+    exit_code = list_library(repo_filter=repo, show_instructions=instructions)
+    raise typer.Exit(code=exit_code)
+
+
+@app.command()
+def update(
+    namespace: Optional[str] = typer.Option(
+        None,
+        "--namespace",
+        "-n",
+        help="Repository namespace to update",
+    ),
+    all_repos: bool = typer.Option(
+        False,
+        "--all",
+        "-a",
+        help="Update all repositories in library",
+    ),
+) -> None:
+    """
+    Update downloaded instructions to their latest versions.
+
+    This re-downloads instructions from their source repositories,
+    ensuring you have the latest versions in your library.
+
+    Examples:
+
+      # Update a specific repository
+      instructionkit update --namespace github.com_company_instructions
+
+      # Update all repositories
+      instructionkit update --all
+
+      # List repositories to find namespace
+      instructionkit list library
+    """
+    exit_code = update_repository(namespace=namespace, all_repos=all_repos)
+    raise typer.Exit(code=exit_code)
+
+
+@app.command()
+def delete(
+    namespace: str = typer.Argument(
+        ...,
+        help="Repository namespace to delete from library",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Skip confirmation prompt",
+    ),
+) -> None:
+    """
+    Delete a repository from your local library.
+
+    This removes the downloaded instructions from your library but does NOT
+    uninstall them from your AI tools. To uninstall, use 'instructionkit uninstall'.
+
+    Examples:
+
+      # Delete a repository
+      instructionkit delete github.com_company_instructions
+
+      # Skip confirmation
+      instructionkit delete github.com_company_instructions --force
+
+      # List repositories to find namespace
+      instructionkit list library
+    """
+    exit_code = delete_from_library(namespace=namespace, force=force)
     raise typer.Exit(code=exit_code)
 
 
