@@ -1,6 +1,8 @@
-name: Example Instructions
-description: Simple example to show folder structure
+name: InstructionKit Official Examples
+description: Official examples and templates for creating InstructionKit repositories
 version: 1.0.0
+author: InstructionKit
+repository: https://github.com/troylar/instructionkit
 
 instructions:
   - name: quick-start
@@ -9,3 +11,12 @@ instructions:
     tags:
       - example
       - demo
+
+  - name: create-instruction-repo
+    description: Guide for creating your own InstructionKit-compatible repository
+    file: instructions/create-instruction-repo.md
+    tags:
+      - tutorial
+      - template
+      - setup
+      - documentation
