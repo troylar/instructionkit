@@ -3,6 +3,7 @@
 import typer
 from typing import Optional
 
+from instructionkit.cli.download import download_instructions
 from instructionkit.cli.install import install_instruction
 from instructionkit.cli.list import list_available, list_installed
 from instructionkit.cli.uninstall import uninstall_instruction
@@ -80,6 +81,43 @@ def install(
         bundle=bundle,
         scope=scope,
     )
+    raise typer.Exit(code=exit_code)
+
+
+@app.command()
+def download(
+    repo: str = typer.Option(
+        ...,
+        "--repo",
+        "-r",
+        help="Git repository URL or local directory path",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Re-download even if already in library",
+    ),
+) -> None:
+    """
+    Download instructions from a repository into your local library.
+
+    This downloads and caches instructions locally without installing them.
+    After downloading, use 'instructionkit install' to select and install
+    instructions into your AI coding tools.
+
+    Examples:
+
+      # Download from GitHub
+      instructionkit download --repo https://github.com/company/instructions
+
+      # Download from local folder
+      instructionkit download --repo ./my-instructions
+
+      # Force re-download
+      instructionkit download --repo https://github.com/company/instructions --force
+    """
+    exit_code = download_instructions(repo=repo, force=force)
     raise typer.Exit(code=exit_code)
 
 
