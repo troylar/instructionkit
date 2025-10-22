@@ -12,11 +12,11 @@ instructions:
       - example
       - demo
 
-  - name: create-instruction-repo
-    description: Guide for creating your own InstructionKit-compatible repository
-    file: example-instructions/instructions/create-instruction-repo.md
+  - name: instructionkit-repo-creator
+    description: AI instruction to help users create InstructionKit-compatible repositories
+    file: example-instructions/instructions/instructionkit-repo-creator.md
     tags:
-      - tutorial
+      - instructionkit
       - template
+      - repository
       - setup
-      - documentation
