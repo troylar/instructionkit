@@ -14,7 +14,6 @@ from instructionkit.core.git_operations import GitOperations
 from instructionkit.core.models import LibraryInstruction
 from instructionkit.core.repository import RepositoryParser
 from instructionkit.storage.library import LibraryManager
-from rich.console import Console
 from instructionkit.utils.ui import print_error, print_success
 
 console = Console()
@@ -25,6 +24,7 @@ app = typer.Typer()
 def download_instructions(
     repo: str,
     force: bool = False,
+    alias: Optional[str] = None,
 ) -> int:
     """
     Download instructions from a repository into the local library.
@@ -32,17 +32,18 @@ def download_instructions(
     Args:
         repo: Repository URL or local path
         force: If True, re-download even if already in library
+        alias: User-friendly alias for this source (auto-generated if not provided)
 
     Returns:
         Exit code (0 = success)
     """
     library = LibraryManager()
-    git_ops = GitOperations()
 
     console.print(f"\n[bold]Downloading from:[/bold] {repo}\n")
 
     # Determine if local or remote
-    is_local = Path(repo).exists()
+    is_local = GitOperations.is_local_path(repo)
+    temp_repo_path = None  # Track temp directory for cleanup
 
     try:
         with Progress(
@@ -55,7 +56,8 @@ def download_instructions(
                 repo_path = Path(repo).resolve()
             else:
                 task = progress.add_task("Cloning repository...", total=None)
-                repo_path = git_ops.clone_or_fetch(repo)
+                repo_path = GitOperations.clone_repository(repo)
+                temp_repo_path = repo_path  # Save for cleanup
                 progress.update(task, completed=True)
 
             # Parse repository
@@ -65,14 +67,18 @@ def download_instructions(
             repository.url = repo
             progress.update(task, completed=True)
 
-        # Check if already exists
+        # Check if already exists (by URL to catch duplicates)
         repo_name = repository.metadata.get('name', 'Unknown')
         repo_namespace = library.get_repo_namespace(repo, repo_name)
 
+        # Check by both namespace and URL to catch duplicates
         existing_repo = library.get_repository(repo_namespace)
+        if not existing_repo:
+            existing_repo = library.get_repository_by_url(repo)
+
         if existing_repo and not force:
             print_error(
-                f"Repository '{repo_name}' already exists in library.\n"
+                f"Source '{existing_repo.alias or repo_name}' already exists in library.\n"
                 f"Use --force to re-download."
             )
             return 1
@@ -82,7 +88,7 @@ def download_instructions(
         repo_dir = library.library_dir / repo_namespace / "instructions"
         repo_dir.mkdir(parents=True, exist_ok=True)
 
-        console.print(f"\n[bold]Copying instructions to library...[/bold]\n")
+        console.print("\n[bold]Copying instructions to library...[/bold]\n")
 
         for instruction in repository.instructions:
             # Copy instruction file to library
@@ -117,20 +123,22 @@ def download_instructions(
             console.print(f"  ✓ {instruction.name}")
 
         # Add to library
-        library.add_repository(
+        library_repo = library.add_repository(
             repo_name=repo_name,
             repo_description=repository.metadata.get('description', ''),
             repo_url=repo,
             repo_author=repository.metadata.get('author', 'Unknown'),
             repo_version=repository.metadata.get('version', '1.0.0'),
             instructions=library_instructions,
+            alias=alias,
         )
 
         print_success(
             f"\n✓ Downloaded {len(library_instructions)} instruction(s) from '{repo_name}'\n"
+            f"  Alias: {library_repo.alias}\n"
             f"  Namespace: {repo_namespace}\n"
-            f"  Use 'instructionkit list library' to see all downloaded instructions\n"
-            f"  Use 'instructionkit install' to install into your AI tools"
+            f"  Use 'inskit list library' to see all downloaded instructions\n"
+            f"  Use 'inskit install' to install into your AI tools"
         )
 
         return 0
@@ -143,8 +151,8 @@ def download_instructions(
         return 1
     finally:
         # Clean up temp directory if not local
-        if not is_local:
-            git_ops.cleanup()
+        if temp_repo_path and not is_local:
+            GitOperations.cleanup_repository(temp_repo_path, is_temp=True)
 
 
 @app.command(name="download")

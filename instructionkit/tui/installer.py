@@ -6,10 +6,20 @@ from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.screen import Screen
-from textual.widgets import Button, Checkbox, DataTable, Footer, Header, Input, Label, Select, Static
+from textual.widgets import (
+    Button,
+    Checkbox,
+    DataTable,
+    Footer,
+    Header,
+    Input,
+    Label,
+    Select,
+    Static,
+)
 
 from instructionkit.ai_tools.detector import get_detector
-from instructionkit.core.models import InstallationScope, LibraryInstruction
+from instructionkit.core.models import InstallationScope
 from instructionkit.storage.library import LibraryManager
 from instructionkit.utils.project import find_project_root
 
@@ -113,7 +123,6 @@ class InstructionInstallerScreen(Screen):
     def __init__(
         self,
         library: LibraryManager,
-        scope: InstallationScope = InstallationScope.GLOBAL,
         tool: Optional[str] = None,
     ):
         """
@@ -121,13 +130,12 @@ class InstructionInstallerScreen(Screen):
 
         Args:
             library: Library manager instance
-            scope: Installation scope (ignored - user must select)
             tool: AI tool to install to (ignored - user must select)
         """
         super().__init__()
         self.library = library
-        # No default scope - user must select
-        self.scope: Optional[InstallationScope] = None
+        # Always use project scope
+        self.scope = InstallationScope.PROJECT
         self.instructions = library.list_instructions()
         self.filtered_instructions = self.instructions.copy()
         self.selected_ids: set[str] = set()
@@ -180,34 +188,15 @@ class InstructionInstallerScreen(Screen):
         with Container(id="installation-settings"):
             yield Label("⚙️  Installation Settings (REQUIRED)", classes="setting-label")
 
-            # Scope selector with clear descriptions
+            # Show installation location info
             with Vertical(id="scope-container"):
-                yield Label("Where to install: *")
+                yield Label("Installation location:")
 
-                # Build scope options with current folder name
-                folder_name = self.current_dir.name
-                scope_options = [
-                    ("-- Select installation location --", ""),
-                    ("Global (user config directory)", "global"),
-                    (f"Project ({folder_name})", "project"),
-                ]
-                yield Select(
-                    options=scope_options,
-                    value="",  # No default - user must select
-                    id="scope-select",
-                    prompt="-- Select installation location --",
-                )
-
-                # Help text for scope
-                if self.scope is None:
-                    help_text = "⚠️  Please select where to install instructions"
-                elif self.scope == InstallationScope.GLOBAL:
-                    help_text = "Files will be installed to each tool's global configuration directory"
+                # Display where files will be installed
+                if self.project_root:
+                    help_text = f"Files will be installed to: {self.project_root}/<tool-specific-dir>/rules/"
                 else:
-                    if self.project_root:
-                        help_text = f"Files will be installed to: {self.project_root}/<tool-specific-dir>/instructions"
-                    else:
-                        help_text = f"Files will be installed to: {self.current_dir}/<tool-specific-dir>/instructions"
+                    help_text = f"Files will be installed to: {self.current_dir}/<tool-specific-dir>/rules/"
                 yield Static(help_text, id="scope-help", classes="help-text")
 
             # Target tools selection
@@ -294,12 +283,6 @@ class InstructionInstallerScreen(Screen):
         selected_instructions = len(self.selected_ids)
         selected_tools_count = len(self.selected_tools)
 
-        # Scope text
-        if self.scope is None:
-            scope_text = "⚠️  Not selected"
-        else:
-            scope_text = self.scope.value.capitalize()
-
         # Tools text
         if selected_tools_count == 0:
             tools_text = "⚠️  None selected"
@@ -310,7 +293,7 @@ class InstructionInstallerScreen(Screen):
 
         status.update(
             f"Instructions: {selected_instructions} selected | {total} shown | "
-            f"Target: {tools_text} | Scope: {scope_text}"
+            f"Target: {tools_text} | Install to: Project"
         )
 
     def filter_instructions(
@@ -356,31 +339,6 @@ class InstructionInstallerScreen(Screen):
         """Handle repository filter changes."""
         search = self.query_one("#search-input", Input).value
         self.filter_instructions(search=search, repo_namespace=str(event.value))
-
-    @on(Select.Changed, "#scope-select")
-    def on_scope_changed(self, event: Select.Changed) -> None:
-        """Handle scope selection changes."""
-        # Handle empty string (no selection)
-        if not event.value or event.value == "":
-            self.scope = None
-            help_text = "⚠️  Please select where to install instructions"
-        else:
-            self.scope = InstallationScope(event.value)
-
-            # Update help text based on selection
-            if self.scope == InstallationScope.GLOBAL:
-                help_text = "Files will be installed to each tool's global configuration directory"
-            else:
-                if self.project_root:
-                    help_text = f"Files will be installed to: {self.project_root}/<tool-specific-dir>/instructions"
-                else:
-                    help_text = f"Files will be installed to: {self.current_dir}/<tool-specific-dir>/instructions"
-
-        # Update help text
-        scope_help = self.query_one("#scope-help", Static)
-        scope_help.update(help_text)
-
-        self.update_status()
 
     @on(Checkbox.Changed)
     def on_tool_checkbox_changed(self, event: Checkbox.Changed) -> None:
@@ -471,9 +429,6 @@ class InstructionInstallerScreen(Screen):
         if not self.selected_ids:
             errors.append("Please select at least one instruction")
 
-        if self.scope is None:
-            errors.append("Please select installation location (Global or Project)")
-
         if not self.selected_tools:
             errors.append("Please select at least one AI tool")
 
@@ -492,7 +447,6 @@ class InstructionInstallerScreen(Screen):
         # Return result with selected tools as a list
         self.dismiss({
             "instructions": selected_instructions,
-            "scope": self.scope,
             "tools": list(self.selected_tools),  # Return as list
         })
 
@@ -506,7 +460,6 @@ class InstructionInstallerApp(App):
     def __init__(
         self,
         library: LibraryManager,
-        scope: InstallationScope = InstallationScope.GLOBAL,
         tool: Optional[str] = None,
     ):
         """
@@ -514,12 +467,10 @@ class InstructionInstallerApp(App):
 
         Args:
             library: Library manager instance
-            scope: Default installation scope
             tool: AI tool to install to (None = all)
         """
         super().__init__()
         self.library = library
-        self.scope = scope
         self.tool = tool
         self.result = None
 
@@ -527,7 +478,6 @@ class InstructionInstallerApp(App):
         """Push the installer screen when app mounts."""
         screen = InstructionInstallerScreen(
             library=self.library,
-            scope=self.scope,
             tool=self.tool,
         )
         self.push_screen(screen, self.handle_result)
@@ -540,20 +490,20 @@ class InstructionInstallerApp(App):
 
 def show_installer_tui(
     library: LibraryManager,
-    scope: InstallationScope = InstallationScope.GLOBAL,
     tool: Optional[str] = None,
 ) -> Optional[dict]:
     """
     Show the instruction installer TUI.
 
+    All installations are at project level.
+
     Args:
         library: Library manager instance
-        scope: Default installation scope
         tool: AI tool to install to (None = all)
 
     Returns:
         Dictionary with selected instructions and settings, or None if cancelled
     """
-    app = InstructionInstallerApp(library=library, scope=scope, tool=tool)
+    app = InstructionInstallerApp(library=library, tool=tool)
     app.run()
     return app.result

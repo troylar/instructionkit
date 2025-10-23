@@ -13,7 +13,7 @@ def get_home_directory() -> Path:
 def get_cursor_config_dir() -> Path:
     """Get Cursor configuration directory based on platform."""
     home = get_home_directory()
-    
+
     if os.name == 'nt':  # Windows
         return home / 'AppData' / 'Roaming' / 'Cursor' / 'User' / 'globalStorage'
     elif os.name == 'posix':
@@ -21,14 +21,14 @@ def get_cursor_config_dir() -> Path:
             return home / 'Library' / 'Application Support' / 'Cursor' / 'User' / 'globalStorage'
         else:  # Linux
             return home / '.config' / 'Cursor' / 'User' / 'globalStorage'
-    
+
     raise OSError(f"Unsupported operating system: {os.name}")
 
 
 def get_copilot_config_dir() -> Path:
     """Get GitHub Copilot (VS Code) configuration directory based on platform."""
     home = get_home_directory()
-    
+
     if os.name == 'nt':  # Windows
         return home / 'AppData' / 'Roaming' / 'Code' / 'User' / 'globalStorage' / 'github.copilot'
     elif os.name == 'posix':
@@ -36,7 +36,7 @@ def get_copilot_config_dir() -> Path:
             return home / 'Library' / 'Application Support' / 'Code' / 'User' / 'globalStorage' / 'github.copilot'
         else:  # Linux
             return home / '.config' / 'Code' / 'User' / 'globalStorage' / 'github.copilot'
-    
+
     raise OSError(f"Unsupported operating system: {os.name}")
 
 
@@ -58,16 +58,10 @@ def get_winsurf_config_dir() -> Path:
 def get_claude_config_dir() -> Path:
     """Get Claude Code configuration directory based on platform."""
     home = get_home_directory()
-    
-    if os.name == 'nt':  # Windows
-        return home / 'AppData' / 'Roaming' / 'Claude' / 'instructions'
-    elif os.name == 'posix':
-        if 'darwin' in os.uname().sysname.lower():  # macOS
-            return home / 'Library' / 'Application Support' / 'Claude' / 'instructions'
-        else:  # Linux
-            return home / '.config' / 'claude' / 'instructions'
-    
-    raise OSError(f"Unsupported operating system: {os.name}")
+
+    # Claude Code uses ~/.claude/rules/ for global rules
+    # This is consistent across all platforms
+    return home / '.claude' / 'rules'
 
 
 def get_instructionkit_data_dir() -> Path:
@@ -112,7 +106,7 @@ def resolve_conflict_name(original_path: Path, suffix: Optional[str] = None) -> 
         extension = original_path.suffix
         new_name = f"{stem}-{suffix}{extension}"
         return original_path.parent / new_name
-    
+
     # Auto-increment: file.md -> file-1.md -> file-2.md
     counter = 1
     while True:

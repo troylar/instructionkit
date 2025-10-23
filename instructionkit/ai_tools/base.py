@@ -5,52 +5,52 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional
 
-from instructionkit.core.models import AIToolType, Instruction, InstallationScope
+from instructionkit.core.models import AIToolType, InstallationScope, Instruction
 
 
 class AITool(ABC):
     """
     Abstract base class for AI coding tool integrations.
-    
+
     Each AI tool (Cursor, Copilot, Winsurf, Claude) implements this interface
     to provide tool-specific installation logic.
     """
-    
+
     @property
     @abstractmethod
     def tool_type(self) -> AIToolType:
         """Return the AI tool type identifier."""
         pass
-    
+
     @property
     @abstractmethod
     def tool_name(self) -> str:
         """Return human-readable tool name."""
         pass
-    
+
     @abstractmethod
     def is_installed(self) -> bool:
         """
         Check if this AI tool is installed on the system.
-        
+
         Returns:
             True if tool is detected, False otherwise
         """
         pass
-    
+
     @abstractmethod
     def get_instructions_directory(self) -> Path:
         """
         Get the directory where instructions should be installed.
-        
+
         Returns:
             Path to instructions directory
-            
+
         Raises:
             FileNotFoundError: If tool is not installed
         """
         pass
-    
+
     @abstractmethod
     def get_instruction_file_extension(self) -> str:
         """
@@ -73,7 +73,7 @@ class AITool(ABC):
             Path to project instructions directory
         """
         pass
-    
+
     def get_instruction_path(
         self,
         instruction_name: str,
@@ -104,7 +104,7 @@ class AITool(ABC):
         extension = self.get_instruction_file_extension()
         filename = f"{instruction_name}{extension}"
         return directory / filename
-    
+
     def instruction_exists(
         self,
         instruction_name: str,
@@ -127,7 +127,7 @@ class AITool(ABC):
             return path.exists()
         except (FileNotFoundError, ValueError):
             return False
-    
+
     def install_instruction(
         self,
         instruction: Instruction,
@@ -164,7 +164,7 @@ class AITool(ABC):
         path.write_text(instruction.content, encoding='utf-8')
 
         return path
-    
+
     def uninstall_instruction(
         self,
         instruction_name: str,
@@ -190,32 +190,32 @@ class AITool(ABC):
             return False
         except (FileNotFoundError, ValueError):
             return False
-    
+
     def validate_installation(self) -> Optional[str]:
         """
         Validate that tool installation is correct and accessible.
-        
+
         Returns:
             None if valid, error message if invalid
         """
         if not self.is_installed():
             return f"{self.tool_name} is not installed or not found"
-        
+
         try:
             directory = self.get_instructions_directory()
             if not directory.exists():
                 # Try to create it
                 directory.mkdir(parents=True, exist_ok=True)
-            
+
             # Check write permissions
             if not os.access(directory, os.W_OK):
                 return f"No write permission for {directory}"
-                
+
         except Exception as e:
             return f"Error accessing {self.tool_name} directory: {str(e)}"
-        
+
         return None
-    
+
     def __repr__(self) -> str:
         """String representation."""
         return f"<{self.__class__.__name__} tool_type={self.tool_type.value}>"

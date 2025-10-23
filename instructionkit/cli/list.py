@@ -2,10 +2,8 @@
 
 from typing import Optional
 
-import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
-
 from rich.table import Table
 
 from instructionkit.core.git_operations import GitOperations
@@ -13,14 +11,14 @@ from instructionkit.core.models import AIToolType
 from instructionkit.core.repository import RepositoryParser
 from instructionkit.storage.library import LibraryManager
 from instructionkit.storage.tracker import InstallationTracker
+from instructionkit.utils.project import find_project_root
 from instructionkit.utils.ui import (
-    format_instructions_table,
     format_installed_table,
+    format_instructions_table,
     print_error,
     print_info,
 )
 from instructionkit.utils.validation import is_valid_git_url, normalize_repo_url
-from instructionkit.utils.project import find_project_root
 
 console = Console()
 
@@ -33,13 +31,13 @@ def list_available(
 ) -> int:
     """
     List available instructions from a repository.
-    
+
     Args:
         repo: Git repository URL
         tag: Filter by tag
         bundles_only: Show only bundles
         instructions_only: Show only instructions
-        
+
     Returns:
         Exit code (0 for success, 1 for error)
     """
@@ -47,7 +45,7 @@ def list_available(
     if not is_valid_git_url(repo):
         print_error(f"Invalid Git repository URL: {repo}", console)
         return 1
-    
+
     # Check Git is installed
     if not GitOperations.is_git_installed():
         print_error(
@@ -55,7 +53,7 @@ def list_available(
             console
         )
         return 1
-    
+
     # Clone repository or use local path
     git_ops = GitOperations()
     is_local = git_ops.is_local_path(repo)
@@ -81,27 +79,27 @@ def list_available(
             except Exception as e:
                 print_error(f"Failed to clone repository: {e}", console)
                 return 1
-    
+
     try:
         # Parse repository
         parser = RepositoryParser(repo_path)
         repository = parser.parse()
-        
+
         # Filter by tag if specified
         instructions = repository.instructions
         bundles = repository.bundles
-        
+
         if tag:
             instructions = [i for i in instructions if tag in i.tags]
             bundles = [b for b in bundles if tag in b.tags]
             print_info(f"Filtered by tag: {tag}", console)
-        
+
         # Apply filters
         if bundles_only:
             instructions = []
         if instructions_only:
             bundles = []
-        
+
         # Check if anything to display
         if not instructions and not bundles:
             if tag:
@@ -109,19 +107,19 @@ def list_available(
             else:
                 console.print("[yellow]No instructions or bundles found in repository[/yellow]")
             return 0
-        
+
         # Display table
         table = format_instructions_table(instructions, bundles, show_bundles=not instructions_only)
         console.print()
         console.print(table)
         console.print()
-        
+
         # Summary
-        total = len(instructions) + len(bundles)
+        len(instructions) + len(bundles)
         console.print(f"Found {len(instructions)} instruction(s) and {len(bundles)} bundle(s)")
-        
+
         return 0
-        
+
     finally:
         # Clean up cloned repository (but not local directories)
         GitOperations.cleanup_repository(repo_path, is_temp=not is_local)
@@ -164,12 +162,12 @@ def list_installed(
             return 1
     else:
         records = tracker.get_installed_instructions(project_root=project_root)
-    
+
     # Filter by repository if specified
     if repo:
         normalized_repo = normalize_repo_url(repo)
         records = [r for r in records if normalize_repo_url(r.source_repo) == normalized_repo]
-    
+
     # Check if anything to display
     if not records:
         if tool and repo:
@@ -183,13 +181,13 @@ def list_installed(
         else:
             console.print("[yellow]No instructions installed[/yellow]")
         return 0
-    
+
     # Display table
     table = format_installed_table(records, group_by_tool=not bool(tool))
     console.print()
     console.print(table)
     console.print()
-    
+
     # Summary
     console.print(f"Total: {len(records)} installed instruction(s)")
 
@@ -201,10 +199,10 @@ def list_library(
     show_instructions: bool = False,
 ) -> int:
     """
-    List repositories and instructions in the local library.
+    List sources and instructions in the local library.
 
     Args:
-        repo_filter: Filter by repository namespace
+        repo_filter: Filter by source alias or namespace
         show_instructions: Show individual instructions
 
     Returns:
@@ -214,28 +212,32 @@ def list_library(
     repositories = library.list_repositories()
 
     if not repositories:
-        print_info("Library is empty. Use 'instructionkit download' to add repositories.")
+        print_info("Library is empty. Use 'inskit download' to add sources.")
         return 0
 
-    # Filter if specified
+    # Filter if specified (match against alias or namespace)
     if repo_filter:
-        repositories = [r for r in repositories if repo_filter.lower() in r.namespace.lower()]
+        repositories = [
+            r for r in repositories
+            if repo_filter.lower() in (r.alias or '').lower()
+            or repo_filter.lower() in r.namespace.lower()
+        ]
         if not repositories:
-            print_error(f"No repositories matching: {repo_filter}")
+            print_error(f"No sources matching: {repo_filter}")
             return 1
 
-    # Show repositories
+    # Show sources
     if not show_instructions:
-        table = Table(title="Library Repositories", show_header=True, header_style="bold cyan")
-        table.add_column("Namespace", style="cyan", no_wrap=True)
+        table = Table(title="Library Sources", show_header=True, header_style="bold cyan")
+        table.add_column("Alias", style="cyan", no_wrap=True)
         table.add_column("Name", style="green")
         table.add_column("Version", style="yellow")
         table.add_column("Instructions", style="magenta")
         table.add_column("Downloaded", style="blue")
 
-        for repo in sorted(repositories, key=lambda r: r.name):
+        for repo in sorted(repositories, key=lambda r: r.alias or r.name):
             table.add_row(
-                repo.namespace,
+                repo.alias or repo.namespace,
                 repo.name,
                 repo.version,
                 str(len(repo.instructions)),
@@ -245,9 +247,9 @@ def list_library(
         console.print()
         console.print(table)
         console.print()
-        console.print(f"Total: {len(repositories)} repository(ies) in library")
+        console.print(f"Total: {len(repositories)} source(s) in library")
         console.print()
-        console.print("[dim]Use 'instructionkit install' to install instructions from library[/dim]")
+        console.print("[dim]Use 'inskit install' to install instructions from library[/dim]")
 
     # Show instructions
     else:
@@ -284,6 +286,6 @@ def list_library(
         console.print()
         console.print(f"Total: {len(all_instructions)} instruction(s) in library")
         console.print()
-        console.print("[dim]Use 'instructionkit install' to install these instructions[/dim]")
+        console.print("[dim]Use 'inskit install' to install these instructions[/dim]")
 
     return 0

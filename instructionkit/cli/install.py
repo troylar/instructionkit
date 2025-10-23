@@ -4,7 +4,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
@@ -12,19 +11,17 @@ from instructionkit.ai_tools.detector import get_detector
 from instructionkit.core.checksum import ChecksumValidator
 from instructionkit.core.conflict_resolution import (
     ConflictResolver,
-    prompt_conflict_resolution,
 )
 from instructionkit.core.git_operations import GitOperations
 from instructionkit.core.models import (
-    AIToolType,
     ConflictResolution,
     InstallationRecord,
     InstallationScope,
 )
 from instructionkit.core.repository import RepositoryParser
 from instructionkit.storage.tracker import InstallationTracker
-from instructionkit.utils.validation import is_valid_git_url, normalize_repo_url
 from instructionkit.utils.project import find_project_root
+from instructionkit.utils.validation import is_valid_git_url, normalize_repo_url
 
 console = Console()
 
@@ -35,10 +32,11 @@ def install_instruction(
     tool: Optional[str] = None,
     conflict_strategy: str = "skip",
     bundle: bool = False,
-    scope: str = "global",
 ) -> int:
     """
     Install an instruction from a Git repository.
+
+    All installations are at project level.
 
     Args:
         name: Instruction or bundle name to install
@@ -46,7 +44,6 @@ def install_instruction(
         tool: AI tool to install to (cursor, copilot, etc.)
         conflict_strategy: How to handle conflicts (skip, rename, overwrite)
         bundle: Whether this is a bundle installation
-        scope: Installation scope (global or project)
 
     Returns:
         Exit code (0 for success, 1 for error)
@@ -66,28 +63,19 @@ def install_instruction(
         )
         return 1
 
-    # Parse installation scope
-    try:
-        install_scope = InstallationScope(scope.lower())
-    except ValueError:
+    # Always use project scope
+    install_scope = InstallationScope.PROJECT
+
+    # Detect project root
+    project_root = find_project_root()
+    if project_root is None:
         console.print(
-            f"[red]Error:[/red] Invalid scope: {scope}. "
-            f"Must be 'global' or 'project'."
+            "[red]Error:[/red] Could not detect project root. "
+            "Make sure you're running this command from within a project directory."
         )
         return 1
+    console.print(f"Detected project root: [cyan]{project_root}[/cyan]")
 
-    # Detect project root if installing to project scope
-    project_root: Optional[Path] = None
-    if install_scope == InstallationScope.PROJECT:
-        project_root = find_project_root()
-        if project_root is None:
-            console.print(
-                "[red]Error:[/red] Could not detect project root. "
-                "Make sure you're running this command from within a project directory."
-            )
-            return 1
-        console.print(f"Detected project root: [cyan]{project_root}[/cyan]")
-    
     # Check Git is installed
     if not GitOperations.is_git_installed():
         console.print(
@@ -95,7 +83,7 @@ def install_instruction(
             "Please install Git and try again."
         )
         return 1
-    
+
     # Determine AI tool
     ai_tool = _get_ai_tool(tool)
     if ai_tool is None:
@@ -104,15 +92,15 @@ def install_instruction(
             "Please specify with --tool flag."
         )
         return 1
-    
+
     # Validate AI tool
     validation_error = ai_tool.validate_installation()
     if validation_error:
         console.print(f"[red]Error:[/red] {validation_error}")
         return 1
-    
+
     console.print(f"Installing to [cyan]{ai_tool.tool_name}[/cyan]...")
-    
+
     # Clone repository or use local path
     git_ops = GitOperations()
     is_local = git_ops.is_local_path(repo)
@@ -139,13 +127,13 @@ def install_instruction(
             except Exception as e:
                 console.print(f"[red]Error:[/red] Failed to clone repository: {e}")
                 return 1
-    
+
     try:
         # Parse repository
         parser = RepositoryParser(repo_path)
         repository = parser.parse()
         repository.url = normalize_repo_url(repo)
-        
+
         # Get instructions to install
         if bundle:
             instructions = parser.get_instructions_for_bundle(name)
@@ -159,15 +147,15 @@ def install_instruction(
                 console.print(f"[red]Error:[/red] Instruction '{name}' not found in repository")
                 return 1
             instructions = [instruction]
-        
+
         # Install instructions
         tracker = InstallationTracker()
         resolver = ConflictResolver(default_strategy=strategy)
         checksum_validator = ChecksumValidator()
-        
+
         installed_count = 0
         skipped_count = 0
-        
+
         for instruction in instructions:
             # Check if already exists
             target_path = ai_tool.get_instruction_path(
@@ -220,21 +208,21 @@ def install_instruction(
                     project_root=str(project_root) if project_root else None,
                 )
                 tracker.add_installation(record, project_root)
-                
+
                 console.print(f"  [green]✓[/green] Installed: {instruction.name}")
                 installed_count += 1
-                
+
             except Exception as e:
                 console.print(f"  [red]Error:[/red] {instruction.name}: {e}")
-        
+
         # Summary
         console.print()
         console.print(f"[green]Successfully installed {installed_count} instruction(s)[/green]")
         if skipped_count > 0:
             console.print(f"[yellow]Skipped {skipped_count} existing instruction(s)[/yellow]")
-        
+
         return 0
-        
+
     finally:
         # Clean up cloned repository (but not local directories)
         GitOperations.cleanup_repository(repo_path, is_temp=not is_local)

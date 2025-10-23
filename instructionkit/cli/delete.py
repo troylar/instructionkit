@@ -1,6 +1,5 @@
 """Delete command for removing instructions from library."""
 
-from typing import Optional
 
 import typer
 from rich.console import Console

@@ -5,7 +5,7 @@ from typing import Optional
 from rich.console import Console
 from rich.table import Table
 
-from instructionkit.core.models import Instruction, InstructionBundle, InstallationRecord
+from instructionkit.core.models import InstallationRecord, Instruction, InstructionBundle
 
 
 def format_instructions_table(
@@ -15,22 +15,22 @@ def format_instructions_table(
 ) -> Table:
     """
     Format instructions and bundles as a Rich table.
-    
+
     Args:
         instructions: List of instructions to display
         bundles: List of bundles to display
         show_bundles: Whether to show bundles section
-        
+
     Returns:
         Rich Table object
     """
     table = Table(title="Available Instructions", show_header=True, header_style="bold cyan")
-    
+
     table.add_column("Name", style="cyan", no_wrap=True)
     table.add_column("Type", style="magenta")
     table.add_column("Description")
     table.add_column("Tags", style="yellow")
-    
+
     # Add instructions
     for inst in sorted(instructions, key=lambda x: x.name):
         tags_str = ", ".join(inst.tags) if inst.tags else "-"
@@ -40,7 +40,7 @@ def format_instructions_table(
             inst.description,
             tags_str
         )
-    
+
     # Add bundles
     if show_bundles:
         for bundle in sorted(bundles, key=lambda x: x.name):
@@ -52,7 +52,7 @@ def format_instructions_table(
                 f"{bundle.description} ({inst_count})",
                 tags_str
             )
-    
+
     return table
 
 
@@ -80,13 +80,13 @@ def format_installed_table(
     table.add_column("Source Repository")
     table.add_column("Installed", style="yellow")
     table.add_column("Bundle", style="magenta")
-    
+
     # Sort records
     if group_by_tool:
         sorted_records = sorted(records, key=lambda x: (x.ai_tool.value, x.instruction_name))
     else:
         sorted_records = sorted(records, key=lambda x: x.instruction_name)
-    
+
     # Add rows
     current_tool = None
     for record in sorted_records:
@@ -123,7 +123,7 @@ def format_installed_table(
                 installed_date,
                 bundle_display
             )
-    
+
     return table
 
 
@@ -133,11 +133,11 @@ def format_bundle_details(
 ) -> Table:
     """
     Format bundle details with its instructions.
-    
+
     Args:
         bundle: Bundle to display
         instructions: Instructions in the bundle
-        
+
     Returns:
         Rich Table object
     """
@@ -146,12 +146,12 @@ def format_bundle_details(
         show_header=True,
         header_style="bold cyan"
     )
-    
+
     table.add_column("#", style="dim", width=4)
     table.add_column("Instruction", style="cyan")
     table.add_column("Description")
     table.add_column("Tags", style="yellow")
-    
+
     for idx, inst in enumerate(instructions, 1):
         tags_str = ", ".join(inst.tags) if inst.tags else "-"
         table.add_row(
@@ -160,7 +160,7 @@ def format_bundle_details(
             inst.description,
             tags_str
         )
-    
+
     return table
 
 
@@ -196,7 +196,7 @@ def _shorten_url(url: str, max_length: int = 50) -> str:
     """Shorten URL for display."""
     if len(url) <= max_length:
         return url
-    
+
     # Try to keep the important parts: domain and repo name
     if "://" in url:
         protocol, rest = url.split("://", 1)
@@ -206,6 +206,6 @@ def _shorten_url(url: str, max_length: int = 50) -> str:
                 # Keep domain and last 2 parts
                 shortened = f"{parts[0]}/.../{'/'.join(parts[-2:])}"
                 return shortened
-    
+
     # Fallback: truncate with ellipsis
     return url[:max_length-3] + "..."

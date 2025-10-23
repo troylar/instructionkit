@@ -9,8 +9,8 @@ from rich.console import Console
 from instructionkit.ai_tools.detector import get_detector
 from instructionkit.core.models import AIToolType, InstallationScope
 from instructionkit.storage.tracker import InstallationTracker
-from instructionkit.utils.ui import print_error, print_success, print_warning
 from instructionkit.utils.project import find_project_root
+from instructionkit.utils.ui import print_error, print_success, print_warning
 
 console = Console()
 
@@ -19,16 +19,16 @@ def uninstall_instruction(
     name: str,
     tool: Optional[str] = None,
     force: bool = False,
-    scope: Optional[str] = None,
 ) -> int:
     """
     Uninstall an instruction.
+
+    Uninstalls from project level only.
 
     Args:
         name: Instruction name to uninstall
         tool: Specific AI tool to uninstall from (or None for all)
         force: Skip confirmation prompt
-        scope: Scope to uninstall from ('global', 'project', or None for both)
 
     Returns:
         Exit code (0 for success, 1 for error)
@@ -38,25 +38,12 @@ def uninstall_instruction(
     # Detect project root
     project_root = find_project_root()
 
-    # Get installed instructions matching the name
-    # Include both global and project if no scope specified
+    # Get installed instructions matching the name (project scope only)
     all_records = tracker.get_installed_instructions(project_root=project_root)
-    matching_records = [r for r in all_records if r.instruction_name == name]
-
-    # Filter by scope if specified
-    if scope:
-        scope_lower = scope.lower()
-        if scope_lower not in ['global', 'project']:
-            print_error(
-                f"Invalid scope: {scope}. Valid options: global, project",
-                console
-            )
-            return 1
-        try:
-            scope_enum = InstallationScope(scope_lower)
-            matching_records = [r for r in matching_records if r.scope == scope_enum]
-        except ValueError:
-            pass
+    matching_records = [
+        r for r in all_records
+        if r.instruction_name == name and r.scope == InstallationScope.PROJECT
+    ]
 
     # Filter by tool if specified
     if tool:
@@ -69,7 +56,7 @@ def uninstall_instruction(
                 console
             )
             return 1
-    
+
     # Check if instruction is installed
     if not matching_records:
         if tool:
@@ -77,12 +64,12 @@ def uninstall_instruction(
         else:
             print_error(f"Instruction '{name}' is not installed", console)
         return 1
-    
+
     # Show what will be uninstalled
-    console.print(f"\n[yellow]The following will be uninstalled:[/yellow]")
+    console.print("\n[yellow]The following will be uninstalled:[/yellow]")
     for record in matching_records:
         console.print(f"  • {record.instruction_name} ({record.ai_tool.value}, {record.scope.value})")
-    
+
     # Confirm unless --force
     if not force:
         console.print()
@@ -90,14 +77,14 @@ def uninstall_instruction(
         if not confirm:
             console.print("[yellow]Uninstall cancelled[/yellow]")
             return 0
-    
+
     # Get AI tool detector
     detector = get_detector()
-    
+
     # Uninstall each record
     removed_count = 0
     error_count = 0
-    
+
     for record in matching_records:
         ai_tool = detector.get_tool_by_type(record.ai_tool)
         if not ai_tool:
@@ -141,7 +128,7 @@ def uninstall_instruction(
         except Exception as e:
             print_error(f"Failed to uninstall {record.instruction_name}: {e}", console)
             error_count += 1
-    
+
     # Summary
     console.print()
     if removed_count > 0:
@@ -149,5 +136,5 @@ def uninstall_instruction(
     if error_count > 0:
         console.print(f"[red]Failed to uninstall {error_count} instruction(s)[/red]")
         return 1
-    
+
     return 0

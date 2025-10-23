@@ -1,14 +1,15 @@
 """Main CLI application entry point."""
 
-import typer
 from typing import Optional
+
+import typer
 
 from instructionkit.cli.delete import delete_from_library
 from instructionkit.cli.download import download_instructions
 from instructionkit.cli.install_new import install_instruction_unified
 from instructionkit.cli.list import list_available, list_installed, list_library
-from instructionkit.cli.uninstall import uninstall_instruction
 from instructionkit.cli.tools import show_tools
+from instructionkit.cli.uninstall import uninstall_instruction
 from instructionkit.cli.update import update_repository
 
 app = typer.Typer(
@@ -22,17 +23,26 @@ list_app = typer.Typer(help="List instructions")
 app.add_typer(list_app, name="list")
 
 
+@list_app.callback(invoke_without_command=True)
+def list_callback(ctx: typer.Context) -> None:
+    """List instructions (available, installed, or in library)."""
+    # If no subcommand was provided, show help
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
+        raise typer.Exit(0)
+
+
 @app.command()
 def install(
     names: Optional[list[str]] = typer.Argument(
         None,
-        help="Instruction name(s) to install (omit to browse library with TUI). Can specify multiple.",
+        help="Instruction name(s) to install (use source/name for disambiguation). Can specify multiple.",
     ),
-    repo: Optional[str] = typer.Option(
+    source: Optional[str] = typer.Option(
         None,
-        "--repo",
-        "-r",
-        help="Git repository URL or local directory path (for direct install)",
+        "--from",
+        "-f",
+        help="Source URL or path for direct install (bypasses library)",
     ),
     tools: Optional[list[str]] = typer.Option(
         None,
@@ -52,119 +62,116 @@ def install(
         "-b",
         help="Install as bundle (multiple instructions)",
     ),
-    scope: str = typer.Option(
-        "global",
-        "--scope",
-        "-s",
-        help="Installation scope (global or project)",
-    ),
 ) -> None:
     """
-    Install instructions from your library or directly from a repository.
+    Install instructions from your library or directly from a source.
 
-    NEW WORKFLOW (Library-based):
+    LIBRARY WORKFLOW (Recommended):
       # Browse and select instructions with TUI
-      instructionkit install
+      inskit install
 
       # Install specific instruction from library
-      instructionkit install python-style
+      inskit install python-best-practices
+
+      # Install from specific source (if multiple sources have same name)
+      inskit install company/python-best-practices
 
       # Install multiple instructions at once
-      instructionkit install python-style testing-guide api-design
+      inskit install python-style testing-guide api-design
 
       # Install to specific tools only
-      instructionkit install python-style --tool cursor --tool windsurf
+      inskit install python-style --tool cursor --tool windsurf
 
-    CLASSIC WORKFLOW (Direct from repo):
-      # Install directly from repository
-      instructionkit install python-style --repo https://github.com/company/instructions
+    DIRECT INSTALL (Bypasses library):
+      # Install directly from source URL
+      inskit install python-style --from https://github.com/company/instructions
 
-      # Install to current project
-      instructionkit install python-style --repo https://github.com/company/instructions --scope project
+      # Install bundle directly
+      inskit install python-backend --bundle --from https://github.com/company/instructions
 
-      # Install bundle
-      instructionkit install python-backend --bundle --repo https://github.com/company/instructions
-
-    First, download instructions to your library:
-      instructionkit download --repo https://github.com/company/instructions
-
-    Then browse and install with the interactive TUI:
-      instructionkit install
+    TIP: Download to your library first for better management:
+      inskit download --from https://github.com/company/instructions
     """
     exit_code = install_instruction_unified(
         names=names,
-        repo=repo,
+        repo=source,  # Keep backend param name for now
         tools=tools,
         conflict_strategy=conflict,
         bundle=bundle,
-        scope=scope,
     )
     raise typer.Exit(code=exit_code)
 
 
 @app.command()
 def download(
-    repo: str = typer.Option(
+    source: str = typer.Option(
         ...,
-        "--repo",
-        "-r",
-        help="Git repository URL or local directory path",
+        "--from",
+        "-f",
+        help="Source URL or local directory path",
+    ),
+    alias: Optional[str] = typer.Option(
+        None,
+        "--as",
+        "-a",
+        help="Friendly alias for this source (auto-generated if not provided)",
     ),
     force: bool = typer.Option(
         False,
         "--force",
-        "-f",
         help="Re-download even if already in library",
     ),
 ) -> None:
     """
-    Download instructions from a repository into your local library.
+    Download instructions from a source into your local library.
 
     This downloads and caches instructions locally without installing them.
-    After downloading, use 'instructionkit install' to select and install
-    instructions into your AI coding tools.
+    After downloading, use 'inskit install' to install instructions.
 
     Examples:
 
-      # Download from GitHub
-      instructionkit download --repo https://github.com/company/instructions
+      # Download from GitHub (auto-generates alias)
+      inskit download --from github.com/company/instructions
+
+      # Download with custom alias
+      inskit download --from github.com/company/instructions --as company
 
       # Download from local folder
-      instructionkit download --repo ./my-instructions
+      inskit download --from ./my-instructions --as local
 
       # Force re-download
-      instructionkit download --repo https://github.com/company/instructions --force
+      inskit download --from github.com/company/instructions --force
     """
-    exit_code = download_instructions(repo=repo, force=force)
+    exit_code = download_instructions(repo=source, force=force, alias=alias)
     raise typer.Exit(code=exit_code)
 
 
 @list_app.command("available")
 def list_available_cmd(
-    repo: str = typer.Option(..., "--repo", "-r", help="Git repository URL or local directory path"),
+    source: str = typer.Option(..., "--from", "-f", help="Source URL or local directory path"),
     tag: Optional[str] = typer.Option(None, "--tag", "-t", help="Filter by tag"),
     bundles_only: bool = typer.Option(False, "--bundles-only", help="Show only bundles"),
     instructions_only: bool = typer.Option(False, "--instructions-only", help="Show only instructions"),
 ) -> None:
     """
-    List available instructions from a repository or local folder.
+    List available instructions from a source (without downloading).
 
     Examples:
 
       # List from Git repository
-      instructionkit list available --repo https://github.com/company/instructions
+      inskit list available --from github.com/company/instructions
 
       # List from local folder
-      instructionkit list available --repo ./my-instructions
+      inskit list available --from ./my-instructions
 
       # Filter by tag
-      instructionkit list available --repo https://github.com/company/instructions --tag python
+      inskit list available --from github.com/company/instructions --tag python
 
       # Show only bundles
-      instructionkit list available --repo https://github.com/company/instructions --bundles-only
+      inskit list available --from github.com/company/instructions --bundles-only
     """
     exit_code = list_available(
-        repo=repo,
+        repo=source,  # Keep backend param name for now
         tag=tag,
         bundles_only=bundles_only,
         instructions_only=instructions_only,
@@ -180,38 +187,38 @@ def list_installed_cmd(
         "-t",
         help="Filter by AI tool (cursor, copilot, windsurf, claude)",
     ),
-    repo: Optional[str] = typer.Option(
+    source: Optional[str] = typer.Option(
         None,
-        "--repo",
-        "-r",
-        help="Filter by source repository URL",
+        "--source",
+        "-s",
+        help="Filter by source alias or name",
     ),
 ) -> None:
     """
-    List installed instructions.
+    List installed instructions in your AI tools.
 
     Examples:
 
       # List all installed instructions
-      instructionkit list installed
+      inskit list installed
 
       # Filter by AI tool
-      instructionkit list installed --tool cursor
+      inskit list installed --tool cursor
 
-      # Filter by repository
-      instructionkit list installed --repo https://github.com/company/instructions
+      # Filter by source
+      inskit list installed --source company
     """
-    exit_code = list_installed(tool=tool, repo=repo)
+    exit_code = list_installed(tool=tool, repo=source)  # Keep backend param name for now
     raise typer.Exit(code=exit_code)
 
 
 @list_app.command("library")
 def list_library_cmd(
-    repo: Optional[str] = typer.Option(
+    source: Optional[str] = typer.Option(
         None,
-        "--repo",
-        "-r",
-        help="Filter by repository namespace",
+        "--source",
+        "-s",
+        help="Filter by source alias",
     ),
     instructions: bool = typer.Option(
         False,
@@ -221,20 +228,20 @@ def list_library_cmd(
     ),
 ) -> None:
     """
-    List repositories and instructions in your local library.
+    List sources and instructions in your local library.
 
     Examples:
 
-      # List all repositories in library
-      instructionkit list library
+      # List all sources in library
+      inskit list library
 
       # Show individual instructions
-      instructionkit list library --instructions
+      inskit list library --instructions
 
-      # Filter by repository
-      instructionkit list library --repo company
+      # Filter by source
+      inskit list library --source company
     """
-    exit_code = list_library(repo_filter=repo, show_instructions=instructions)
+    exit_code = list_library(repo_filter=source, show_instructions=instructions)
     raise typer.Exit(code=exit_code)
 
 
@@ -256,19 +263,19 @@ def update(
     """
     Update downloaded instructions to their latest versions.
 
-    This re-downloads instructions from their source repositories,
+    This re-downloads instructions from their sources,
     ensuring you have the latest versions in your library.
 
     Examples:
 
-      # Update a specific repository
-      instructionkit update --namespace github.com_company_instructions
+      # Update a specific source
+      inskit update --namespace github.com_company_instructions
 
-      # Update all repositories
-      instructionkit update --all
+      # Update all sources
+      inskit update --all
 
-      # List repositories to find namespace
-      instructionkit list library
+      # List sources to find namespace
+      inskit list library
     """
     exit_code = update_repository(namespace=namespace, all_repos=all_repos)
     raise typer.Exit(code=exit_code)
@@ -288,21 +295,21 @@ def delete(
     ),
 ) -> None:
     """
-    Delete a repository from your local library.
+    Delete a source from your local library.
 
     This removes the downloaded instructions from your library but does NOT
-    uninstall them from your AI tools. To uninstall, use 'instructionkit uninstall'.
+    uninstall them from your AI tools. To uninstall, use 'inskit uninstall'.
 
     Examples:
 
-      # Delete a repository
-      instructionkit delete github.com_company_instructions
+      # Delete a source
+      inskit delete github.com_company_instructions
 
       # Skip confirmation
-      instructionkit delete github.com_company_instructions --force
+      inskit delete github.com_company_instructions --force
 
-      # List repositories to find namespace
-      instructionkit list library
+      # List sources to find namespace
+      inskit list library
     """
     exit_code = delete_from_library(namespace=namespace, force=force)
     raise typer.Exit(code=exit_code)
@@ -323,31 +330,24 @@ def uninstall(
         "-f",
         help="Skip confirmation prompt",
     ),
-    scope: Optional[str] = typer.Option(
-        None,
-        "--scope",
-        "-s",
-        help="Installation scope to uninstall from (global, project, or all)",
-    ),
 ) -> None:
     """
-    Uninstall an instruction.
+    Uninstall an instruction from your AI tools.
+
+    Removes instructions from project level only.
 
     Examples:
 
-      # Uninstall from all tools and scopes
-      instructionkit uninstall python-best-practices
+      # Uninstall from all tools
+      inskit uninstall python-best-practices
 
       # Uninstall from specific tool
-      instructionkit uninstall python-best-practices --tool cursor
-
-      # Uninstall only from project scope
-      instructionkit uninstall python-best-practices --scope project
+      inskit uninstall python-best-practices --tool cursor
 
       # Skip confirmation
-      instructionkit uninstall python-best-practices --force
+      inskit uninstall python-best-practices --force
     """
-    exit_code = uninstall_instruction(name=name, tool=tool, force=force, scope=scope)
+    exit_code = uninstall_instruction(name=name, tool=tool, force=force)
     raise typer.Exit(code=exit_code)
 
 
@@ -376,15 +376,18 @@ def version() -> None:
     typer.echo(f"InstructionKit version {version}")
 
 
-@app.callback()
-def main() -> None:
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context) -> None:
     """
     InstructionKit - Manage AI coding tool instructions from Git repositories.
 
     Install instructions for Cursor, GitHub Copilot, Windsurf, and Claude Code
     from any Git repository (public or private).
     """
-    pass
+    # If no command was provided, show help
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
+        raise typer.Exit(0)
 
 
 if __name__ == "__main__":

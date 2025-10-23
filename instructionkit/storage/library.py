@@ -68,6 +68,30 @@ class LibraryManager:
 
         return namespace
 
+    def generate_alias(self, url: str, repo_name: str) -> str:
+        """
+        Auto-generate a friendly alias from URL or repo name.
+
+        Args:
+            url: Repository URL
+            repo_name: Repository name
+
+        Returns:
+            Friendly alias (e.g., 'company-instructions' from github.com/company/instructions)
+        """
+        import re
+
+        if url.startswith(('http://', 'https://')):
+            # Extract repo path from URL
+            # https://github.com/company/instructions -> company-instructions
+            match = re.search(r'/([^/]+)/([^/]+?)(?:\.git)?$', url)
+            if match:
+                org, repo = match.groups()
+                return f"{org}-{repo}".lower()
+
+        # Fallback to sanitized repo name
+        return re.sub(r'[^a-z0-9-]', '-', repo_name.lower()).strip('-')
+
     def load_index(self) -> dict[str, LibraryRepository]:
         """
         Load the library index.
@@ -109,6 +133,7 @@ class LibraryManager:
         repo_author: str,
         repo_version: str,
         instructions: list[LibraryInstruction],
+        alias: Optional[str] = None,
     ) -> LibraryRepository:
         """
         Add a repository to the library.
@@ -120,12 +145,17 @@ class LibraryManager:
             repo_author: Repository author
             repo_version: Repository version
             instructions: List of instructions to add
+            alias: User-friendly alias (auto-generated if not provided)
 
         Returns:
             Created LibraryRepository
         """
         # Generate namespace
         namespace = self.get_repo_namespace(repo_url, repo_name)
+
+        # Auto-generate alias if not provided
+        if alias is None:
+            alias = self.generate_alias(repo_url, repo_name)
 
         # Create repository directory
         repo_dir = self.library_dir / namespace
@@ -144,6 +174,7 @@ class LibraryManager:
             author=repo_author,
             version=repo_version,
             downloaded_at=datetime.now(),
+            alias=alias,
             instructions=instructions,
         )
 
@@ -194,6 +225,32 @@ class LibraryManager:
         index = self.load_index()
         return index.get(namespace)
 
+    def get_repository_by_url(self, url: str) -> Optional[LibraryRepository]:
+        """
+        Find a repository by its source URL.
+
+        Args:
+            url: Repository URL (will be normalized for comparison)
+
+        Returns:
+            LibraryRepository or None if not found
+        """
+        # Normalize path for comparison
+        if not url.startswith(('http://', 'https://', 'git@')):
+            url = str(Path(url).resolve())
+
+        index = self.load_index()
+        for repo in index.values():
+            repo_url = repo.url
+            # Normalize repo URL for comparison
+            if not repo_url.startswith(('http://', 'https://', 'git@')):
+                repo_url = str(Path(repo_url).resolve())
+
+            if repo_url == url:
+                return repo
+
+        return None
+
     def list_repositories(self) -> list[LibraryRepository]:
         """
         List all repositories in the library.
@@ -243,6 +300,33 @@ class LibraryManager:
         """
         return [
             inst for inst in self.list_instructions()
+            if inst.name == name
+        ]
+
+    def get_instructions_by_source_and_name(
+        self, source_alias: str, name: str
+    ) -> list[LibraryInstruction]:
+        """
+        Get instructions by source alias and name.
+
+        Args:
+            source_alias: Source alias to filter by
+            name: Instruction name
+
+        Returns:
+            List of LibraryInstruction objects matching source and name
+        """
+        # Find repositories matching the source alias
+        matching_repos = []
+        for repo in self.list_repositories():
+            if repo.alias and repo.alias.lower() == source_alias.lower():
+                matching_repos.append(repo)
+
+        # Get instructions from matching repos
+        return [
+            inst
+            for repo in matching_repos
+            for inst in repo.instructions
             if inst.name == name
         ]
 

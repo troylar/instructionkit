@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-from instructionkit.utils.validation import is_valid_git_url, normalize_repo_url
+from instructionkit.utils.validation import is_valid_git_url
 
 
 class GitOperationError(Exception):
@@ -74,66 +74,66 @@ class GitOperations:
             if not local_path.is_dir():
                 raise GitOperationError(f"Path is not a directory: {local_path}")
             return local_path
-        
+
         # Create target directory if not provided
         if target_dir is None:
             target_dir = Path(tempfile.mkdtemp(prefix='instructionkit-'))
         else:
             target_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Build git clone command
         cmd = ['git', 'clone']
-        
+
         # Add depth for shallow clone
         if depth > 0:
             cmd.extend(['--depth', str(depth)])
-        
+
         # Add branch if specified
         if branch:
             cmd.extend(['--branch', branch])
-        
+
         # Add URL and target directory
         cmd.extend([repo_url, str(target_dir)])
-        
+
         try:
             # Execute git clone
-            result = subprocess.run(
+            subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
                 check=True,
                 timeout=300  # 5 minute timeout
             )
-            
+
             return target_dir
-            
+
         except subprocess.CalledProcessError as e:
             # Clean up target directory on failure
             if target_dir.exists():
                 shutil.rmtree(target_dir, ignore_errors=True)
-            
+
             error_msg = e.stderr if e.stderr else str(e)
             raise GitOperationError(f"Failed to clone repository: {error_msg}")
-        
+
         except subprocess.TimeoutExpired:
             # Clean up on timeout
             if target_dir.exists():
                 shutil.rmtree(target_dir, ignore_errors=True)
-            
-            raise GitOperationError(f"Repository clone timed out after 5 minutes")
-        
+
+            raise GitOperationError("Repository clone timed out after 5 minutes")
+
         except Exception as e:
             # Clean up on any other error
             if target_dir.exists():
                 shutil.rmtree(target_dir, ignore_errors=True)
-            
+
             raise GitOperationError(f"Unexpected error during clone: {str(e)}")
-    
+
     @staticmethod
     def is_git_installed() -> bool:
         """
         Check if Git is installed and accessible.
-        
+
         Returns:
             True if git command is available
         """
@@ -146,12 +146,12 @@ class GitOperations:
             return result.returncode == 0
         except (subprocess.SubprocessError, FileNotFoundError):
             return False
-    
+
     @staticmethod
     def get_git_version() -> Optional[str]:
         """
         Get installed Git version.
-        
+
         Returns:
             Git version string or None if not installed
         """
@@ -168,7 +168,7 @@ class GitOperations:
             return None
         except (subprocess.SubprocessError, FileNotFoundError):
             return None
-    
+
     @staticmethod
     def cleanup_repository(repo_path: Path, is_temp: bool = True) -> None:
         """
@@ -188,22 +188,22 @@ class GitOperations:
 def with_temporary_clone(repo_url: str, branch: Optional[str] = None):
     """
     Context manager for temporary repository clones.
-    
+
     Usage:
         with with_temporary_clone(repo_url) as repo_path:
             # Use repo_path
             pass
         # Repository is automatically cleaned up
-    
+
     Args:
         repo_url: URL of repository to clone
         branch: Optional branch to clone
-        
+
     Yields:
         Path to cloned repository
     """
     from contextlib import contextmanager
-    
+
     @contextmanager
     def _clone_context():
         repo_path = None
@@ -214,5 +214,5 @@ def with_temporary_clone(repo_url: str, branch: Optional[str] = None):
         finally:
             if repo_path and repo_path.exists():
                 GitOperations.cleanup_repository(repo_path)
-    
+
     return _clone_context()

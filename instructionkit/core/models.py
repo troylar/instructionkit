@@ -31,7 +31,7 @@ class InstallationScope(Enum):
 class Instruction:
     """
     Represents a single instruction file.
-    
+
     Attributes:
         name: Unique identifier (e.g., 'python-best-practices')
         description: Human-readable description
@@ -48,7 +48,7 @@ class Instruction:
     tags: list[str] = field(default_factory=list)
     checksum: Optional[str] = None
     ai_tools: list[AIToolType] = field(default_factory=list)
-    
+
     def __post_init__(self) -> None:
         """Validate instruction data."""
         if not self.name:
@@ -65,7 +65,7 @@ class Instruction:
 class InstructionBundle:
     """
     Represents a bundle of related instructions.
-    
+
     Attributes:
         name: Bundle identifier (e.g., 'python-backend')
         description: What this bundle provides
@@ -76,7 +76,7 @@ class InstructionBundle:
     description: str
     instructions: list[str]
     tags: list[str] = field(default_factory=list)
-    
+
     def __post_init__(self) -> None:
         """Validate bundle data."""
         if not self.name:
@@ -129,7 +129,7 @@ class InstallationRecord:
     bundle_name: Optional[str] = None
     scope: InstallationScope = InstallationScope.GLOBAL
     project_root: Optional[str] = None
-    
+
     def __post_init__(self) -> None:
         """Validate installation record."""
         if not self.instruction_name:
@@ -138,7 +138,7 @@ class InstallationRecord:
             raise ValueError("Source repository cannot be empty")
         if not self.installed_path:
             raise ValueError("Installed path cannot be empty")
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -152,7 +152,7 @@ class InstallationRecord:
             'scope': self.scope.value,
             'project_root': self.project_root,
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> 'InstallationRecord':
         """Create from dictionary (JSON deserialization)."""
@@ -284,6 +284,7 @@ class LibraryRepository:
         author: Author or team name
         version: Repository version
         downloaded_at: When it was downloaded
+        alias: User-friendly alias for this source (optional)
         instructions: List of instructions in this repository
     """
     namespace: str
@@ -293,6 +294,7 @@ class LibraryRepository:
     author: str
     version: str
     downloaded_at: datetime
+    alias: Optional[str] = None
     instructions: list[LibraryInstruction] = field(default_factory=list)
 
     def __post_init__(self) -> None:
@@ -312,6 +314,7 @@ class LibraryRepository:
             'author': self.author,
             'version': self.version,
             'downloaded_at': self.downloaded_at.isoformat(),
+            'alias': self.alias,
             'instructions': [inst.to_dict() for inst in self.instructions],
         }
 
@@ -331,5 +334,6 @@ class LibraryRepository:
             author=data['author'],
             version=data['version'],
             downloaded_at=datetime.fromisoformat(data['downloaded_at']),
+            alias=data.get('alias'),  # Optional field, may not exist in old data
             instructions=instructions,
         )
