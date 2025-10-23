@@ -49,8 +49,8 @@ Documentation = "https://github.com/instructionkit/instructionkit#readme"
 Repository = "https://github.com/instructionkit/instructionkit"
 Issues = "https://github.com/instructionkit/instructionkit/issues"
 
-[tool.setuptools]
-packages = ["instructionkit"]
+[tool.setuptools.packages.find]
+include = ["instructionkit*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
