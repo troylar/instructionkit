@@ -13,9 +13,9 @@ from instructionkit.core.models import AIToolType
 class AIToolDetector:
     """Detect and manage AI coding tools."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize detector with all supported tools."""
-        self.tools = {
+        self.tools: dict[AIToolType, AITool] = {
             AIToolType.CURSOR: CursorTool(),
             AIToolType.COPILOT: CopilotTool(),
             AIToolType.WINSURF: WinsurfTool(),

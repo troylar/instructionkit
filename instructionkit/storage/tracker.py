@@ -291,6 +291,15 @@ class InstallationTracker:
         records = self._read_records()
         return [r for r in records if r.bundle_name == bundle_name]
 
+    def list_installations(self) -> list[InstallationRecord]:
+        """
+        Get all installation records.
+
+        Returns:
+            List of all installation records
+        """
+        return self._read_records()
+
     def clear_all(self) -> None:
         """Clear all installation records (for testing)."""
         self._write_records([])

@@ -41,6 +41,8 @@ def update_repository(
             print_info("No repositories in library to update")
             return 0
     else:
+        # At this point namespace is guaranteed to be non-None due to check at line 33
+        assert namespace is not None, "namespace should not be None here"
         repo = library.get_repository(namespace)
         if not repo:
             print_error(f"Repository not found: {namespace}")

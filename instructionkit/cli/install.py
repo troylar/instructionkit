@@ -7,6 +7,7 @@ from typing import Optional
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
+from instructionkit.ai_tools.base import AITool
 from instructionkit.ai_tools.detector import get_detector
 from instructionkit.core.checksum import ChecksumValidator
 from instructionkit.core.conflict_resolution import (
@@ -159,6 +160,9 @@ def install_instruction(
                     continue
                 elif strategy == ConflictResolution.RENAME:
                     conflict_info = resolver.resolve(instruction.name, target_path, strategy)
+                    if conflict_info.new_path is None:
+                        console.print(f"  [red]Error:[/red] Failed to rename {instruction.name}")
+                        continue
                     target_path = Path(conflict_info.new_path)
                     console.print(f"  [yellow]Renamed:[/yellow] {instruction.name} -> " f"{target_path.name}")
                 elif strategy == ConflictResolution.OVERWRITE:
@@ -210,7 +214,7 @@ def install_instruction(
         GitOperations.cleanup_repository(repo_path, is_temp=not is_local)
 
 
-def _get_ai_tool(tool_name: Optional[str]):
+def _get_ai_tool(tool_name: Optional[str]) -> Optional[AITool]:
     """
     Get AI tool instance from name.
 

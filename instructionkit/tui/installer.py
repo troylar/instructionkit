@@ -333,7 +333,9 @@ class InstructionInstallerScreen(Screen):
     def on_search_changed(self, event: Input.Changed) -> None:
         """Handle search input changes."""
         repo_filter = self.query_one("#repo-filter", Select).value
-        self.filter_instructions(search=event.value, repo_namespace=repo_filter)
+        # Convert to string, handling NoSelection or other non-string values
+        repo_filter_str = str(repo_filter) if repo_filter is not None else ""
+        self.filter_instructions(search=event.value, repo_namespace=repo_filter_str)
 
     @on(Select.Changed, "#repo-filter")
     def on_repo_filter_changed(self, event: Select.Changed) -> None:
@@ -472,7 +474,7 @@ class InstructionInstallerApp(App):
         super().__init__()
         self.library = library
         self.tool = tool
-        self.result = None
+        self.result: Optional[dict] = None
 
     def on_mount(self) -> None:
         """Push the installer screen when app mounts."""

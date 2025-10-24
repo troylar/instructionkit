@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Generator, Optional
 
 from instructionkit.utils.validation import is_valid_git_url
 
@@ -168,7 +168,7 @@ class GitOperations:
                 shutil.rmtree(repo_path, ignore_errors=True)
 
 
-def with_temporary_clone(repo_url: str, branch: Optional[str] = None):
+def with_temporary_clone(repo_url: str, branch: Optional[str] = None) -> Generator[Path, None, None]:
     """
     Context manager for temporary repository clones.
 
@@ -188,7 +188,7 @@ def with_temporary_clone(repo_url: str, branch: Optional[str] = None):
     from contextlib import contextmanager
 
     @contextmanager
-    def _clone_context():
+    def _clone_context() -> Generator[Path, None, None]:
         repo_path = None
         try:
             git_ops = GitOperations()
