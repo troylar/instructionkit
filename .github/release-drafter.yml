@@ -1,0 +1,55 @@
+name-template: "🚀 v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+no-changes-template: "- No changes since last release"
+
+categories:
+  - title: "✨ Features"
+    labels:
+      - feat
+      - feature
+      - enhancement
+  - title: "🐛 Bug Fixes"
+    labels:
+      - fix
+      - bug
+  - title: "🧰 Maintenance"
+    labels:
+      - chore
+      - ci
+      - deps
+      - refactor
+  - title: "📝 Documentation"
+    labels:
+      - docs
+
+version-resolver:
+  major:
+    labels:
+      - breaking
+  minor:
+    labels:
+      - feat
+      - feature
+      - enhancement
+  patch:
+    labels:
+      - fix
+      - bug
+      - chore
+      - docs
+      - deps
+
+exclude-labels:
+  - skip-changelog
+
+autolabeler:
+  - label: docs
+    title:
+      - "docs"
+      - "documentation"
+  - label: deps
+    title:
+      - "deps"
+      - "dependency"

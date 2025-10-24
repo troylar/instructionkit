@@ -38,6 +38,7 @@ dev = [
     "invoke>=2.0.0",
     "build>=1.2.1",
     "twine>=5.0.0",
+    "types-PyYAML>=6.0.12.20240808",
 ]
 
 [project.scripts]

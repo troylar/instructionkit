@@ -1,0 +1,42 @@
+name: "💡 Feature request"
+description: "Suggest an idea or enhancement"
+labels:
+  - enhancement
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to share your idea! Help us understand the value and scope by filling out the details below.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: "What problem does this solve?"
+      placeholder: "InstructionKit should support auto-installing instructions based on project tags..."
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: "Why is this important? How would it improve your workflow?"
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: "Describe your idea. Include CLI examples or UI sketches if relevant."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: "If you have considered other approaches, list them here."
+  - type: checkboxes
+    id: help
+    attributes:
+      label: How can you help?
+      options:
+        - label: "I would like to implement this feature"
+        - label: "I can review or test the implementation"

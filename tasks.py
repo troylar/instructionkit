@@ -38,7 +38,7 @@ def test(c, verbose=False, coverage=False, marker=None):
         cmd += " -q"
 
     if coverage:
-        cmd += " --cov=instructionkit --cov-report=term-missing --cov-report=html"
+        cmd += " --cov=instructionkit --cov-report=term-missing --cov-report=xml --cov-report=html"
 
     if marker:
         cmd += f" -m {marker}"
@@ -82,11 +82,13 @@ def coverage(c, html=True):
     Options:
         --html: Generate HTML coverage report (default: True)
     """
-    cmd = "pytest tests/ --cov=instructionkit --cov-report=term-missing"
+    cmd = "pytest tests/ --cov=instructionkit --cov-report=term-missing --cov-report=xml"
 
     if html:
         cmd += " --cov-report=html"
         print("\n📊 HTML coverage report: htmlcov/index.html")
+
+    print("📄 XML coverage report: coverage.xml")
 
     c.run(cmd, pty=True)
 

@@ -1,0 +1,47 @@
+#!/bin/bash
+# Pre-push hook to enforce local parity with CI before pushing to main.
+set -euo pipefail
+
+should_check=false
+while read -r _ _ remote_ref _; do
+  if [[ "${remote_ref}" == "refs/heads/main" ]]; then
+    should_check=true
+    break
+  fi
+done
+
+# Drain remaining stdin if any to avoid interfering with git's processing.
+while read -r _; do
+  :
+done
+
+if [[ "${should_check}" != true ]]; then
+  exit 0
+fi
+
+echo "🔍 Running local CI parity checks before pushing to main..."
+
+run_step() {
+  local description="$1"
+  shift
+  echo "\n➡️  ${description}"
+  if ! "$@"; then
+    echo "\n❌ ${description} failed. Push aborted."
+    exit 1
+  fi
+}
+
+if command -v invoke >/dev/null 2>&1; then
+  INVOKE_CMD="invoke"
+else
+  echo "❌ 'invoke' command not found. Install project dev dependencies first (pip install -e .[dev])."
+  exit 1
+fi
+
+run_step "Linting (ruff)" "$INVOKE_CMD" lint
+run_step "Formatting check (black)" "$INVOKE_CMD" format --check
+run_step "Type checking (mypy)" "$INVOKE_CMD" typecheck
+run_step "Test suite with coverage" "$INVOKE_CMD" test --coverage
+
+echo "\n✅ All local checks passed. Proceeding with push."
+exit 0

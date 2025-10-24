@@ -1,0 +1,50 @@
+name: "🐞 Bug report"
+description: "Help us squash a bug"
+labels:
+  - bug
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping us improve InstructionKit! Please provide as much detail as possible so we can reproduce the issue quickly.
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: "CLI version (`inskit version`), OS, Python version"
+      placeholder: "InstructionKit 0.1.x on macOS 14, Python 3.12"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: "A clear and concise description of the bug."
+      placeholder: "When attempting to install instructions from my library, the CLI exits with..."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: "List the exact steps or commands."
+      placeholder: |
+        1. Run `inskit download --from ...`
+        2. Run `inskit install`
+        3. Select ...
+        4. Observe error ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: "Paste command output (use triple backticks) or attach screenshots"
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-checks
+      options:
+        - label: "I ran `invoke quality` and `invoke test`"
+        - label: "I've searched existing issues"

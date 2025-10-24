@@ -5,6 +5,7 @@
 **Manage AI coding tool instructions from any source**
 
 [![CI](https://github.com/troylar/instructionkit/actions/workflows/ci.yml/badge.svg)](https://github.com/troylar/instructionkit/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/troylar/instructionkit/branch/main/graph/badge.svg)](https://codecov.io/gh/troylar/instructionkit)
 [![PyPI version](https://img.shields.io/pypi/v/instructionkit.svg)](https://pypi.org/project/instructionkit/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -603,11 +604,21 @@ All tools use **project-level installation** with tool-specific directories:
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here's how you can help:
+We welcome community contributions of all sizes. Before you get started:
 
-1. **Report Bugs:** Open an issue describing the bug and steps to reproduce
-2. **Suggest Features:** Open an issue with your feature request
-3. **Submit PRs:** Fork the repo, make your changes, and submit a pull request
+- 📘 Read the [Contributing Guide](CONTRIBUTING.md) for setup, coding standards, and PR expectations
+- 🤝 Review the [Code of Conduct](CODE_OF_CONDUCT.md) to keep our community respectful and inclusive
+- 🐛 [Report a bug](https://github.com/troylar/instructionkit/issues/new?template=bug_report.yml) using the guided template
+- 💡 [Request a feature](https://github.com/troylar/instructionkit/issues/new?template=feature_request.yml) and tell us how it helps your workflow
+
+When you're ready to contribute code:
+
+1. Fork the repo or create a feature branch
+2. Run `invoke quality` and `invoke test` locally
+3. Open a pull request using the template and link any related issues
+4. Expect an automatic review request thanks to CODEOWNERS—feedback is collaborative and friendly
+
+Curious where to start? Check out [good first issues](https://github.com/troylar/instructionkit/issues?q=is%3Aopen+label%3A%22good+first+issue%22) or start a [discussion](https://github.com/troylar/instructionkit/discussions) to explore ideas.
 
 ## 📬 Contact
 

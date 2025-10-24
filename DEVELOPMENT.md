@@ -377,6 +377,17 @@ instructionkit/
    git push origin feature/your-feature-name
    ```
 
+### Enforcing CI Locally Before Pushing to `main`
+
+To mirror GitHub Actions checks locally, install the provided Git hooks:
+
+```bash
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-push
+```
+
+The `pre-push` hook runs `invoke lint`, `invoke format --check`, `invoke typecheck`, and `invoke test --coverage` whenever you push to `main`. The push is blocked if any step fails. Ensure `invoke` is available (`pip install -e .[dev]`).
+
 ### Bug Fixes
 
 1. **Create test reproducing the bug**
