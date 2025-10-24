@@ -12,6 +12,44 @@ from instructionkit.utils.project import get_project_installation_tracker_path
 logger = logging.getLogger(__name__)
 
 
+def _make_path_relative(absolute_path: Path, project_root: Path) -> str:
+    """
+    Convert absolute path to relative path from project root.
+
+    Args:
+        absolute_path: Absolute file path
+        project_root: Project root directory
+
+    Returns:
+        Relative path string (e.g., ".github/instructions/file.md")
+    """
+    try:
+        return str(absolute_path.relative_to(project_root))
+    except ValueError:
+        # Path is not relative to project root, return as-is
+        logger.warning(f"Path {absolute_path} is not relative to project root {project_root}")
+        return str(absolute_path)
+
+
+def _make_path_absolute(relative_path: str, project_root: Path) -> Path:
+    """
+    Convert relative path to absolute path using project root.
+
+    Args:
+        relative_path: Relative path string
+        project_root: Project root directory
+
+    Returns:
+        Absolute Path object
+    """
+    path = Path(relative_path)
+    if path.is_absolute():
+        # Already absolute (old format), return as-is
+        return path
+    # Make relative path absolute
+    return project_root / path
+
+
 class InstallationTracker:
     """
     Manages tracking of installed instructions.
@@ -83,8 +121,26 @@ class InstallationTracker:
             tracker_file.parent.mkdir(parents=True, exist_ok=True)
             if not tracker_file.exists():
                 tracker_file.write_text("[]", encoding="utf-8")
+
+            # Convert installed_path to relative for project-scoped installations
+            # Create a new record with relative path for storage
+            installed_path_abs = Path(record.installed_path)
+            relative_path = _make_path_relative(installed_path_abs, project_root)
+
+            # Create a copy of the record with relative path for storage
+            storage_record = InstallationRecord(
+                instruction_name=record.instruction_name,
+                ai_tool=record.ai_tool,
+                source_repo=record.source_repo,
+                installed_path=relative_path,
+                installed_at=record.installed_at,
+                checksum=record.checksum,
+                bundle_name=record.bundle_name,
+                scope=record.scope,
+            )
         else:
             tracker_file = self.tracker_file
+            storage_record = record  # For global scope, use absolute paths
 
         # Read records from appropriate file
         try:
@@ -99,14 +155,14 @@ class InstallationTracker:
             r
             for r in records
             if not (
-                r.instruction_name == record.instruction_name
-                and r.ai_tool == record.ai_tool
-                and r.scope == record.scope
+                r.instruction_name == storage_record.instruction_name
+                and r.ai_tool == storage_record.ai_tool
+                and r.scope == storage_record.scope
             )
         ]
 
-        # Add new record
-        records.append(record)
+        # Add new record (with relative path if project-scoped)
+        records.append(storage_record)
 
         # Write back to appropriate file
         with open(tracker_file, "w", encoding="utf-8") as f:
@@ -199,7 +255,7 @@ class InstallationTracker:
             include_global: Whether to include global installations
 
         Returns:
-            List of installation records
+            List of installation records (paths converted to absolute for project-scoped records)
         """
         all_records = []
 
@@ -216,6 +272,13 @@ class InstallationTracker:
                     with open(tracker_file, "r", encoding="utf-8") as f:
                         data = json.load(f)
                     project_records = [InstallationRecord.from_dict(item) for item in data]
+
+                    # Convert relative paths to absolute for project-scoped records
+                    for record in project_records:
+                        abs_path = _make_path_absolute(record.installed_path, project_root)
+                        # Update the record with absolute path for compatibility
+                        record.installed_path = str(abs_path)
+
                     all_records.extend(project_records)
                 except (json.JSONDecodeError, FileNotFoundError):
                     pass

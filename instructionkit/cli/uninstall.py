@@ -97,13 +97,8 @@ def uninstall_instruction(
             # Determine scope filter for removal
             scope_filter = record.scope.value
 
-            # Determine project root for removal
-            removal_project_root = None
-            if record.scope == InstallationScope.PROJECT:
-                if record.project_root:
-                    removal_project_root = Path(record.project_root)
-                elif project_root:
-                    removal_project_root = project_root
+            # Determine project root for removal (only for project-scoped installations)
+            removal_project_root = project_root if record.scope == InstallationScope.PROJECT else None
 
             # Remove from tracker
             tracker.remove_installation(

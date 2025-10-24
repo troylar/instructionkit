@@ -191,7 +191,6 @@ def install_instruction(
                     checksum=instruction.checksum,
                     bundle_name=name if bundle else None,
                     scope=install_scope,
-                    project_root=str(project_root) if project_root else None,
                 )
                 tracker.add_installation(record, project_root)
 
