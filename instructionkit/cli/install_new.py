@@ -7,12 +7,14 @@ from typing import Optional
 import typer
 from rich.console import Console
 
-from instructionkit.ai_tools.detector import get_detector
+from instructionkit.ai_tools.base import AITool
+from instructionkit.ai_tools.detector import AIToolDetector, get_detector
 from instructionkit.core.conflict_resolution import ConflictResolver
 from instructionkit.core.models import (
     ConflictResolution,
     InstallationRecord,
     InstallationScope,
+    LibraryInstruction,
 )
 from instructionkit.storage.library import LibraryManager
 from instructionkit.storage.tracker import InstallationTracker
@@ -78,7 +80,7 @@ def _load_instructions_from_library(instruction_ids: list[str], library: Library
     return instructions
 
 
-def _resolve_name_conflicts(instructions: list) -> Optional[dict[str, str]]:
+def _resolve_name_conflicts(instructions: list[LibraryInstruction]) -> Optional[dict[str, str]]:
     """Resolve naming conflicts for instructions with duplicate names.
 
     Args:
@@ -88,7 +90,7 @@ def _resolve_name_conflicts(instructions: list) -> Optional[dict[str, str]]:
         Dict mapping instruction ID to install name, or None if cancelled
     """
     # Check for name conflicts
-    name_conflicts = {}
+    name_conflicts: dict[str, list[LibraryInstruction]] = {}
     for inst in instructions:
         if inst.name not in name_conflicts:
             name_conflicts[inst.name] = []
@@ -121,7 +123,7 @@ def _resolve_name_conflicts(instructions: list) -> Optional[dict[str, str]]:
     return install_names
 
 
-def _get_ai_tools_from_names(tool_names: list[str], detector) -> Optional[list]:
+def _get_ai_tools_from_names(tool_names: list[str], detector: AIToolDetector) -> Optional[list[AITool]]:
     """Get AI tool instances from tool names.
 
     Args:
@@ -225,6 +227,9 @@ def _perform_installation(
                     continue
                 elif strategy == ConflictResolution.RENAME:
                     conflict_info = resolver.resolve(install_name, target_path, strategy)
+                    if conflict_info.new_path is None:
+                        console.print(f"  [red]Error:[/red] Failed to rename {install_name}")
+                        continue
                     target_path = Path(conflict_info.new_path)
                     console.print(f"  [yellow]Renamed:[/yellow] {install_name} -> {target_path.name}")
                 elif strategy == ConflictResolution.OVERWRITE:
@@ -320,12 +325,12 @@ def install_from_library_tui(
     console.print("[bold yellow]The following files will be created:[/bold yellow]\n")
 
     for tool_name in selected_tools:
-        tool = detector.get_tool_by_name(tool_name)
-        if tool:
-            tool_dir = tool.get_project_instructions_directory(project_root)
-            console.print(f"[cyan]{tool.tool_name}[/cyan] → {tool_dir}")
+        ai_tool = detector.get_tool_by_name(tool_name)
+        if ai_tool:
+            tool_dir = ai_tool.get_project_instructions_directory(project_root)
+            console.print(f"[cyan]{ai_tool.tool_name}[/cyan] → {tool_dir}")
             for inst in selected_instructions:
-                filename = f"{inst.name}{tool.get_instruction_file_extension()}"
+                filename = f"{inst.name}{ai_tool.get_instruction_file_extension()}"
                 console.print(f"  • {filename}")
             console.print()
 
