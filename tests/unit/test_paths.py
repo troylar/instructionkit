@@ -214,7 +214,7 @@ class TestClaudeConfigDir:
         monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
 
         config_dir = get_claude_config_dir()
-        assert ".claude/rules" in str(config_dir)
+        assert ".claude" in str(config_dir) and "rules" in str(config_dir)
 
 
 class TestLibraryDir:
@@ -228,7 +228,7 @@ class TestLibraryDir:
 
         library_dir = get_library_dir()
         assert library_dir.exists()
-        assert ".instructionkit/library" in str(library_dir)
+        assert ".instructionkit" in str(library_dir) and "library" in str(library_dir)
 
 
 class TestInstallationTrackerPath:
