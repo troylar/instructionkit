@@ -1,8 +1,7 @@
 """Tests for install_new CLI command."""
 
-from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
