@@ -58,7 +58,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=instructionkit --cov-report=term-missing"
+addopts = "-v --cov=instructionkit --cov-report=term-missing -p no:cacheprovider"
 
 [tool.black]
 line-length = 120
