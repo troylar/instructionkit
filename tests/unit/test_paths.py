@@ -1,7 +1,10 @@
 """Unit tests for path utilities."""
 
+import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
+
+import pytest
 
 from instructionkit.utils.paths import (
     ensure_directory_exists,
@@ -80,6 +83,7 @@ class TestResolveConflictName:
 class TestCursorConfigDir:
     """Test Cursor config directory detection."""
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="macOS-specific test")
     def test_get_cursor_config_dir_macos(self, monkeypatch, temp_dir):
         """Test Cursor config dir on macOS."""
         home = temp_dir / "home"
@@ -92,6 +96,7 @@ class TestCursorConfigDir:
             config_dir = get_cursor_config_dir()
             assert "Library/Application Support/Cursor" in str(config_dir)
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="Linux-specific test")
     def test_get_cursor_config_dir_linux(self, monkeypatch, temp_dir):
         """Test Cursor config dir on Linux."""
         home = temp_dir / "home"
@@ -104,6 +109,7 @@ class TestCursorConfigDir:
             config_dir = get_cursor_config_dir()
             assert ".config/Cursor" in str(config_dir)
 
+    @pytest.mark.skipif(sys.platform != "win32", reason="Windows-specific test")
     def test_get_cursor_config_dir_windows(self, monkeypatch, temp_dir):
         """Test Cursor config dir on Windows."""
         home = temp_dir / "home"
@@ -118,6 +124,7 @@ class TestCursorConfigDir:
 class TestCopilotConfigDir:
     """Test Copilot config directory detection."""
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="macOS-specific test")
     def test_get_copilot_config_dir_macos(self, monkeypatch, temp_dir):
         """Test Copilot config dir on macOS."""
         home = temp_dir / "home"
@@ -131,6 +138,7 @@ class TestCopilotConfigDir:
             assert "Library/Application Support/Code" in str(config_dir)
             assert "github.copilot" in str(config_dir)
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="Linux-specific test")
     def test_get_copilot_config_dir_linux(self, monkeypatch, temp_dir):
         """Test Copilot config dir on Linux."""
         home = temp_dir / "home"
@@ -143,6 +151,7 @@ class TestCopilotConfigDir:
             config_dir = get_copilot_config_dir()
             assert ".config/Code" in str(config_dir)
 
+    @pytest.mark.skipif(sys.platform != "win32", reason="Windows-specific test")
     def test_get_copilot_config_dir_windows(self, monkeypatch, temp_dir):
         """Test Copilot config dir on Windows."""
         home = temp_dir / "home"
@@ -157,6 +166,7 @@ class TestCopilotConfigDir:
 class TestWinsurfConfigDir:
     """Test Windsurf config directory detection."""
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="macOS-specific test")
     def test_get_winsurf_config_dir_macos(self, monkeypatch, temp_dir):
         """Test Windsurf config dir on macOS."""
         home = temp_dir / "home"
@@ -169,6 +179,7 @@ class TestWinsurfConfigDir:
             config_dir = get_winsurf_config_dir()
             assert "Library/Application Support/Windsurf" in str(config_dir)
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="Linux-specific test")
     def test_get_winsurf_config_dir_linux(self, monkeypatch, temp_dir):
         """Test Windsurf config dir on Linux."""
         home = temp_dir / "home"
@@ -181,6 +192,7 @@ class TestWinsurfConfigDir:
             config_dir = get_winsurf_config_dir()
             assert ".config/Windsurf" in str(config_dir)
 
+    @pytest.mark.skipif(sys.platform != "win32", reason="Windows-specific test")
     def test_get_winsurf_config_dir_windows(self, monkeypatch, temp_dir):
         """Test Windsurf config dir on Windows."""
         home = temp_dir / "home"
