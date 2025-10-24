@@ -371,6 +371,23 @@ breakpoint()
 
 **IMPORTANT:** When the user asks to "create a new release" or "make a release", follow this complete workflow.
 
+This project uses **GitHub Actions with PyPI Trusted Publishing** for automated releases. Publishing to PyPI happens automatically when you create a GitHub release.
+
+### PyPI Trusted Publishing Setup
+
+**One-time setup** (if not already configured):
+
+1. Go to https://pypi.org/manage/account/publishing/
+2. Add a new publisher:
+   - **PyPI Project Name**: `instructionkit`
+   - **Owner**: `troylar`
+   - **Repository**: `instructionkit`
+   - **Workflow name**: `publish.yml`
+   - **Environment**: (leave empty)
+3. Save the trusted publisher
+
+This allows GitHub Actions to publish without needing API tokens or passwords.
+
 ### Pre-Release Checklist
 
 1. **Ensure you're on the main branch** (or merge feature branch PR first)
@@ -403,11 +420,13 @@ git checkout main
 git pull origin main
 ```
 
-#### 3. Run Pre-Release Checks
+#### 3. Run Pre-Release Checks (Optional but Recommended)
 ```bash
 # This runs clean, quality, and test
 invoke release-check
 ```
+
+**Note:** The GitHub Actions workflow will also run these checks before publishing.
 
 **Action:** Fix any failures before proceeding.
 
@@ -428,7 +447,7 @@ version = "0.1.1"
 
 #### 5. Update Version in pyproject.toml
 
-Manually edit the version in `pyproject.toml`:
+Edit the version in `pyproject.toml`:
 ```toml
 [project]
 version = "0.2.0"  # New version
@@ -436,7 +455,7 @@ version = "0.2.0"  # New version
 
 #### 6. Update CHANGELOG.md
 
-Add a new version section at the top of CHANGELOG.md:
+Add a new version section at the top of CHANGELOG.md with changes since last release:
 ```markdown
 ## [0.2.0] - 2025-10-24
 
@@ -450,7 +469,7 @@ Add a new version section at the top of CHANGELOG.md:
 - Bug fix description
 ```
 
-**Note:** Use git log to review commits since last release:
+**Tip:** Review commits since last release:
 ```bash
 git log v0.1.1..HEAD --oneline
 ```
@@ -475,48 +494,42 @@ git push origin main
 git push origin v0.2.0
 ```
 
-#### 9. Build Package
-
-```bash
-invoke clean
-invoke build
-```
-
-This creates distribution files in `dist/`:
-- `instructionkit-0.2.0.tar.gz` (source distribution)
-- `instructionkit-0.2.0-py3-none-any.whl` (wheel)
-
-#### 10. Publish to PyPI
-
-```bash
-# Optional: Test on TestPyPI first
-invoke publish --repository testpypi
-
-# Publish to production PyPI
-invoke publish
-```
-
-**Note:** Requires PyPI credentials or token configured in `~/.pypirc`.
-
-#### 11. Create GitHub Release
+#### 9. Create GitHub Release (Triggers Automated Publishing)
 
 ```bash
 # Create release from tag
 gh release create v0.2.0 \
   --title "v0.2.0" \
-  --notes-file CHANGELOG.md \
-  dist/instructionkit-0.2.0.tar.gz \
-  dist/instructionkit-0.2.0-py3-none-any.whl
+  --notes "$(awk '/## \[0.2.0\]/,/## \[/' CHANGELOG.md | head -n -1)"
 ```
 
 **Alternative:** Create release manually on GitHub:
-- Go to https://github.com/troylar/instructionkit/releases/new
-- Select tag `v0.2.0`
-- Title: `v0.2.0`
-- Copy relevant section from CHANGELOG.md
-- Attach distribution files from `dist/`
+1. Go to https://github.com/troylar/instructionkit/releases/new
+2. Click "Choose a tag" and select `v0.2.0`
+3. Title: `v0.2.0`
+4. Copy the relevant section from CHANGELOG.md into the description
+5. Click "Publish release"
+
+**What happens next:** The `.github/workflows/publish.yml` workflow will automatically:
+1. Run quality checks and tests
+2. Build the package
+3. Publish to PyPI using trusted publishing
+
+#### 10. Monitor the Publish Workflow
+
+```bash
+# Watch workflow progress
+gh run watch
+
+# Or view in browser
+gh run list --workflow=publish.yml
+```
+
+You can also monitor at: https://github.com/troylar/instructionkit/actions
 
 ### Post-Release Verification
+
+Wait for the GitHub Actions workflow to complete (usually 2-5 minutes), then:
 
 ```bash
 # Verify package on PyPI
@@ -527,35 +540,60 @@ inskit --version
 
 # Verify GitHub release
 gh release view v0.2.0
+
+# Check PyPI page
+open https://pypi.org/project/instructionkit/
 ```
+
+### Testing on TestPyPI (Optional)
+
+To test the release process without publishing to production PyPI:
+
+```bash
+# Manually trigger workflow with TestPyPI option
+gh workflow run publish.yml -f repository=testpypi
+
+# Monitor the test run
+gh run watch
+```
+
+Then verify on TestPyPI: https://test.pypi.org/project/instructionkit/
 
 ### Rollback (If Needed)
 
 If issues are discovered after release:
 
-1. **Yank release from PyPI** (doesn't delete, marks as unavailable):
+1. **Yank release from PyPI** (marks as unavailable, doesn't delete):
    ```bash
+   # Install twine if needed
    pip install twine
-   twine upload --repository pypi --yank dist/instructionkit-0.2.0*
+
+   # Yank the version
+   twine upload --repository pypi --yank <version>
    ```
 
-2. **Delete GitHub release and tag**:
+2. **Delete GitHub release**:
    ```bash
    gh release delete v0.2.0 --yes
+   ```
+
+3. **Optionally delete the tag**:
+   ```bash
    git tag -d v0.2.0
    git push origin :refs/tags/v0.2.0
    ```
 
-3. **Fix issues and create new patch release** (e.g., 0.2.1)
+4. **Fix issues and create new patch release** (e.g., 0.2.1)
 
 ### Quick Reference
 
 For a standard release from main branch:
+
 ```bash
 # 1. Ensure clean state
 git checkout main && git pull
 
-# 2. Run checks
+# 2. Optional: Run checks locally
 invoke release-check
 
 # 3. Update version in pyproject.toml and CHANGELOG.md
@@ -566,9 +604,12 @@ git commit -m "chore: bump version to X.Y.Z"
 git tag -a vX.Y.Z -m "Release version X.Y.Z"
 git push origin main && git push origin vX.Y.Z
 
-# 5. Build and publish
-invoke clean && invoke build && invoke publish
+# 5. Create GitHub release (triggers automated publish)
+gh release create vX.Y.Z --title "vX.Y.Z" \
+  --notes "$(awk '/## \[X.Y.Z\]/,/## \[/' CHANGELOG.md | head -n -1)"
 
-# 6. Create GitHub release
-gh release create vX.Y.Z --title "vX.Y.Z" --notes-file CHANGELOG.md dist/*
+# 6. Monitor workflow and verify
+gh run watch
 ```
+
+The GitHub Actions workflow (`.github/workflows/publish.yml`) handles building and publishing automatically.
