@@ -25,7 +25,9 @@ def mock_copilot_installed(monkeypatch, temp_dir):
         copilot_dir = home_dir / "AppData" / "Roaming" / "Code" / "User" / "globalStorage" / "github.copilot"
     elif os.name == "posix":
         if "darwin" in os.uname().sysname.lower():  # macOS
-            copilot_dir = home_dir / "Library" / "Application Support" / "Code" / "User" / "globalStorage" / "github.copilot"
+            copilot_dir = (
+                home_dir / "Library" / "Application Support" / "Code" / "User" / "globalStorage" / "github.copilot"
+            )
         else:  # Linux
             copilot_dir = home_dir / ".config" / "Code" / "User" / "globalStorage" / "github.copilot"
     else:

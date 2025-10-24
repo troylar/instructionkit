@@ -6,6 +6,7 @@ Usage: invoke <task-name>
 List all tasks: invoke --list
 """
 
+import sys
 from pathlib import Path
 
 from invoke import task
@@ -14,6 +15,9 @@ from invoke import task
 ROOT = Path(__file__).parent
 SRC = ROOT / "instructionkit"
 TESTS = ROOT / "tests"
+
+# Check if pty is available (not available on Windows)
+PTY_SUPPORTED = sys.platform != "win32"
 
 
 # ============================================================================
@@ -43,7 +47,7 @@ def test(c, verbose=False, coverage=False, marker=None):
     if marker:
         cmd += f" -m {marker}"
 
-    c.run(cmd, pty=True)
+    c.run(cmd, pty=PTY_SUPPORTED)
 
 
 @task
@@ -54,7 +58,7 @@ def test_unit(c, verbose=False):
         cmd += " -vv"
     else:
         cmd += " -q"
-    c.run(cmd, pty=True)
+    c.run(cmd, pty=PTY_SUPPORTED)
 
 
 @task
@@ -65,13 +69,13 @@ def test_integration(c, verbose=False):
         cmd += " -vv"
     else:
         cmd += " -q"
-    c.run(cmd, pty=True)
+    c.run(cmd, pty=PTY_SUPPORTED)
 
 
 @task
 def test_watch(c):
     """Run tests in watch mode (requires pytest-watch)."""
-    c.run("ptw tests/ -- -q", pty=True)
+    c.run("ptw tests/ -- -q", pty=PTY_SUPPORTED)
 
 
 @task
@@ -90,7 +94,7 @@ def coverage(c, html=True):
 
     print("📄 XML coverage report: coverage.xml")
 
-    c.run(cmd, pty=True)
+    c.run(cmd, pty=PTY_SUPPORTED)
 
 
 # ============================================================================
@@ -110,7 +114,7 @@ def lint(c, fix=False):
     if fix:
         cmd += " --fix"
 
-    c.run(cmd, pty=True)
+    c.run(cmd, pty=PTY_SUPPORTED)
 
 
 @task
@@ -126,13 +130,13 @@ def format(c, check=False):
     if check:
         cmd += " --check"
 
-    c.run(cmd, pty=True)
+    c.run(cmd, pty=PTY_SUPPORTED)
 
 
 @task
 def typecheck(c):
     """Run mypy type checking."""
-    c.run("mypy instructionkit/", pty=True)
+    c.run("mypy instructionkit/", pty=PTY_SUPPORTED)
 
 
 @task
@@ -187,7 +191,7 @@ def clean(c):
 @task(pre=[clean])
 def build(c):
     """Build the package."""
-    c.run("python -m build", pty=True)
+    c.run("python -m build", pty=PTY_SUPPORTED)
     print("\n📦 Package built successfully!")
 
 
@@ -208,14 +212,14 @@ def install(c, dev=False, editable=True):
     if dev:
         cmd += "[dev]"
 
-    c.run(cmd, pty=True)
+    c.run(cmd, pty=PTY_SUPPORTED)
     print("✅ Package installed successfully!")
 
 
 @task
 def uninstall(c):
     """Uninstall the package."""
-    c.run("pip uninstall -y instructionkit", pty=True)
+    c.run("pip uninstall -y instructionkit", pty=PTY_SUPPORTED)
     print("✅ Package uninstalled successfully!")
 
 
@@ -229,7 +233,7 @@ def dev_setup(c):
     print("🔧 Setting up development environment...")
 
     print("\n📦 Installing package in editable mode with dev dependencies...")
-    c.run("pip install -e .[dev]", pty=True)
+    c.run("pip install -e .[dev]", pty=PTY_SUPPORTED)
 
     print("\n✅ Development environment ready!")
     print("\n💡 Quick commands:")
@@ -242,7 +246,7 @@ def dev_setup(c):
 @task
 def repl(c):
     """Start Python REPL with instructionkit imported."""
-    c.run("python -i -c 'import instructionkit; print(\"InstructionKit imported\")'", pty=True)
+    c.run("python -i -c 'import instructionkit; print(\"InstructionKit imported\")'", pty=PTY_SUPPORTED)
 
 
 # ============================================================================
@@ -256,19 +260,19 @@ def cli(c, args="--help"):
 
     Usage: invoke cli --args="download --repo https://..."
     """
-    c.run(f"instructionkit {args}", pty=True)
+    c.run(f"instructionkit {args}", pty=PTY_SUPPORTED)
 
 
 @task
 def list_tools(c):
     """List detected AI tools."""
-    c.run("instructionkit tools", pty=True)
+    c.run("instructionkit tools", pty=PTY_SUPPORTED)
 
 
 @task
 def list_library(c):
     """List instructions in library."""
-    c.run("instructionkit list library", pty=True)
+    c.run("instructionkit list library", pty=PTY_SUPPORTED)
 
 
 # ============================================================================
@@ -333,7 +337,7 @@ def publish(c, repository="pypi", skip_existing=True):
 
     skip_flag = " --skip-existing" if skip_existing else ""
     cmd = f"twine upload -r {repository}{skip_flag} dist/*"
-    c.run(cmd, pty=True)
+    c.run(cmd, pty=PTY_SUPPORTED)
 
     print("\n🚀 Upload complete!")
     print("📦 Repository:", repository)
@@ -374,7 +378,7 @@ def tree(c, level=2):
     """
     ignore = "__pycache__|*.pyc|*.egg-info|htmlcov|.pytest_cache|.mypy_cache|.ruff_cache"
     cmd = f"tree -L {level} -I '{ignore}'"
-    c.run(cmd, pty=True)
+    c.run(cmd, pty=PTY_SUPPORTED)
 
 
 @task(name="security-check")

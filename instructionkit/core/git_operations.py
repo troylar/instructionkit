@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 from contextlib import AbstractContextManager
 from pathlib import Path
-from typing import Generator, Iterator, Optional
+from typing import Iterator, Optional
 
 from instructionkit.utils.validation import is_valid_git_url
 

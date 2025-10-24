@@ -111,17 +111,20 @@ class TestAIToolDetector:
 
         # Mock Cursor and Winsurf as installed (platform-specific)
         if os.name == "nt":  # Windows
-            (home_dir / "AppData" / "Roaming" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
-            (home_dir / "AppData" / "Roaming" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
+            cursor_dir = home_dir / "AppData" / "Roaming" / "Cursor" / "User" / "globalStorage"
+            windsurf_dir = home_dir / "AppData" / "Roaming" / "Windsurf" / "User" / "globalStorage"
         elif os.name == "posix":
             if "darwin" in os.uname().sysname.lower():  # macOS
-                (home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
-                (home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
+                cursor_dir = home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage"
+                windsurf_dir = home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage"
             else:  # Linux
-                (home_dir / ".config" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
-                (home_dir / ".config" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
+                cursor_dir = home_dir / ".config" / "Cursor" / "User" / "globalStorage"
+                windsurf_dir = home_dir / ".config" / "Windsurf" / "User" / "globalStorage"
         else:
             raise OSError(f"Unsupported operating system: {os.name}")
+
+        cursor_dir.mkdir(parents=True)
+        windsurf_dir.mkdir(parents=True)
 
         monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
 
