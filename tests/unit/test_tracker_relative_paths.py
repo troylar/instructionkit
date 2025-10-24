@@ -4,8 +4,6 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-import pytest
-
 from instructionkit.core.models import AIToolType, InstallationRecord, InstallationScope
 from instructionkit.storage.tracker import InstallationTracker
 
@@ -107,7 +105,6 @@ class TestRelativePathRetrieval:
         project_root = temp_dir / "project"
         project_root.mkdir()
 
-        tracker_file = project_root / ".instructionkit" / "installations.json"
         tracker = InstallationTracker()
 
         # Save with absolute path (will be stored as relative)
