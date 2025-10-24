@@ -367,7 +367,51 @@ import pdb; pdb.set_trace()
 breakpoint()
 ```
 
-## Version Management
+## Release Workflow
+
+**IMPORTANT:** When the user asks to "create a new release" or "make a release", follow this complete workflow.
+
+### Pre-Release Checklist
+
+1. **Ensure you're on the main branch** (or merge feature branch PR first)
+2. **Working directory must be clean** (no uncommitted changes)
+3. **All tests must pass**: `invoke test`
+4. **Code quality checks must pass**: `invoke quality`
+5. **CI/CD pipeline must be green** on GitHub Actions
+
+### Release Steps
+
+Follow these steps in order when creating a new release:
+
+#### 1. Check Current Branch and Status
+```bash
+# Check current branch
+git branch --show-current
+
+# If on feature branch with open PR, check PR status
+gh pr status
+
+# Check for uncommitted changes
+git status
+```
+
+**Action:** If on a feature branch with an open PR, merge the PR to main first, then pull main locally.
+
+#### 2. Switch to Main and Pull Latest
+```bash
+git checkout main
+git pull origin main
+```
+
+#### 3. Run Pre-Release Checks
+```bash
+# This runs clean, quality, and test
+invoke release-check
+```
+
+**Action:** Fix any failures before proceeding.
+
+#### 4. Determine Version Bump
 
 Version is in `pyproject.toml`:
 ```toml
@@ -375,10 +419,156 @@ Version is in `pyproject.toml`:
 version = "0.1.1"
 ```
 
-Update version, CHANGELOG, then:
+**Semantic Versioning:**
+- **Patch** (0.1.1 → 0.1.2): Bug fixes, minor changes
+- **Minor** (0.1.1 → 0.2.0): New features, backwards compatible
+- **Major** (0.1.1 → 1.0.0): Breaking changes
+
+**Action:** Ask the user which version bump to apply if not specified.
+
+#### 5. Update Version in pyproject.toml
+
+Manually edit the version in `pyproject.toml`:
+```toml
+[project]
+version = "0.2.0"  # New version
+```
+
+#### 6. Update CHANGELOG.md
+
+Add a new version section at the top of CHANGELOG.md:
+```markdown
+## [0.2.0] - 2025-10-24
+
+### Added
+- New feature description
+
+### Changed
+- Modified behavior description
+
+### Fixed
+- Bug fix description
+```
+
+**Note:** Use git log to review commits since last release:
 ```bash
-git tag v0.1.1
-git push --tags
+git log v0.1.1..HEAD --oneline
+```
+
+#### 7. Commit Version Bump
+
+```bash
+git add pyproject.toml CHANGELOG.md
+git commit -m "chore: bump version to 0.2.0"
+```
+
+**IMPORTANT:** Do NOT include Claude co-author attribution.
+
+#### 8. Create and Push Git Tag
+
+```bash
+# Create annotated tag
+git tag -a v0.2.0 -m "Release version 0.2.0"
+
+# Push commits and tags
+git push origin main
+git push origin v0.2.0
+```
+
+#### 9. Build Package
+
+```bash
+invoke clean
 invoke build
+```
+
+This creates distribution files in `dist/`:
+- `instructionkit-0.2.0.tar.gz` (source distribution)
+- `instructionkit-0.2.0-py3-none-any.whl` (wheel)
+
+#### 10. Publish to PyPI
+
+```bash
+# Optional: Test on TestPyPI first
+invoke publish --repository testpypi
+
+# Publish to production PyPI
 invoke publish
+```
+
+**Note:** Requires PyPI credentials or token configured in `~/.pypirc`.
+
+#### 11. Create GitHub Release
+
+```bash
+# Create release from tag
+gh release create v0.2.0 \
+  --title "v0.2.0" \
+  --notes-file CHANGELOG.md \
+  dist/instructionkit-0.2.0.tar.gz \
+  dist/instructionkit-0.2.0-py3-none-any.whl
+```
+
+**Alternative:** Create release manually on GitHub:
+- Go to https://github.com/troylar/instructionkit/releases/new
+- Select tag `v0.2.0`
+- Title: `v0.2.0`
+- Copy relevant section from CHANGELOG.md
+- Attach distribution files from `dist/`
+
+### Post-Release Verification
+
+```bash
+# Verify package on PyPI
+pip install --upgrade instructionkit
+
+# Check installed version
+inskit --version
+
+# Verify GitHub release
+gh release view v0.2.0
+```
+
+### Rollback (If Needed)
+
+If issues are discovered after release:
+
+1. **Yank release from PyPI** (doesn't delete, marks as unavailable):
+   ```bash
+   pip install twine
+   twine upload --repository pypi --yank dist/instructionkit-0.2.0*
+   ```
+
+2. **Delete GitHub release and tag**:
+   ```bash
+   gh release delete v0.2.0 --yes
+   git tag -d v0.2.0
+   git push origin :refs/tags/v0.2.0
+   ```
+
+3. **Fix issues and create new patch release** (e.g., 0.2.1)
+
+### Quick Reference
+
+For a standard release from main branch:
+```bash
+# 1. Ensure clean state
+git checkout main && git pull
+
+# 2. Run checks
+invoke release-check
+
+# 3. Update version in pyproject.toml and CHANGELOG.md
+
+# 4. Commit and tag
+git add pyproject.toml CHANGELOG.md
+git commit -m "chore: bump version to X.Y.Z"
+git tag -a vX.Y.Z -m "Release version X.Y.Z"
+git push origin main && git push origin vX.Y.Z
+
+# 5. Build and publish
+invoke clean && invoke build && invoke publish
+
+# 6. Create GitHub release
+gh release create vX.Y.Z --title "vX.Y.Z" --notes-file CHANGELOG.md dist/*
 ```
