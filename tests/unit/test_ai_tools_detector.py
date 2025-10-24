@@ -15,15 +15,31 @@ def detector():
 @pytest.fixture
 def mock_all_tools_installed(monkeypatch, temp_dir):
     """Mock all tools as installed."""
+    import os
+
     home_dir = temp_dir / "home"
     home_dir.mkdir(parents=True)
 
-    # Create directories for all tools
-    (home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
-    (home_dir / "Library" / "Application Support" / "Code" / "User" / "globalStorage" / "github.copilot").mkdir(
-        parents=True
-    )
-    (home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
+    # Create platform-specific directory structures for all tools
+    if os.name == "nt":  # Windows
+        (home_dir / "AppData" / "Roaming" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
+        (home_dir / "AppData" / "Roaming" / "Code" / "User" / "globalStorage" / "github.copilot").mkdir(parents=True)
+        (home_dir / "AppData" / "Roaming" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
+    elif os.name == "posix":
+        if "darwin" in os.uname().sysname.lower():  # macOS
+            (home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
+            (home_dir / "Library" / "Application Support" / "Code" / "User" / "globalStorage" / "github.copilot").mkdir(
+                parents=True
+            )
+            (home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
+        else:  # Linux
+            (home_dir / ".config" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
+            (home_dir / ".config" / "Code" / "User" / "globalStorage" / "github.copilot").mkdir(parents=True)
+            (home_dir / ".config" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
+    else:
+        raise OSError(f"Unsupported operating system: {os.name}")
+
+    # Claude Code is consistent across platforms
     (home_dir / ".claude" / "rules").mkdir(parents=True)
 
     monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
@@ -88,12 +104,24 @@ class TestAIToolDetector:
 
     def test_get_primary_tool_cursor_priority(self, temp_dir, monkeypatch):
         """Test get_primary_tool returns Cursor when multiple tools installed."""
+        import os
+
         home_dir = temp_dir / "home"
         home_dir.mkdir(parents=True)
 
-        # Mock Cursor and Winsurf as installed
-        (home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
-        (home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
+        # Mock Cursor and Winsurf as installed (platform-specific)
+        if os.name == "nt":  # Windows
+            (home_dir / "AppData" / "Roaming" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
+            (home_dir / "AppData" / "Roaming" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
+        elif os.name == "posix":
+            if "darwin" in os.uname().sysname.lower():  # macOS
+                (home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
+                (home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
+            else:  # Linux
+                (home_dir / ".config" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
+                (home_dir / ".config" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
+        else:
+            raise OSError(f"Unsupported operating system: {os.name}")
 
         monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
 

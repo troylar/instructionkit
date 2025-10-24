@@ -15,9 +15,22 @@ def winsurf_tool():
 @pytest.fixture
 def mock_winsurf_installed(monkeypatch, temp_dir):
     """Mock Windsurf as installed."""
+    import os
+
     home_dir = temp_dir / "home"
     home_dir.mkdir(parents=True)
-    winsurf_dir = home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage"
+
+    # Create platform-specific directory structure
+    if os.name == "nt":  # Windows
+        winsurf_dir = home_dir / "AppData" / "Roaming" / "Windsurf" / "User" / "globalStorage"
+    elif os.name == "posix":
+        if "darwin" in os.uname().sysname.lower():  # macOS
+            winsurf_dir = home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage"
+        else:  # Linux
+            winsurf_dir = home_dir / ".config" / "Windsurf" / "User" / "globalStorage"
+    else:
+        raise OSError(f"Unsupported operating system: {os.name}")
+
     winsurf_dir.mkdir(parents=True)
 
     monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)

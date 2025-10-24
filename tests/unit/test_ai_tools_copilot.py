@@ -15,9 +15,22 @@ def copilot_tool():
 @pytest.fixture
 def mock_copilot_installed(monkeypatch, temp_dir):
     """Mock GitHub Copilot as installed."""
+    import os
+
     home_dir = temp_dir / "home"
     home_dir.mkdir(parents=True)
-    copilot_dir = home_dir / "Library" / "Application Support" / "Code" / "User" / "globalStorage" / "github.copilot"
+
+    # Create platform-specific directory structure
+    if os.name == "nt":  # Windows
+        copilot_dir = home_dir / "AppData" / "Roaming" / "Code" / "User" / "globalStorage" / "github.copilot"
+    elif os.name == "posix":
+        if "darwin" in os.uname().sysname.lower():  # macOS
+            copilot_dir = home_dir / "Library" / "Application Support" / "Code" / "User" / "globalStorage" / "github.copilot"
+        else:  # Linux
+            copilot_dir = home_dir / ".config" / "Code" / "User" / "globalStorage" / "github.copilot"
+    else:
+        raise OSError(f"Unsupported operating system: {os.name}")
+
     copilot_dir.mkdir(parents=True)
 
     monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)

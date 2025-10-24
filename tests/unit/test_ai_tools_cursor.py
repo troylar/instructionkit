@@ -15,9 +15,22 @@ def cursor_tool():
 @pytest.fixture
 def mock_cursor_installed(monkeypatch, temp_dir):
     """Mock Cursor as installed."""
+    import os
+
     home_dir = temp_dir / "home"
     home_dir.mkdir(parents=True)
-    cursor_dir = home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage"
+
+    # Create platform-specific directory structure
+    if os.name == "nt":  # Windows
+        cursor_dir = home_dir / "AppData" / "Roaming" / "Cursor" / "User" / "globalStorage"
+    elif os.name == "posix":
+        if "darwin" in os.uname().sysname.lower():  # macOS
+            cursor_dir = home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage"
+        else:  # Linux
+            cursor_dir = home_dir / ".config" / "Cursor" / "User" / "globalStorage"
+    else:
+        raise OSError(f"Unsupported operating system: {os.name}")
+
     cursor_dir.mkdir(parents=True)
 
     monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)

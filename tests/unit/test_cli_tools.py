@@ -8,16 +8,26 @@ from instructionkit.cli.tools import show_tools
 @pytest.fixture
 def mock_detector_with_tools(monkeypatch, temp_dir):
     """Mock detector with installed tools."""
+    import os
+
     home_dir = temp_dir / "home"
     home_dir.mkdir(parents=True)
 
-    # Create Cursor and Windsurf, leave others not installed
-    cursor_dir = home_dir / "Library" / "Application Support" / "Cursor"
-    cursor_dir = cursor_dir / "User" / "globalStorage"
-    cursor_dir.mkdir(parents=True)
+    # Create Cursor and Windsurf with platform-specific paths, leave others not installed
+    if os.name == "nt":  # Windows
+        cursor_dir = home_dir / "AppData" / "Roaming" / "Cursor" / "User" / "globalStorage"
+        winsurf_dir = home_dir / "AppData" / "Roaming" / "Windsurf" / "User" / "globalStorage"
+    elif os.name == "posix":
+        if "darwin" in os.uname().sysname.lower():  # macOS
+            cursor_dir = home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage"
+            winsurf_dir = home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage"
+        else:  # Linux
+            cursor_dir = home_dir / ".config" / "Cursor" / "User" / "globalStorage"
+            winsurf_dir = home_dir / ".config" / "Windsurf" / "User" / "globalStorage"
+    else:
+        raise OSError(f"Unsupported operating system: {os.name}")
 
-    winsurf_dir = home_dir / "Library" / "Application Support" / "Windsurf"
-    winsurf_dir = winsurf_dir / "User" / "globalStorage"
+    cursor_dir.mkdir(parents=True)
     winsurf_dir.mkdir(parents=True)
 
     monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
