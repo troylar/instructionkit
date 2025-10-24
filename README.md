@@ -63,6 +63,7 @@ InstructionKit is a powerful CLI tool that enables developers to **browse, insta
 - Automatic project root detection
 - Organized in tool-specific directories (`.cursor/rules/`, `.claude/rules/`, etc.)
 - Clean, versioned alongside your code
+- Portable tracking with relative paths (works across teams and machines)
 
 </td>
 <td>
@@ -304,6 +305,8 @@ inskit list installed
 - Team members get the same instructions automatically
 - Different projects can have different instructions
 - Clean, organized structure per tool
+- Portable across machines - uses relative paths in tracking
+- No setup needed when cloning - instructions just work
 
 </details>
 
@@ -436,8 +439,17 @@ InstructionKit stores everything locally:
 - Tracked in `<project-root>/.instructionkit/installations.json`
 - Contains metadata for all installed instructions in the project
 - Created automatically when you install instructions
-- **Recommended:** Commit to Git so team members get the same setup
+- **Uses relative paths** - portable across different machines and users
+- **Version control friendly** - no absolute paths with usernames
+- **Recommended:** Commit to Git so team members get the same setup automatically
 - Alternative: Add to `.gitignore` if instructions should be personal
+
+**Why commit installations.json?**
+
+- Team members automatically see which instructions are installed
+- Works seamlessly when cloned to different machines
+- No manual setup needed - everyone gets the same configuration
+- Changes to installed instructions are tracked in version control
 
 The `list installed` command shows all instructions in the current project.
 
@@ -629,7 +641,7 @@ Curious where to start? Check out [good first issues](https://github.com/troylar
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/instructionkit.git
+git clone https://github.com/troylar/instructionkit.git
 cd instructionkit
 
 # Create virtual environment
@@ -716,8 +728,8 @@ Built with:
 
 - [Typer](https://typer.tiangolo.com/) - CLI framework
 - [Rich](https://rich.readthedocs.io/) - Terminal formatting
+- [Textual](https://textual.textualize.io/) - Interactive TUI
 - [PyYAML](https://pyyaml.org/) - YAML parsing
-- [GitPython](https://gitpython.readthedocs.io/) - Git operations
 
 ---
 
