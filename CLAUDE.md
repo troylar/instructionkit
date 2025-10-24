@@ -192,11 +192,12 @@ tests/
 [optional issue reference]
 
 <body>
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
+
+**IMPORTANT:** Do NOT include Claude as a co-author in commit messages. Do NOT add:
+- `🤖 Generated with [Claude Code](https://claude.com/claude-code)`
+- `Co-Authored-By: Claude <noreply@anthropic.com>`
+- Any other Claude attribution lines
 
 **Types:**
 - `feat`: New feature
