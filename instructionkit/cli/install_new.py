@@ -256,7 +256,6 @@ def _perform_installation(
                     checksum=inst.checksum,
                     bundle_name=None,
                     scope=install_scope,
-                    project_root=str(project_root) if project_root else None,
                 )
                 tracker.add_installation(record, project_root)
 

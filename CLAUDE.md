@@ -367,7 +367,77 @@ import pdb; pdb.set_trace()
 breakpoint()
 ```
 
-## Version Management
+## Release Workflow
+
+**IMPORTANT:** When the user asks to "create a new release" or "make a release", follow this complete workflow.
+
+This project uses **GitHub Actions with PyPI Trusted Publishing** for automated releases. Publishing to PyPI happens automatically when you create a GitHub release.
+
+### PyPI Trusted Publishing Setup
+
+**One-time setup** (if not already configured):
+
+1. Go to https://pypi.org/manage/account/publishing/
+2. Add a new publisher:
+   - **PyPI Project Name**: `instructionkit`
+   - **Owner**: `troylar`
+   - **Repository**: `instructionkit`
+   - **Workflow name**: `publish.yml`
+   - **Environment**: (leave empty)
+3. Save the trusted publisher
+
+This allows GitHub Actions to publish without needing API tokens or passwords.
+
+### Pre-Release Checklist
+
+**IMPORTANT:** Before creating a release, you **must** run `invoke release-check` locally to ensure everything is working. This prevents CI failures and failed releases.
+
+1. **Ensure you're on the main branch** (or merge feature branch PR first)
+2. **Working directory must be clean** (no uncommitted changes)
+3. **All checks must pass locally**: `invoke release-check`
+4. **CI/CD pipeline must be green** on GitHub Actions (if PR was merged)
+
+### Release Steps
+
+Follow these steps in order when creating a new release:
+
+#### 1. Check Current Branch and Status
+```bash
+# Check current branch
+git branch --show-current
+
+# If on feature branch with open PR, check PR status
+gh pr status
+
+# Check for uncommitted changes
+git status
+```
+
+**Action:** If on a feature branch with an open PR:
+- Ensure all CI checks are passing
+- Merge the PR to main
+- Then pull main locally
+
+#### 2. Switch to Main and Pull Latest
+```bash
+git checkout main
+git pull origin main
+```
+
+#### 3. Run Pre-Release Checks (REQUIRED)
+```bash
+# This runs clean, quality, and test
+invoke release-check
+```
+
+**IMPORTANT:** This step is **required** before proceeding with the release. It verifies locally that:
+- All tests pass
+- Code quality checks pass (lint, format, typecheck)
+- Build artifacts are clean
+
+**Action:** Fix any failures before proceeding. Do NOT create a release if this command fails.
+
+#### 4. Determine Version Bump
 
 Version is in `pyproject.toml`:
 ```toml
@@ -375,10 +445,178 @@ Version is in `pyproject.toml`:
 version = "0.1.1"
 ```
 
-Update version, CHANGELOG, then:
-```bash
-git tag v0.1.1
-git push --tags
-invoke build
-invoke publish
+**Semantic Versioning:**
+- **Patch** (0.1.1 → 0.1.2): Bug fixes, minor changes
+- **Minor** (0.1.1 → 0.2.0): New features, backwards compatible
+- **Major** (0.1.1 → 1.0.0): Breaking changes
+
+**Action:** Ask the user which version bump to apply if not specified.
+
+#### 5. Update Version in pyproject.toml
+
+Edit the version in `pyproject.toml`:
+```toml
+[project]
+version = "0.2.0"  # New version
 ```
+
+#### 6. Update CHANGELOG.md
+
+Add a new version section at the top of CHANGELOG.md with changes since last release:
+```markdown
+## [0.2.0] - 2025-10-24
+
+### Added
+- New feature description
+
+### Changed
+- Modified behavior description
+
+### Fixed
+- Bug fix description
+```
+
+**Tip:** Review commits since last release:
+```bash
+git log v0.1.1..HEAD --oneline
+```
+
+#### 7. Commit Version Bump
+
+```bash
+git add pyproject.toml CHANGELOG.md
+git commit -m "chore: bump version to 0.2.0"
+```
+
+**IMPORTANT:** Do NOT include Claude co-author attribution.
+
+#### 8. Create and Push Git Tag
+
+```bash
+# Create annotated tag
+git tag -a v0.2.0 -m "Release version 0.2.0"
+
+# Push commits and tags
+git push origin main
+git push origin v0.2.0
+```
+
+#### 9. Create GitHub Release (Triggers Automated Publishing)
+
+```bash
+# Create release from tag
+gh release create v0.2.0 \
+  --title "v0.2.0" \
+  --notes "$(awk '/## \[0.2.0\]/,/## \[/' CHANGELOG.md | head -n -1)"
+```
+
+**Alternative:** Create release manually on GitHub:
+1. Go to https://github.com/troylar/instructionkit/releases/new
+2. Click "Choose a tag" and select `v0.2.0`
+3. Title: `v0.2.0`
+4. Copy the relevant section from CHANGELOG.md into the description
+5. Click "Publish release"
+
+**What happens next:** The `.github/workflows/publish.yml` workflow will automatically:
+1. Run quality checks and tests
+2. Build the package
+3. Publish to PyPI using trusted publishing
+
+#### 10. Monitor the Publish Workflow
+
+```bash
+# Watch workflow progress
+gh run watch
+
+# Or view in browser
+gh run list --workflow=publish.yml
+```
+
+You can also monitor at: https://github.com/troylar/instructionkit/actions
+
+### Post-Release Verification
+
+Wait for the GitHub Actions workflow to complete (usually 2-5 minutes), then:
+
+```bash
+# Verify package on PyPI
+pip install --upgrade instructionkit
+
+# Check installed version
+inskit --version
+
+# Verify GitHub release
+gh release view v0.2.0
+
+# Check PyPI page
+open https://pypi.org/project/instructionkit/
+```
+
+### Testing on TestPyPI (Optional)
+
+To test the release process without publishing to production PyPI:
+
+```bash
+# Manually trigger workflow with TestPyPI option
+gh workflow run publish.yml -f repository=testpypi
+
+# Monitor the test run
+gh run watch
+```
+
+Then verify on TestPyPI: https://test.pypi.org/project/instructionkit/
+
+### Rollback (If Needed)
+
+If issues are discovered after release:
+
+1. **Yank release from PyPI** (marks as unavailable, doesn't delete):
+   ```bash
+   # Install twine if needed
+   pip install twine
+
+   # Yank the version
+   twine upload --repository pypi --yank <version>
+   ```
+
+2. **Delete GitHub release**:
+   ```bash
+   gh release delete v0.2.0 --yes
+   ```
+
+3. **Optionally delete the tag**:
+   ```bash
+   git tag -d v0.2.0
+   git push origin :refs/tags/v0.2.0
+   ```
+
+4. **Fix issues and create new patch release** (e.g., 0.2.1)
+
+### Quick Reference
+
+For a standard release from main branch:
+
+```bash
+# 1. Ensure clean state
+git checkout main && git pull
+
+# 2. REQUIRED: Run checks locally (DO NOT SKIP!)
+invoke release-check
+
+# 3. Update version in pyproject.toml and CHANGELOG.md
+
+# 4. Commit and tag
+git add pyproject.toml CHANGELOG.md
+git commit -m "chore: bump version to X.Y.Z"
+git tag -a vX.Y.Z -m "Release version X.Y.Z"
+git push origin main && git push origin vX.Y.Z
+
+# 5. Create GitHub release (triggers automated publish)
+gh release create vX.Y.Z --title "vX.Y.Z" \
+  --notes "$(awk '/## \[X.Y.Z\]/,/## \[/' CHANGELOG.md | head -n -1)"
+
+# 6. Monitor workflow and verify
+gh run watch
+```
+
+The GitHub Actions workflow (`.github/workflows/publish.yml`) handles building and publishing automatically.

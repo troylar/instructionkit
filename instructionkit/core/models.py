@@ -119,12 +119,11 @@ class InstallationRecord:
         instruction_name: Name of installed instruction
         ai_tool: Which AI tool it's installed to
         source_repo: Repository URL it came from
-        installed_path: Absolute path where file was installed
+        installed_path: Path where file was installed (relative to project root for PROJECT scope)
         installed_at: Installation timestamp
         checksum: File checksum at installation time
         bundle_name: If installed as part of bundle
         scope: Installation scope (global or project)
-        project_root: Project root path if scope is PROJECT
     """
 
     instruction_name: str
@@ -135,7 +134,6 @@ class InstallationRecord:
     checksum: Optional[str] = None
     bundle_name: Optional[str] = None
     scope: InstallationScope = InstallationScope.GLOBAL
-    project_root: Optional[str] = None
 
     def __post_init__(self) -> None:
         """Validate installation record."""
@@ -157,7 +155,6 @@ class InstallationRecord:
             "checksum": self.checksum,
             "bundle_name": self.bundle_name,
             "scope": self.scope.value,
-            "project_root": self.project_root,
         }
 
     @classmethod
@@ -176,7 +173,6 @@ class InstallationRecord:
             checksum=data.get("checksum"),
             bundle_name=data.get("bundle_name"),
             scope=scope,
-            project_root=data.get("project_root"),
         )
 
 

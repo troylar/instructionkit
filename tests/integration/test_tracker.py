@@ -52,7 +52,6 @@ class TestInstallationTracker:
             installed_path=str(mock_project_dir / ".cursor" / "rules" / "python-style.mdc"),
             installed_at=datetime.now(),
             scope=InstallationScope.PROJECT,
-            project_root=str(mock_project_dir),
         )
 
         tracker.add_installation(record, project_root=mock_project_dir)
