@@ -6,10 +6,11 @@ from typing import Optional
 
 class ChecksumError(Exception):
     """Raised when checksum verification fails."""
+
     pass
 
 
-def calculate_checksum(content: str, algorithm: str = 'sha256') -> str:
+def calculate_checksum(content: str, algorithm: str = "sha256") -> str:
     """
     Calculate checksum of content.
 
@@ -24,23 +25,19 @@ def calculate_checksum(content: str, algorithm: str = 'sha256') -> str:
         ValueError: If algorithm is not supported
     """
     algorithms = {
-        'sha256': hashlib.sha256,
-        'sha1': hashlib.sha1,
-        'md5': hashlib.md5,
+        "sha256": hashlib.sha256,
+        "sha1": hashlib.sha1,
+        "md5": hashlib.md5,
     }
 
     if algorithm.lower() not in algorithms:
         raise ValueError(f"Unsupported hash algorithm: {algorithm}")
 
     hash_func = algorithms[algorithm.lower()]
-    return hash_func(content.encode('utf-8')).hexdigest()
+    return hash_func(content.encode("utf-8")).hexdigest()
 
 
-def verify_checksum(
-    content: str,
-    expected_checksum: str,
-    algorithm: str = 'sha256'
-) -> bool:
+def verify_checksum(content: str, expected_checksum: str, algorithm: str = "sha256") -> bool:
     """
     Verify content matches expected checksum.
 
@@ -56,11 +53,7 @@ def verify_checksum(
     return actual_checksum.lower() == expected_checksum.lower()
 
 
-def verify_checksum_strict(
-    content: str,
-    expected_checksum: str,
-    algorithm: str = 'sha256'
-) -> None:
+def verify_checksum_strict(content: str, expected_checksum: str, algorithm: str = "sha256") -> None:
     """
     Verify content matches expected checksum, raise on mismatch.
 
@@ -74,13 +67,10 @@ def verify_checksum_strict(
     """
     if not verify_checksum(content, expected_checksum, algorithm):
         actual = calculate_checksum(content, algorithm)
-        raise ChecksumError(
-            f"Checksum mismatch! Expected: {expected_checksum}, "
-            f"Actual: {actual}"
-        )
+        raise ChecksumError(f"Checksum mismatch! Expected: {expected_checksum}, " f"Actual: {actual}")
 
 
-def calculate_file_checksum(file_path: str, algorithm: str = 'sha256') -> str:
+def calculate_file_checksum(file_path: str, algorithm: str = "sha256") -> str:
     """
     Calculate checksum of a file.
 
@@ -96,9 +86,9 @@ def calculate_file_checksum(file_path: str, algorithm: str = 'sha256') -> str:
         FileNotFoundError: If file does not exist
     """
     algorithms = {
-        'sha256': hashlib.sha256,
-        'sha1': hashlib.sha1,
-        'md5': hashlib.md5,
+        "sha256": hashlib.sha256,
+        "sha1": hashlib.sha1,
+        "md5": hashlib.md5,
     }
 
     if algorithm.lower() not in algorithms:
@@ -106,19 +96,15 @@ def calculate_file_checksum(file_path: str, algorithm: str = 'sha256') -> str:
 
     hash_func = algorithms[algorithm.lower()]()
 
-    with open(file_path, 'rb') as f:
+    with open(file_path, "rb") as f:
         # Read file in chunks for memory efficiency
-        for chunk in iter(lambda: f.read(8192), b''):
+        for chunk in iter(lambda: f.read(8192), b""):
             hash_func.update(chunk)
 
     return hash_func.hexdigest()
 
 
-def verify_file_checksum(
-    file_path: str,
-    expected_checksum: str,
-    algorithm: str = 'sha256'
-) -> bool:
+def verify_file_checksum(file_path: str, expected_checksum: str, algorithm: str = "sha256") -> bool:
     """
     Verify file matches expected checksum.
 
@@ -137,7 +123,7 @@ def verify_file_checksum(
 class ChecksumValidator:
     """Helper class for checksum validation with configuration."""
 
-    def __init__(self, algorithm: str = 'sha256', strict: bool = True):
+    def __init__(self, algorithm: str = "sha256", strict: bool = True):
         """
         Initialize validator.
 

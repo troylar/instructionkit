@@ -14,13 +14,13 @@ def get_cursor_config_dir() -> Path:
     """Get Cursor configuration directory based on platform."""
     home = get_home_directory()
 
-    if os.name == 'nt':  # Windows
-        return home / 'AppData' / 'Roaming' / 'Cursor' / 'User' / 'globalStorage'
-    elif os.name == 'posix':
-        if 'darwin' in os.uname().sysname.lower():  # macOS
-            return home / 'Library' / 'Application Support' / 'Cursor' / 'User' / 'globalStorage'
+    if os.name == "nt":  # Windows
+        return home / "AppData" / "Roaming" / "Cursor" / "User" / "globalStorage"
+    elif os.name == "posix":
+        if "darwin" in os.uname().sysname.lower():  # macOS
+            return home / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage"
         else:  # Linux
-            return home / '.config' / 'Cursor' / 'User' / 'globalStorage'
+            return home / ".config" / "Cursor" / "User" / "globalStorage"
 
     raise OSError(f"Unsupported operating system: {os.name}")
 
@@ -29,13 +29,13 @@ def get_copilot_config_dir() -> Path:
     """Get GitHub Copilot (VS Code) configuration directory based on platform."""
     home = get_home_directory()
 
-    if os.name == 'nt':  # Windows
-        return home / 'AppData' / 'Roaming' / 'Code' / 'User' / 'globalStorage' / 'github.copilot'
-    elif os.name == 'posix':
-        if 'darwin' in os.uname().sysname.lower():  # macOS
-            return home / 'Library' / 'Application Support' / 'Code' / 'User' / 'globalStorage' / 'github.copilot'
+    if os.name == "nt":  # Windows
+        return home / "AppData" / "Roaming" / "Code" / "User" / "globalStorage" / "github.copilot"
+    elif os.name == "posix":
+        if "darwin" in os.uname().sysname.lower():  # macOS
+            return home / "Library" / "Application Support" / "Code" / "User" / "globalStorage" / "github.copilot"
         else:  # Linux
-            return home / '.config' / 'Code' / 'User' / 'globalStorage' / 'github.copilot'
+            return home / ".config" / "Code" / "User" / "globalStorage" / "github.copilot"
 
     raise OSError(f"Unsupported operating system: {os.name}")
 
@@ -44,13 +44,13 @@ def get_winsurf_config_dir() -> Path:
     """Get Windsurf configuration directory based on platform."""
     home = get_home_directory()
 
-    if os.name == 'nt':  # Windows
-        return home / 'AppData' / 'Roaming' / 'Windsurf' / 'User' / 'globalStorage'
-    elif os.name == 'posix':
-        if 'darwin' in os.uname().sysname.lower():  # macOS
-            return home / 'Library' / 'Application Support' / 'Windsurf' / 'User' / 'globalStorage'
+    if os.name == "nt":  # Windows
+        return home / "AppData" / "Roaming" / "Windsurf" / "User" / "globalStorage"
+    elif os.name == "posix":
+        if "darwin" in os.uname().sysname.lower():  # macOS
+            return home / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage"
         else:  # Linux
-            return home / '.config' / 'Windsurf' / 'User' / 'globalStorage'
+            return home / ".config" / "Windsurf" / "User" / "globalStorage"
 
     raise OSError(f"Unsupported operating system: {os.name}")
 
@@ -61,27 +61,27 @@ def get_claude_config_dir() -> Path:
 
     # Claude Code uses ~/.claude/rules/ for global rules
     # This is consistent across all platforms
-    return home / '.claude' / 'rules'
+    return home / ".claude" / "rules"
 
 
 def get_instructionkit_data_dir() -> Path:
     """Get InstructionKit data directory for tracking installations."""
     home = get_home_directory()
-    data_dir = home / '.instructionkit'
+    data_dir = home / ".instructionkit"
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
 
 
 def get_library_dir() -> Path:
     """Get InstructionKit library directory for downloaded instructions."""
-    library_dir = get_instructionkit_data_dir() / 'library'
+    library_dir = get_instructionkit_data_dir() / "library"
     library_dir.mkdir(parents=True, exist_ok=True)
     return library_dir
 
 
 def get_installation_tracker_path() -> Path:
     """Get path to installation tracking JSON file."""
-    return get_instructionkit_data_dir() / 'installations.json'
+    return get_instructionkit_data_dir() / "installations.json"
 
 
 def ensure_directory_exists(path: Path) -> None:
@@ -95,7 +95,7 @@ def safe_file_name(name: str) -> str:
     unsafe_chars = '<>:"/\\|?*'
     safe_name = name
     for char in unsafe_chars:
-        safe_name = safe_name.replace(char, '_')
+        safe_name = safe_name.replace(char, "_")
     return safe_name
 
 

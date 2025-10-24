@@ -67,7 +67,7 @@ class ClaudeTool(AITool):
         Returns:
             File extension including the dot
         """
-        return '.md'
+        return ".md"
 
     def get_project_instructions_directory(self, project_root: Path) -> Path:
         """
@@ -86,6 +86,6 @@ class ClaudeTool(AITool):
         Returns:
             Path to project instructions directory (.claude/rules/)
         """
-        instructions_dir = project_root / '.claude' / 'rules'
+        instructions_dir = project_root / ".claude" / "rules"
         instructions_dir.mkdir(parents=True, exist_ok=True)
         return instructions_dir

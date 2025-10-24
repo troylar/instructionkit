@@ -78,7 +78,7 @@ class AITool(ABC):
         self,
         instruction_name: str,
         scope: InstallationScope = InstallationScope.GLOBAL,
-        project_root: Optional[Path] = None
+        project_root: Optional[Path] = None,
     ) -> Path:
         """
         Get the full path where an instruction file should be installed.
@@ -109,7 +109,7 @@ class AITool(ABC):
         self,
         instruction_name: str,
         scope: InstallationScope = InstallationScope.GLOBAL,
-        project_root: Optional[Path] = None
+        project_root: Optional[Path] = None,
     ) -> bool:
         """
         Check if an instruction is already installed.
@@ -133,7 +133,7 @@ class AITool(ABC):
         instruction: Instruction,
         overwrite: bool = False,
         scope: InstallationScope = InstallationScope.GLOBAL,
-        project_root: Optional[Path] = None
+        project_root: Optional[Path] = None,
     ) -> Path:
         """
         Install an instruction to this AI tool.
@@ -161,7 +161,7 @@ class AITool(ABC):
         path.parent.mkdir(parents=True, exist_ok=True)
 
         # Write instruction content
-        path.write_text(instruction.content, encoding='utf-8')
+        path.write_text(instruction.content, encoding="utf-8")
 
         return path
 
@@ -169,7 +169,7 @@ class AITool(ABC):
         self,
         instruction_name: str,
         scope: InstallationScope = InstallationScope.GLOBAL,
-        project_root: Optional[Path] = None
+        project_root: Optional[Path] = None,
     ) -> bool:
         """
         Uninstall an instruction from this AI tool.

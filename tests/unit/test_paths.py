@@ -111,9 +111,7 @@ class TestCursorConfigDir:
         monkeypatch.setattr("os.name", "nt")
 
         config_dir = get_cursor_config_dir()
-        assert "AppData/Roaming/Cursor" in str(config_dir) or "AppData\\Roaming\\Cursor" in str(
-            config_dir
-        )
+        assert "AppData/Roaming/Cursor" in str(config_dir) or "AppData\\Roaming\\Cursor" in str(config_dir)
 
 
 class TestCopilotConfigDir:
@@ -152,9 +150,7 @@ class TestCopilotConfigDir:
         monkeypatch.setattr("os.name", "nt")
 
         config_dir = get_copilot_config_dir()
-        assert "AppData/Roaming/Code" in str(config_dir) or "AppData\\Roaming\\Code" in str(
-            config_dir
-        )
+        assert "AppData/Roaming/Code" in str(config_dir) or "AppData\\Roaming\\Code" in str(config_dir)
 
 
 class TestWinsurfConfigDir:
@@ -192,9 +188,7 @@ class TestWinsurfConfigDir:
         monkeypatch.setattr("os.name", "nt")
 
         config_dir = get_winsurf_config_dir()
-        assert "AppData/Roaming/Windsurf" in str(config_dir) or "AppData\\Roaming\\Windsurf" in str(
-            config_dir
-        )
+        assert "AppData/Roaming/Windsurf" in str(config_dir) or "AppData\\Roaming\\Windsurf" in str(config_dir)
 
 
 class TestClaudeConfigDir:

@@ -22,18 +22,12 @@ class TestLibraryManager:
         manager = LibraryManager(temp_dir)
 
         # Test GitHub URL
-        namespace = manager.get_repo_namespace(
-            "https://github.com/company/instructions",
-            "Company Instructions"
-        )
+        namespace = manager.get_repo_namespace("https://github.com/company/instructions", "Company Instructions")
         assert "github" in namespace
         assert "company" in namespace
 
         # Test local path
-        local_namespace = manager.get_repo_namespace(
-            "/local/path/instructions",
-            "Local Instructions"
-        )
+        local_namespace = manager.get_repo_namespace("/local/path/instructions", "Local Instructions")
         assert "local" in local_namespace
 
     def test_add_repository(self, temp_dir: Path):

@@ -27,6 +27,7 @@ console = Console()
 # Helper Functions - Shared Installation Logic
 # ============================================================================
 
+
 def _parse_conflict_strategy(conflict_strategy: str) -> Optional[ConflictResolution]:
     """Parse and validate conflict resolution strategy.
 
@@ -39,10 +40,7 @@ def _parse_conflict_strategy(conflict_strategy: str) -> Optional[ConflictResolut
     try:
         return ConflictResolution(conflict_strategy.lower())
     except ValueError:
-        print_error(
-            f"Invalid conflict strategy: {conflict_strategy}. "
-            "Must be 'skip', 'rename', or 'overwrite'."
-        )
+        print_error(f"Invalid conflict strategy: {conflict_strategy}. " "Must be 'skip', 'rename', or 'overwrite'.")
         return None
 
 
@@ -54,19 +52,13 @@ def _get_project_root_for_installation() -> Optional[Path]:
     """
     project_root = find_project_root()
     if not project_root:
-        print_error(
-            "Could not detect project root. "
-            "Make sure you're running from within a project directory."
-        )
+        print_error("Could not detect project root. " "Make sure you're running from within a project directory.")
         return None
     console.print(f"Detected project root: [cyan]{project_root}[/cyan]")
     return project_root
 
 
-def _load_instructions_from_library(
-    instruction_ids: list[str],
-    library: LibraryManager
-) -> Optional[list]:
+def _load_instructions_from_library(instruction_ids: list[str], library: LibraryManager) -> Optional[list]:
     """Load instructions from library by IDs.
 
     Args:
@@ -86,9 +78,7 @@ def _load_instructions_from_library(
     return instructions
 
 
-def _resolve_name_conflicts(
-    instructions: list
-) -> Optional[dict[str, str]]:
+def _resolve_name_conflicts(instructions: list) -> Optional[dict[str, str]]:
     """Resolve naming conflicts for instructions with duplicate names.
 
     Args:
@@ -108,10 +98,7 @@ def _resolve_name_conflicts(
     install_names = {}  # Map instruction ID to final install name
     for name, insts in name_conflicts.items():
         if len(insts) > 1:
-            console.print(
-                f"\n[yellow]⚠️  Name Conflict:[/yellow] "
-                f"{len(insts)} instructions named '{name}'"
-            )
+            console.print(f"\n[yellow]⚠️  Name Conflict:[/yellow] " f"{len(insts)} instructions named '{name}'")
             console.print("\nHow should they be installed?")
             console.print("  [1] Namespace by repository (recommended)")
             for inst in insts:
@@ -134,10 +121,7 @@ def _resolve_name_conflicts(
     return install_names
 
 
-def _get_ai_tools_from_names(
-    tool_names: list[str],
-    detector
-) -> Optional[list]:
+def _get_ai_tools_from_names(tool_names: list[str], detector) -> Optional[list]:
     """Get AI tool instances from tool names.
 
     Args:
@@ -161,10 +145,7 @@ def _get_ai_tools_from_names(
 
 
 def _show_installation_preview(
-    project_root: Path,
-    instructions: list,
-    ai_tools: list,
-    install_names: dict[str, str]
+    project_root: Path, instructions: list, ai_tools: list, install_names: dict[str, str]
 ) -> bool:
     """Show installation preview and ask for confirmation.
 
@@ -180,9 +161,7 @@ def _show_installation_preview(
     console.print("\n[bold cyan]📦 Installation Preview[/bold cyan]")
     console.print(f"\n[bold]Project:[/bold] {project_root}")
     console.print(f"[bold]Instructions:[/bold] {len(instructions)} selected")
-    console.print(
-        f"[bold]Target tools:[/bold] {', '.join([t.tool_name for t in ai_tools])}\n"
-    )
+    console.print(f"[bold]Target tools:[/bold] {', '.join([t.tool_name for t in ai_tools])}\n")
 
     # Show where files will be created
     console.print("[bold yellow]The following files will be created:[/bold yellow]\n")
@@ -198,6 +177,7 @@ def _show_installation_preview(
 
     # Ask for confirmation
     from rich.prompt import Confirm
+
     return Confirm.ask("\n[bold]Proceed with installation?[/bold]", default=True)
 
 
@@ -207,7 +187,7 @@ def _perform_installation(
     install_names: dict[str, str],
     install_scope: InstallationScope,
     project_root: Optional[Path],
-    strategy: ConflictResolution
+    strategy: ConflictResolution,
 ) -> tuple[int, int]:
     """Perform the actual installation of instructions to tools.
 
@@ -235,24 +215,18 @@ def _perform_installation(
             install_name = install_names[inst.id]
 
             # Get target path
-            target_path = ai_tool.get_instruction_path(
-                install_name, install_scope, project_root
-            )
+            target_path = ai_tool.get_instruction_path(install_name, install_scope, project_root)
 
             # Handle existing files
             if target_path.exists():
                 if strategy == ConflictResolution.SKIP:
-                    console.print(
-                        f"  [yellow]Skipped:[/yellow] {install_name} (already exists)"
-                    )
+                    console.print(f"  [yellow]Skipped:[/yellow] {install_name} (already exists)")
                     skipped_count += 1
                     continue
                 elif strategy == ConflictResolution.RENAME:
                     conflict_info = resolver.resolve(install_name, target_path, strategy)
                     target_path = Path(conflict_info.new_path)
-                    console.print(
-                        f"  [yellow]Renamed:[/yellow] {install_name} -> {target_path.name}"
-                    )
+                    console.print(f"  [yellow]Renamed:[/yellow] {install_name} -> {target_path.name}")
                 elif strategy == ConflictResolution.OVERWRITE:
                     console.print(f"  [yellow]Overwriting:[/yellow] {install_name}")
 
@@ -262,10 +236,10 @@ def _perform_installation(
 
                 # Read from library
                 source_path = Path(inst.file_path)
-                content = source_path.read_text(encoding='utf-8')
+                content = source_path.read_text(encoding="utf-8")
 
                 # Write to target
-                target_path.write_text(content, encoding='utf-8')
+                target_path.write_text(content, encoding="utf-8")
 
                 # Track installation
                 record = InstallationRecord(
@@ -311,9 +285,7 @@ def install_from_library_tui(
 
     # Check if library is empty
     if not library.list_instructions():
-        print_info(
-            "Library is empty. Use 'instructionkit download --repo <url>' to add instructions."
-        )
+        print_info("Library is empty. Use 'instructionkit download --repo <url>' to add instructions.")
         return 1
 
     # Show TUI (always installs to project level)
@@ -329,6 +301,7 @@ def install_from_library_tui(
 
     # Detect project root for showing paths
     from instructionkit.utils.project import find_project_root
+
     project_root = find_project_root()
     if not project_root:
         print_error("Could not detect project root. Make sure you're in a project directory.")
@@ -358,6 +331,7 @@ def install_from_library_tui(
 
     # Ask for confirmation
     from rich.prompt import Confirm
+
     if not Confirm.ask("\n[bold]Proceed with installation?[/bold]", default=True):
         console.print("[dim]Installation cancelled[/dim]")
         return 0

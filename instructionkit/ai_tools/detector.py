@@ -124,10 +124,7 @@ class AIToolDetector:
         Returns:
             Dictionary mapping tool names to installation status
         """
-        return {
-            tool_type.value: tool.is_installed()
-            for tool_type, tool in self.tools.items()
-        }
+        return {tool_type.value: tool.is_installed() for tool_type, tool in self.tools.items()}
 
     def format_detection_summary(self) -> str:
         """

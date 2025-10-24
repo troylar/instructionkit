@@ -48,10 +48,7 @@ def list_available(
 
     # Check Git is installed
     if not GitOperations.is_git_installed():
-        print_error(
-            "Git is not installed. Please install Git and try again.",
-            console
-        )
+        print_error("Git is not installed. Please install Git and try again.", console)
         return 1
 
     # Clone repository or use local path
@@ -149,16 +146,9 @@ def list_installed(
         # Filter by specific tool
         try:
             ai_tool = AIToolType(tool.lower())
-            records = tracker.get_installed_instructions(
-                ai_tool,
-                project_root=project_root
-            )
+            records = tracker.get_installed_instructions(ai_tool, project_root=project_root)
         except ValueError:
-            print_error(
-                f"Invalid AI tool: {tool}. "
-                f"Valid options: cursor, copilot, windsurf, claude",
-                console
-            )
+            print_error(f"Invalid AI tool: {tool}. " f"Valid options: cursor, copilot, windsurf, claude", console)
             return 1
     else:
         records = tracker.get_installed_instructions(project_root=project_root)
@@ -171,9 +161,7 @@ def list_installed(
     # Check if anything to display
     if not records:
         if tool and repo:
-            console.print(
-                f"[yellow]No instructions installed for {tool} from {repo}[/yellow]"
-            )
+            console.print(f"[yellow]No instructions installed for {tool} from {repo}[/yellow]")
         elif tool:
             console.print(f"[yellow]No instructions installed for {tool}[/yellow]")
         elif repo:
@@ -218,9 +206,9 @@ def list_library(
     # Filter if specified (match against alias or namespace)
     if repo_filter:
         repositories = [
-            r for r in repositories
-            if repo_filter.lower() in (r.alias or '').lower()
-            or repo_filter.lower() in r.namespace.lower()
+            r
+            for r in repositories
+            if repo_filter.lower() in (r.alias or "").lower() or repo_filter.lower() in r.namespace.lower()
         ]
         if not repositories:
             print_error(f"No sources matching: {repo_filter}")
@@ -241,7 +229,7 @@ def list_library(
                 repo.name,
                 repo.version,
                 str(len(repo.instructions)),
-                repo.downloaded_at.strftime("%Y-%m-%d")
+                repo.downloaded_at.strftime("%Y-%m-%d"),
             )
 
         console.print()
@@ -253,11 +241,7 @@ def list_library(
 
     # Show instructions
     else:
-        table = Table(
-            title="Library Instructions",
-            show_header=True,
-            header_style="bold cyan"
-        )
+        table = Table(title="Library Instructions", show_header=True, header_style="bold cyan")
         table.add_column("Name", style="cyan")
         table.add_column("Description")
         table.add_column("Repository", style="green")
@@ -278,7 +262,7 @@ def list_library(
                 inst.description[:60] + "..." if len(inst.description) > 60 else inst.description,
                 inst.repo_name,
                 inst.version,
-                tags_str
+                tags_str,
             )
 
         console.print()

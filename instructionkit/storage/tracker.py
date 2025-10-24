@@ -40,7 +40,7 @@ class InstallationTracker:
     def _read_records(self) -> list[InstallationRecord]:
         """Read all installation records from file."""
         try:
-            with open(self.tracker_file, 'r', encoding='utf-8') as f:
+            with open(self.tracker_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             records = []
@@ -65,14 +65,10 @@ class InstallationTracker:
         """Write installation records to file."""
         data = [record.to_dict() for record in records]
 
-        with open(self.tracker_file, 'w', encoding='utf-8') as f:
+        with open(self.tracker_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
-    def add_installation(
-        self,
-        record: InstallationRecord,
-        project_root: Optional[Path] = None
-    ) -> None:
+    def add_installation(self, record: InstallationRecord, project_root: Optional[Path] = None) -> None:
         """
         Add an installation record.
 
@@ -86,13 +82,13 @@ class InstallationTracker:
             # Ensure project tracker file exists
             tracker_file.parent.mkdir(parents=True, exist_ok=True)
             if not tracker_file.exists():
-                tracker_file.write_text('[]', encoding='utf-8')
+                tracker_file.write_text("[]", encoding="utf-8")
         else:
             tracker_file = self.tracker_file
 
         # Read records from appropriate file
         try:
-            with open(tracker_file, 'r', encoding='utf-8') as f:
+            with open(tracker_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
             records = [InstallationRecord.from_dict(item) for item in data]
         except (json.JSONDecodeError, FileNotFoundError):
@@ -100,17 +96,20 @@ class InstallationTracker:
 
         # Remove any existing record for same instruction + tool + scope
         records = [
-            r for r in records
-            if not (r.instruction_name == record.instruction_name
-                   and r.ai_tool == record.ai_tool
-                   and r.scope == record.scope)
+            r
+            for r in records
+            if not (
+                r.instruction_name == record.instruction_name
+                and r.ai_tool == record.ai_tool
+                and r.scope == record.scope
+            )
         ]
 
         # Add new record
         records.append(record)
 
         # Write back to appropriate file
-        with open(tracker_file, 'w', encoding='utf-8') as f:
+        with open(tracker_file, "w", encoding="utf-8") as f:
             json.dump([r.to_dict() for r in records], f, indent=2, ensure_ascii=False)
 
     def remove_installation(
@@ -118,7 +117,7 @@ class InstallationTracker:
         instruction_name: str,
         ai_tool: Optional[AIToolType] = None,
         project_root: Optional[Path] = None,
-        scope_filter: Optional[str] = None
+        scope_filter: Optional[str] = None,
     ) -> list[InstallationRecord]:
         """
         Remove installation record(s).
@@ -136,7 +135,7 @@ class InstallationTracker:
         removed = []
 
         # Handle global installations
-        if scope_filter is None or scope_filter == 'global':
+        if scope_filter is None or scope_filter == "global":
             records = self._read_records()
             global_removed = []
             remaining = []
@@ -154,11 +153,11 @@ class InstallationTracker:
             removed.extend(global_removed)
 
         # Handle project installations
-        if project_root and (scope_filter is None or scope_filter == 'project'):
+        if project_root and (scope_filter is None or scope_filter == "project"):
             tracker_file = get_project_installation_tracker_path(project_root)
             if tracker_file.exists():
                 try:
-                    with open(tracker_file, 'r', encoding='utf-8') as f:
+                    with open(tracker_file, "r", encoding="utf-8") as f:
                         data = json.load(f)
                     records = [InstallationRecord.from_dict(item) for item in data]
 
@@ -174,7 +173,7 @@ class InstallationTracker:
                         else:
                             remaining.append(record)
 
-                    with open(tracker_file, 'w', encoding='utf-8') as f:
+                    with open(tracker_file, "w", encoding="utf-8") as f:
                         json.dump([r.to_dict() for r in remaining], f, indent=2, ensure_ascii=False)
 
                     removed.extend(project_removed)
@@ -188,7 +187,7 @@ class InstallationTracker:
         ai_tool: Optional[AIToolType] = None,
         project_root: Optional[Path] = None,
         include_project: bool = True,
-        include_global: bool = True
+        include_global: bool = True,
     ) -> list[InstallationRecord]:
         """
         Get all installed instructions.
@@ -214,7 +213,7 @@ class InstallationTracker:
             tracker_file = get_project_installation_tracker_path(project_root)
             if tracker_file.exists():
                 try:
-                    with open(tracker_file, 'r', encoding='utf-8') as f:
+                    with open(tracker_file, "r", encoding="utf-8") as f:
                         data = json.load(f)
                     project_records = [InstallationRecord.from_dict(item) for item in data]
                     all_records.extend(project_records)
@@ -227,11 +226,7 @@ class InstallationTracker:
 
         return all_records
 
-    def is_installed(
-        self,
-        instruction_name: str,
-        ai_tool: Optional[AIToolType] = None
-    ) -> bool:
+    def is_installed(self, instruction_name: str, ai_tool: Optional[AIToolType] = None) -> bool:
         """
         Check if an instruction is installed.
 
@@ -251,11 +246,7 @@ class InstallationTracker:
 
         return False
 
-    def get_installation(
-        self,
-        instruction_name: str,
-        ai_tool: AIToolType
-    ) -> Optional[InstallationRecord]:
+    def get_installation(self, instruction_name: str, ai_tool: AIToolType) -> Optional[InstallationRecord]:
         """
         Get installation record for specific instruction and tool.
 
@@ -269,8 +260,7 @@ class InstallationTracker:
         records = self._read_records()
 
         for record in records:
-            if (record.instruction_name == instruction_name
-                and record.ai_tool == ai_tool):
+            if record.instruction_name == instruction_name and record.ai_tool == ai_tool:
                 return record
 
         return None

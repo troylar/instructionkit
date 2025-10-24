@@ -68,7 +68,7 @@ def download_instructions(
             progress.update(task, completed=True)
 
         # Check if already exists (by URL to catch duplicates)
-        repo_name = repository.metadata.get('name', 'Unknown')
+        repo_name = repository.metadata.get("name", "Unknown")
         repo_namespace = library.get_repo_namespace(repo, repo_name)
 
         # Check by both namespace and URL to catch duplicates
@@ -111,8 +111,8 @@ def download_instructions(
                 repo_namespace=repo_namespace,
                 repo_url=repo,
                 repo_name=repo_name,
-                author=repository.metadata.get('author', 'Unknown'),
-                version=repository.metadata.get('version', '1.0.0'),
+                author=repository.metadata.get("author", "Unknown"),
+                version=repository.metadata.get("version", "1.0.0"),
                 file_path=str(dest_file),
                 tags=instruction.tags,
                 downloaded_at=datetime.now(),
@@ -125,10 +125,10 @@ def download_instructions(
         # Add to library
         library_repo = library.add_repository(
             repo_name=repo_name,
-            repo_description=repository.metadata.get('description', ''),
+            repo_description=repository.metadata.get("description", ""),
             repo_url=repo,
-            repo_author=repository.metadata.get('author', 'Unknown'),
-            repo_version=repository.metadata.get('version', '1.0.0'),
+            repo_author=repository.metadata.get("author", "Unknown"),
+            repo_version=repository.metadata.get("version", "1.0.0"),
             instructions=library_instructions,
             alias=alias,
         )

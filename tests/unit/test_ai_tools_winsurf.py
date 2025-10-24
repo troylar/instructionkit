@@ -17,9 +17,7 @@ def mock_winsurf_installed(monkeypatch, temp_dir):
     """Mock Windsurf as installed."""
     home_dir = temp_dir / "home"
     home_dir.mkdir(parents=True)
-    winsurf_dir = (
-        home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage"
-    )
+    winsurf_dir = home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage"
     winsurf_dir.mkdir(parents=True)
 
     monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
@@ -93,9 +91,7 @@ class TestWinsurfTool:
             tags=[],
         )
 
-        path = winsurf_tool.install_instruction(
-            instruction, scope=InstallationScope.PROJECT, project_root=project_root
-        )
+        path = winsurf_tool.install_instruction(instruction, scope=InstallationScope.PROJECT, project_root=project_root)
 
         assert path.exists()
         assert path.read_text() == "Test content"

@@ -72,12 +72,8 @@ bundles:
     instructions_dir.mkdir()
 
     # Create instruction files
-    (instructions_dir / "python-style.md").write_text(
-        "# Python Style Guide\n\nFollow PEP 8 standards."
-    )
-    (instructions_dir / "testing-guide.md").write_text(
-        "# Testing Guide\n\nWrite tests for all code."
-    )
+    (instructions_dir / "python-style.md").write_text("# Python Style Guide\n\nFollow PEP 8 standards.")
+    (instructions_dir / "testing-guide.md").write_text("# Testing Guide\n\nWrite tests for all code.")
 
     return repo
 

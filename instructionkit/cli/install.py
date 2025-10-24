@@ -78,19 +78,13 @@ def install_instruction(
 
     # Check Git is installed
     if not GitOperations.is_git_installed():
-        console.print(
-            "[red]Error:[/red] Git is not installed. "
-            "Please install Git and try again."
-        )
+        console.print("[red]Error:[/red] Git is not installed. " "Please install Git and try again.")
         return 1
 
     # Determine AI tool
     ai_tool = _get_ai_tool(tool)
     if ai_tool is None:
-        console.print(
-            "[red]Error:[/red] Could not determine AI coding tool. "
-            "Please specify with --tool flag."
-        )
+        console.print("[red]Error:[/red] Could not determine AI coding tool. " "Please specify with --tool flag.")
         return 1
 
     # Validate AI tool
@@ -137,10 +131,7 @@ def install_instruction(
         # Get instructions to install
         if bundle:
             instructions = parser.get_instructions_for_bundle(name)
-            console.print(
-                f"Installing bundle '[cyan]{name}[/cyan]' "
-                f"with {len(instructions)} instruction(s)..."
-            )
+            console.print(f"Installing bundle '[cyan]{name}[/cyan]' " f"with {len(instructions)} instruction(s)...")
         else:
             instruction = parser.get_instruction_by_name(name)
             if not instruction:
@@ -158,29 +149,20 @@ def install_instruction(
 
         for instruction in instructions:
             # Check if already exists
-            target_path = ai_tool.get_instruction_path(
-                instruction.name, install_scope, project_root
-            )
+            target_path = ai_tool.get_instruction_path(instruction.name, install_scope, project_root)
 
             if target_path.exists():
                 # Handle conflict
                 if strategy == ConflictResolution.SKIP:
-                    console.print(
-                        f"  [yellow]Skipped:[/yellow] {instruction.name} (already exists)"
-                    )
+                    console.print(f"  [yellow]Skipped:[/yellow] {instruction.name} (already exists)")
                     skipped_count += 1
                     continue
                 elif strategy == ConflictResolution.RENAME:
                     conflict_info = resolver.resolve(instruction.name, target_path, strategy)
                     target_path = Path(conflict_info.new_path)
-                    console.print(
-                        f"  [yellow]Renamed:[/yellow] {instruction.name} -> "
-                        f"{target_path.name}"
-                    )
+                    console.print(f"  [yellow]Renamed:[/yellow] {instruction.name} -> " f"{target_path.name}")
                 elif strategy == ConflictResolution.OVERWRITE:
-                    console.print(
-                        f"  [yellow]Overwriting:[/yellow] {instruction.name}"
-                    )
+                    console.print(f"  [yellow]Overwriting:[/yellow] {instruction.name}")
 
             # Validate checksum
             try:
@@ -193,7 +175,7 @@ def install_instruction(
             try:
                 # Write file
                 target_path.parent.mkdir(parents=True, exist_ok=True)
-                target_path.write_text(instruction.content, encoding='utf-8')
+                target_path.write_text(instruction.content, encoding="utf-8")
 
                 # Track installation
                 record = InstallationRecord(

@@ -17,15 +17,7 @@ def mock_copilot_installed(monkeypatch, temp_dir):
     """Mock GitHub Copilot as installed."""
     home_dir = temp_dir / "home"
     home_dir.mkdir(parents=True)
-    copilot_dir = (
-        home_dir
-        / "Library"
-        / "Application Support"
-        / "Code"
-        / "User"
-        / "globalStorage"
-        / "github.copilot"
-    )
+    copilot_dir = home_dir / "Library" / "Application Support" / "Code" / "User" / "globalStorage" / "github.copilot"
     copilot_dir.mkdir(parents=True)
 
     monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
@@ -99,9 +91,7 @@ class TestCopilotTool:
             tags=[],
         )
 
-        path = copilot_tool.install_instruction(
-            instruction, scope=InstallationScope.PROJECT, project_root=project_root
-        )
+        path = copilot_tool.install_instruction(instruction, scope=InstallationScope.PROJECT, project_root=project_root)
 
         assert path.exists()
         assert path.read_text() == "Test content"

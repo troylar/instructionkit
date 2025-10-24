@@ -28,7 +28,7 @@ class RepositoryParser:
             repo_path: Path to cloned repository
         """
         self.repo_path = repo_path
-        self.metadata_file = repo_path / 'instructionkit.yaml'
+        self.metadata_file = repo_path / "instructionkit.yaml"
 
     def parse(self) -> Repository:
         """
@@ -42,11 +42,9 @@ class RepositoryParser:
             ValueError: If metadata is invalid
         """
         if not self.metadata_file.exists():
-            raise FileNotFoundError(
-                f"Repository metadata file not found: {self.metadata_file}"
-            )
+            raise FileNotFoundError(f"Repository metadata file not found: {self.metadata_file}")
 
-        with open(self.metadata_file, 'r', encoding='utf-8') as f:
+        with open(self.metadata_file, "r", encoding="utf-8") as f:
             metadata = yaml.safe_load(f)
 
         if not metadata:
@@ -54,25 +52,25 @@ class RepositoryParser:
 
         # Parse instructions
         instructions = []
-        for inst_data in metadata.get('instructions', []):
+        for inst_data in metadata.get("instructions", []):
             instruction = self._parse_instruction(inst_data)
             instructions.append(instruction)
 
         # Parse bundles
         bundles = []
-        for bundle_data in metadata.get('bundles', []):
+        for bundle_data in metadata.get("bundles", []):
             bundle = self._parse_bundle(bundle_data)
             bundles.append(bundle)
 
         # Extract repository-level metadata
         repo_metadata = {
-            'name': metadata.get('name', ''),
-            'description': metadata.get('description', ''),
-            'version': metadata.get('version', ''),
+            "name": metadata.get("name", ""),
+            "description": metadata.get("description", ""),
+            "version": metadata.get("version", ""),
         }
 
         return Repository(
-            url='',  # Will be set by caller
+            url="",  # Will be set by caller
             instructions=instructions,
             bundles=bundles,
             metadata=repo_metadata,
@@ -80,12 +78,12 @@ class RepositoryParser:
 
     def _parse_instruction(self, data: dict) -> Instruction:
         """Parse instruction from metadata dictionary."""
-        name = data.get('name')
+        name = data.get("name")
         if not name:
             raise ValueError("Instruction missing required 'name' field")
 
-        description = data.get('description', '')
-        file_path = data.get('file', '')
+        description = data.get("description", "")
+        file_path = data.get("file", "")
 
         if not file_path:
             raise ValueError(f"Instruction '{name}' missing 'file' field")
@@ -95,14 +93,14 @@ class RepositoryParser:
         if not full_path.exists():
             raise FileNotFoundError(f"Instruction file not found: {full_path}")
 
-        content = full_path.read_text(encoding='utf-8')
+        content = full_path.read_text(encoding="utf-8")
 
         # Calculate checksum
         checksum = self._calculate_checksum(content)
 
         # Parse AI tools
         ai_tools = []
-        for tool_str in data.get('ai_tools', []):
+        for tool_str in data.get("ai_tools", []):
             try:
                 ai_tools.append(AIToolType(tool_str.lower()))
             except ValueError:
@@ -114,19 +112,19 @@ class RepositoryParser:
             description=description,
             content=content,
             file_path=file_path,
-            tags=data.get('tags', []),
+            tags=data.get("tags", []),
             checksum=checksum,
             ai_tools=ai_tools,
         )
 
     def _parse_bundle(self, data: dict) -> InstructionBundle:
         """Parse bundle from metadata dictionary."""
-        name = data.get('name')
+        name = data.get("name")
         if not name:
             raise ValueError("Bundle missing required 'name' field")
 
-        description = data.get('description', '')
-        instructions = data.get('instructions', [])
+        description = data.get("description", "")
+        instructions = data.get("instructions", [])
 
         if not instructions:
             raise ValueError(f"Bundle '{name}' has no instructions")
@@ -135,12 +133,12 @@ class RepositoryParser:
             name=name,
             description=description,
             instructions=instructions,
-            tags=data.get('tags', []),
+            tags=data.get("tags", []),
         )
 
     def _calculate_checksum(self, content: str) -> str:
         """Calculate SHA-256 checksum of content."""
-        return hashlib.sha256(content.encode('utf-8')).hexdigest()
+        return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
     def get_instruction_by_name(self, name: str) -> Optional[Instruction]:
         """
@@ -203,9 +201,7 @@ class RepositoryParser:
                     break
 
             if not instruction:
-                raise ValueError(
-                    f"Bundle '{bundle_name}' references unknown instruction: {inst_name}"
-                )
+                raise ValueError(f"Bundle '{bundle_name}' references unknown instruction: {inst_name}")
 
             instructions.append(instruction)
 
@@ -223,7 +219,7 @@ def validate_repository_structure(repo_path: Path) -> Optional[str]:
         None if valid, error message if invalid
     """
     # Check for metadata file
-    metadata_file = repo_path / 'instructionkit.yaml'
+    metadata_file = repo_path / "instructionkit.yaml"
     if not metadata_file.exists():
         return "Missing instructionkit.yaml metadata file"
 

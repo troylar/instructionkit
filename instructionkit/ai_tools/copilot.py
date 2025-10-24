@@ -66,7 +66,7 @@ class CopilotTool(AITool):
         Returns:
             File extension including the dot
         """
-        return '.md'
+        return ".md"
 
     def get_project_instructions_directory(self, project_root: Path) -> Path:
         """
@@ -85,6 +85,6 @@ class CopilotTool(AITool):
         Returns:
             Path to project instructions directory (.github/instructions/)
         """
-        instructions_dir = project_root / '.github' / 'instructions'
+        instructions_dir = project_root / ".github" / "instructions"
         instructions_dir.mkdir(parents=True, exist_ok=True)
         return instructions_dir

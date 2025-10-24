@@ -40,10 +40,7 @@ def uninstall_instruction(
 
     # Get installed instructions matching the name (project scope only)
     all_records = tracker.get_installed_instructions(project_root=project_root)
-    matching_records = [
-        r for r in all_records
-        if r.instruction_name == name and r.scope == InstallationScope.PROJECT
-    ]
+    matching_records = [r for r in all_records if r.instruction_name == name and r.scope == InstallationScope.PROJECT]
 
     # Filter by tool if specified
     if tool:
@@ -51,10 +48,7 @@ def uninstall_instruction(
             ai_tool_type = AIToolType(tool.lower())
             matching_records = [r for r in matching_records if r.ai_tool == ai_tool_type]
         except ValueError:
-            print_error(
-                f"Invalid AI tool: {tool}. Valid options: cursor, copilot, windsurf, claude",
-                console
-            )
+            print_error(f"Invalid AI tool: {tool}. Valid options: cursor, copilot, windsurf, claude", console)
             return 1
 
     # Check if instruction is installed
@@ -113,15 +107,11 @@ def uninstall_instruction(
 
             # Remove from tracker
             tracker.remove_installation(
-                record.instruction_name,
-                record.ai_tool,
-                project_root=removal_project_root,
-                scope_filter=scope_filter
+                record.instruction_name, record.ai_tool, project_root=removal_project_root, scope_filter=scope_filter
             )
 
             print_success(
-                f"Uninstalled {record.instruction_name} from {ai_tool.tool_name} ({record.scope.value})",
-                console
+                f"Uninstalled {record.instruction_name} from {ai_tool.tool_name} ({record.scope.value})", console
             )
             removed_count += 1
 

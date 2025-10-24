@@ -65,9 +65,7 @@ class TestAIToolBase:
         tool = MockAITool()
         project_root = temp_dir / "project"
         project_root.mkdir()
-        assert (
-            tool.instruction_exists("nonexistent", InstallationScope.PROJECT, project_root) is False
-        )
+        assert tool.instruction_exists("nonexistent", InstallationScope.PROJECT, project_root) is False
 
     def test_instruction_exists_handles_exceptions(self):
         """Test instruction_exists handles exceptions gracefully."""
@@ -88,9 +86,7 @@ class TestAIToolBase:
             file_path="test.md",
         )
 
-        path = tool.install_instruction(
-            instruction, scope=InstallationScope.PROJECT, project_root=project_root
-        )
+        path = tool.install_instruction(instruction, scope=InstallationScope.PROJECT, project_root=project_root)
 
         assert path.exists()
         assert path.parent.exists()
@@ -114,9 +110,7 @@ class TestAIToolBase:
         )
 
         with pytest.raises(FileExistsError):
-            tool.install_instruction(
-                instruction, scope=InstallationScope.PROJECT, project_root=project_root
-            )
+            tool.install_instruction(instruction, scope=InstallationScope.PROJECT, project_root=project_root)
 
     def test_uninstall_instruction_returns_false_for_nonexistent(self, temp_dir):
         """Test uninstall_instruction returns False for non-existent file."""

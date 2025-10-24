@@ -107,16 +107,11 @@ class TestCursorTool:
         (instructions_dir / "test.mdc").write_text("test content")
 
         assert (
-            cursor_tool.instruction_exists(
-                "test", scope=InstallationScope.PROJECT, project_root=project_root
-            )
-            is True
+            cursor_tool.instruction_exists("test", scope=InstallationScope.PROJECT, project_root=project_root) is True
         )
 
         assert (
-            cursor_tool.instruction_exists(
-                "nonexistent", scope=InstallationScope.PROJECT, project_root=project_root
-            )
+            cursor_tool.instruction_exists("nonexistent", scope=InstallationScope.PROJECT, project_root=project_root)
             is False
         )
 
@@ -133,9 +128,7 @@ class TestCursorTool:
             tags=[],
         )
 
-        path = cursor_tool.install_instruction(
-            instruction, scope=InstallationScope.PROJECT, project_root=project_root
-        )
+        path = cursor_tool.install_instruction(instruction, scope=InstallationScope.PROJECT, project_root=project_root)
 
         assert path.exists()
         assert path.read_text() == "Test content"
@@ -147,18 +140,14 @@ class TestCursorTool:
         instructions_dir = project_root / ".cursor" / "rules"
         instructions_dir.mkdir(parents=True)
 
-        instruction = Instruction(
-            name="test", description="Test", content="New content", file_path="test.md", tags=[]
-        )
+        instruction = Instruction(name="test", description="Test", content="New content", file_path="test.md", tags=[])
 
         # Create existing file
         (instructions_dir / "test.mdc").write_text("Old content")
 
         # Should raise without overwrite
         with pytest.raises(FileExistsError):
-            cursor_tool.install_instruction(
-                instruction, scope=InstallationScope.PROJECT, project_root=project_root
-            )
+            cursor_tool.install_instruction(instruction, scope=InstallationScope.PROJECT, project_root=project_root)
 
         # Should succeed with overwrite
         path = cursor_tool.install_instruction(
@@ -179,17 +168,13 @@ class TestCursorTool:
 
         # Uninstall should succeed
         assert (
-            cursor_tool.uninstall_instruction(
-                "test", scope=InstallationScope.PROJECT, project_root=project_root
-            )
+            cursor_tool.uninstall_instruction("test", scope=InstallationScope.PROJECT, project_root=project_root)
             is True
         )
 
         # Uninstalling again should return False
         assert (
-            cursor_tool.uninstall_instruction(
-                "test", scope=InstallationScope.PROJECT, project_root=project_root
-            )
+            cursor_tool.uninstall_instruction("test", scope=InstallationScope.PROJECT, project_root=project_root)
             is False
         )
 

@@ -66,7 +66,7 @@ class CursorTool(AITool):
         Returns:
             File extension including the dot
         """
-        return '.mdc'
+        return ".mdc"
 
     def get_project_instructions_directory(self, project_root: Path) -> Path:
         """
@@ -92,6 +92,6 @@ class CursorTool(AITool):
         Returns:
             Path to project instructions directory (.cursor/rules/)
         """
-        instructions_dir = project_root / '.cursor' / 'rules'
+        instructions_dir = project_root / ".cursor" / "rules"
         instructions_dir.mkdir(parents=True, exist_ok=True)
         return instructions_dir

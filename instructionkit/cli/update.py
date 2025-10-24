@@ -72,9 +72,7 @@ def update_repository(
         print_success(f"✓ Successfully updated {success_count} repository(ies)")
         return 0
     else:
-        print_error(
-            f"Updated {success_count} repository(ies), {error_count} failed"
-        )
+        print_error(f"Updated {success_count} repository(ies), {error_count} failed")
         return 1
 
 

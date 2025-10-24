@@ -1,6 +1,5 @@
 """Delete command for removing instructions from library."""
 
-
 import typer
 from rich.console import Console
 from rich.prompt import Confirm
@@ -41,8 +40,7 @@ def delete_from_library(
     # Check if any instructions from this repo are currently installed
     installed_records = tracker.list_installations()
     installed_from_repo = [
-        record for record in installed_records
-        if any(inst.repo_namespace == namespace for inst in repo.instructions)
+        record for record in installed_records if any(inst.repo_namespace == namespace for inst in repo.instructions)
     ]
 
     if installed_from_repo and not force:
@@ -62,9 +60,7 @@ def delete_from_library(
         console.print(f"[bold]Namespace:[/bold] {repo.namespace}")
         console.print(f"[bold]Instructions:[/bold] {len(repo.instructions)}\n")
 
-        confirmed = Confirm.ask(
-            "[yellow]Are you sure you want to delete this repository from your library?[/yellow]"
-        )
+        confirmed = Confirm.ask("[yellow]Are you sure you want to delete this repository from your library?[/yellow]")
 
         if not confirmed:
             console.print("[dim]Cancelled[/dim]")

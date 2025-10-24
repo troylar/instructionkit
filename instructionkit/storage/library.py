@@ -50,17 +50,17 @@ class LibraryManager:
         """
         # Parse URL to extract host and path
         # For local paths, use the folder name
-        if url.startswith(('http://', 'https://', 'git@')):
+        if url.startswith(("http://", "https://", "git@")):
             # Extract domain and repo path
             # https://github.com/company/instructions -> github.com_company_instructions
             import re
 
             # Remove protocol
-            clean_url = re.sub(r'^(https?://|git@)', '', url)
+            clean_url = re.sub(r"^(https?://|git@)", "", url)
             # Remove .git suffix
-            clean_url = re.sub(r'\.git$', '', clean_url)
+            clean_url = re.sub(r"\.git$", "", clean_url)
             # Replace special chars with underscore
-            namespace = re.sub(r'[^a-zA-Z0-9]', '_', clean_url)
+            namespace = re.sub(r"[^a-zA-Z0-9]", "_", clean_url)
         else:
             # Local path - use folder name + sanitized path
             path = Path(url).resolve()
@@ -81,16 +81,16 @@ class LibraryManager:
         """
         import re
 
-        if url.startswith(('http://', 'https://')):
+        if url.startswith(("http://", "https://")):
             # Extract repo path from URL
             # https://github.com/company/instructions -> company-instructions
-            match = re.search(r'/([^/]+)/([^/]+?)(?:\.git)?$', url)
+            match = re.search(r"/([^/]+)/([^/]+?)(?:\.git)?$", url)
             if match:
                 org, repo = match.groups()
                 return f"{org}-{repo}".lower()
 
         # Fallback to sanitized repo name
-        return re.sub(r'[^a-z0-9-]', '-', repo_name.lower()).strip('-')
+        return re.sub(r"[^a-z0-9-]", "-", repo_name.lower()).strip("-")
 
     def load_index(self) -> dict[str, LibraryRepository]:
         """
@@ -102,13 +102,10 @@ class LibraryManager:
         if not self.index_file.exists():
             return {}
 
-        with open(self.index_file, 'r', encoding='utf-8') as f:
+        with open(self.index_file, "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        return {
-            namespace: LibraryRepository.from_dict(repo_data)
-            for namespace, repo_data in data.items()
-        }
+        return {namespace: LibraryRepository.from_dict(repo_data) for namespace, repo_data in data.items()}
 
     def save_index(self, repositories: dict[str, LibraryRepository]) -> None:
         """
@@ -117,12 +114,9 @@ class LibraryManager:
         Args:
             repositories: Dictionary mapping namespace to LibraryRepository
         """
-        data = {
-            namespace: repo.to_dict()
-            for namespace, repo in repositories.items()
-        }
+        data = {namespace: repo.to_dict() for namespace, repo in repositories.items()}
 
-        with open(self.index_file, 'w', encoding='utf-8') as f:
+        with open(self.index_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
     def add_repository(
@@ -236,14 +230,14 @@ class LibraryManager:
             LibraryRepository or None if not found
         """
         # Normalize path for comparison
-        if not url.startswith(('http://', 'https://', 'git@')):
+        if not url.startswith(("http://", "https://", "git@")):
             url = str(Path(url).resolve())
 
         index = self.load_index()
         for repo in index.values():
             repo_url = repo.url
             # Normalize repo URL for comparison
-            if not repo_url.startswith(('http://', 'https://', 'git@')):
+            if not repo_url.startswith(("http://", "https://", "git@")):
                 repo_url = str(Path(repo_url).resolve())
 
             if repo_url == url:
@@ -298,14 +292,9 @@ class LibraryManager:
         Returns:
             List of LibraryInstruction objects with matching name
         """
-        return [
-            inst for inst in self.list_instructions()
-            if inst.name == name
-        ]
+        return [inst for inst in self.list_instructions() if inst.name == name]
 
-    def get_instructions_by_source_and_name(
-        self, source_alias: str, name: str
-    ) -> list[LibraryInstruction]:
+    def get_instructions_by_source_and_name(self, source_alias: str, name: str) -> list[LibraryInstruction]:
         """
         Get instructions by source alias and name.
 
@@ -323,12 +312,7 @@ class LibraryManager:
                 matching_repos.append(repo)
 
         # Get instructions from matching repos
-        return [
-            inst
-            for repo in matching_repos
-            for inst in repo.instructions
-            if inst.name == name
-        ]
+        return [inst for repo in matching_repos for inst in repo.instructions if inst.name == name]
 
     def search_instructions(
         self,
@@ -353,23 +337,18 @@ class LibraryManager:
         if query:
             query_lower = query.lower()
             instructions = [
-                inst for inst in instructions
+                inst
+                for inst in instructions
                 if query_lower in inst.name.lower() or query_lower in inst.description.lower()
             ]
 
         # Filter by repo
         if repo_namespace:
-            instructions = [
-                inst for inst in instructions
-                if inst.repo_namespace == repo_namespace
-            ]
+            instructions = [inst for inst in instructions if inst.repo_namespace == repo_namespace]
 
         # Filter by tags
         if tags:
-            instructions = [
-                inst for inst in instructions
-                if any(tag in inst.tags for tag in tags)
-            ]
+            instructions = [inst for inst in instructions if any(tag in inst.tags for tag in tags)]
 
         return instructions
 

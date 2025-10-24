@@ -62,10 +62,7 @@ class TestInstallationTracker:
         assert len(global_records) == 0
 
         # Should be in project tracker
-        project_records = tracker.get_installed_instructions(
-            project_root=mock_project_dir,
-            include_global=False
-        )
+        project_records = tracker.get_installed_instructions(project_root=mock_project_dir, include_global=False)
         assert len(project_records) == 1
 
     def test_remove_installation(self, temp_dir: Path):

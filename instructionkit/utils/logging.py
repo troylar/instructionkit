@@ -6,11 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 
-def setup_logging(
-    level: str = "INFO",
-    log_file: Optional[Path] = None,
-    format_string: Optional[str] = None
-) -> None:
+def setup_logging(level: str = "INFO", log_file: Optional[Path] = None, format_string: Optional[str] = None) -> None:
     """
     Configure logging for InstructionKit.
 

@@ -19,21 +19,11 @@ def mock_all_tools_installed(monkeypatch, temp_dir):
     home_dir.mkdir(parents=True)
 
     # Create directories for all tools
-    (home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage").mkdir(
+    (home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
+    (home_dir / "Library" / "Application Support" / "Code" / "User" / "globalStorage" / "github.copilot").mkdir(
         parents=True
     )
-    (
-        home_dir
-        / "Library"
-        / "Application Support"
-        / "Code"
-        / "User"
-        / "globalStorage"
-        / "github.copilot"
-    ).mkdir(parents=True)
-    (home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage").mkdir(
-        parents=True
-    )
+    (home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
     (home_dir / ".claude" / "rules").mkdir(parents=True)
 
     monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
@@ -102,12 +92,8 @@ class TestAIToolDetector:
         home_dir.mkdir(parents=True)
 
         # Mock Cursor and Winsurf as installed
-        (home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage").mkdir(
-            parents=True
-        )
-        (
-            home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage"
-        ).mkdir(parents=True)
+        (home_dir / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage").mkdir(parents=True)
+        (home_dir / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage").mkdir(parents=True)
 
         monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
 

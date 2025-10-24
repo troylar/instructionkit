@@ -33,17 +33,17 @@ def find_project_root(start_path: Optional[Path] = None) -> Optional[Path]:
 
     # Common project markers
     markers = [
-        '.git',
-        'pyproject.toml',
-        'package.json',
-        'Cargo.toml',
-        'go.mod',
-        'pom.xml',
-        'build.gradle',
-        'composer.json',
-        'Gemfile',
-        '.project',  # Eclipse project
-        'Makefile',
+        ".git",
+        "pyproject.toml",
+        "package.json",
+        "Cargo.toml",
+        "go.mod",
+        "pom.xml",
+        "build.gradle",
+        "composer.json",
+        "Gemfile",
+        ".project",  # Eclipse project
+        "Makefile",
     ]
 
     current = start_path
@@ -88,7 +88,7 @@ def get_project_instructions_dir(project_root: Path, create: bool = True) -> Pat
     Returns:
         Path to project instructions directory
     """
-    instructions_dir = project_root / '.instructionkit'
+    instructions_dir = project_root / ".instructionkit"
 
     if create:
         instructions_dir.mkdir(parents=True, exist_ok=True)
@@ -106,4 +106,4 @@ def get_project_installation_tracker_path(project_root: Path) -> Path:
     Returns:
         Path to project installation tracking JSON file
     """
-    return get_project_instructions_dir(project_root) / 'installations.json'
+    return get_project_instructions_dir(project_root) / "installations.json"

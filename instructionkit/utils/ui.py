@@ -9,9 +9,7 @@ from instructionkit.core.models import InstallationRecord, Instruction, Instruct
 
 
 def format_instructions_table(
-    instructions: list[Instruction],
-    bundles: list[InstructionBundle],
-    show_bundles: bool = True
+    instructions: list[Instruction], bundles: list[InstructionBundle], show_bundles: bool = True
 ) -> Table:
     """
     Format instructions and bundles as a Rich table.
@@ -34,32 +32,19 @@ def format_instructions_table(
     # Add instructions
     for inst in sorted(instructions, key=lambda x: x.name):
         tags_str = ", ".join(inst.tags) if inst.tags else "-"
-        table.add_row(
-            inst.name,
-            "Instruction",
-            inst.description,
-            tags_str
-        )
+        table.add_row(inst.name, "Instruction", inst.description, tags_str)
 
     # Add bundles
     if show_bundles:
         for bundle in sorted(bundles, key=lambda x: x.name):
             tags_str = ", ".join(bundle.tags) if bundle.tags else "-"
             inst_count = f"{len(bundle.instructions)} instructions"
-            table.add_row(
-                bundle.name,
-                "Bundle",
-                f"{bundle.description} ({inst_count})",
-                tags_str
-            )
+            table.add_row(bundle.name, "Bundle", f"{bundle.description} ({inst_count})", tags_str)
 
     return table
 
 
-def format_installed_table(
-    records: list[InstallationRecord],
-    group_by_tool: bool = True
-) -> Table:
+def format_installed_table(records: list[InstallationRecord], group_by_tool: bool = True) -> Table:
     """
     Format installed instructions as a Rich table.
 
@@ -108,29 +93,15 @@ def format_installed_table(
             current_tool = record.ai_tool
 
             table.add_row(
-                tool_display,
-                record.instruction_name,
-                scope_display,
-                repo_display,
-                installed_date,
-                bundle_display
+                tool_display, record.instruction_name, scope_display, repo_display, installed_date, bundle_display
             )
         else:
-            table.add_row(
-                record.instruction_name,
-                scope_display,
-                repo_display,
-                installed_date,
-                bundle_display
-            )
+            table.add_row(record.instruction_name, scope_display, repo_display, installed_date, bundle_display)
 
     return table
 
 
-def format_bundle_details(
-    bundle: InstructionBundle,
-    instructions: list[Instruction]
-) -> Table:
+def format_bundle_details(bundle: InstructionBundle, instructions: list[Instruction]) -> Table:
     """
     Format bundle details with its instructions.
 
@@ -141,11 +112,7 @@ def format_bundle_details(
     Returns:
         Rich Table object
     """
-    table = Table(
-        title=f"Bundle: {bundle.name}",
-        show_header=True,
-        header_style="bold cyan"
-    )
+    table = Table(title=f"Bundle: {bundle.name}", show_header=True, header_style="bold cyan")
 
     table.add_column("#", style="dim", width=4)
     table.add_column("Instruction", style="cyan")
@@ -154,12 +121,7 @@ def format_bundle_details(
 
     for idx, inst in enumerate(instructions, 1):
         tags_str = ", ".join(inst.tags) if inst.tags else "-"
-        table.add_row(
-            str(idx),
-            inst.name,
-            inst.description,
-            tags_str
-        )
+        table.add_row(str(idx), inst.name, inst.description, tags_str)
 
     return table
 
@@ -208,4 +170,4 @@ def _shorten_url(url: str, max_length: int = 50) -> str:
                 return shortened
 
     # Fallback: truncate with ellipsis
-    return url[:max_length-3] + "..."
+    return url[: max_length - 3] + "..."

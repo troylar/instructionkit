@@ -91,9 +91,7 @@ class TestClaudeTool:
             tags=[],
         )
 
-        path = claude_tool.install_instruction(
-            instruction, scope=InstallationScope.PROJECT, project_root=project_root
-        )
+        path = claude_tool.install_instruction(instruction, scope=InstallationScope.PROJECT, project_root=project_root)
 
         assert path.exists()
         assert path.read_text() == "Test content"

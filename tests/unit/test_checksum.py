@@ -15,7 +15,8 @@ class TestChecksumValidator:
 
         # Calculate correct checksum
         import hashlib
-        expected_checksum = hashlib.sha256(content.encode('utf-8')).hexdigest()
+
+        expected_checksum = hashlib.sha256(content.encode("utf-8")).hexdigest()
 
         # Should not raise exception
         validator.validate(content, expected_checksum)
@@ -47,11 +48,12 @@ class TestChecksumValidator:
 
         # Verify it's a valid SHA-256 hash
         assert len(checksum) == 64
-        assert all(c in '0123456789abcdef' for c in checksum)
+        assert all(c in "0123456789abcdef" for c in checksum)
 
         # Verify same content gives same checksum
         import hashlib
-        expected = hashlib.sha256(content.encode('utf-8')).hexdigest()
+
+        expected = hashlib.sha256(content.encode("utf-8")).hexdigest()
         assert checksum == expected
 
     def test_calculate_checksum_consistent(self, tmp_path):

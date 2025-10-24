@@ -11,6 +11,7 @@ from instructionkit.utils.validation import is_valid_git_url
 
 class GitOperationError(Exception):
     """Raised when a Git operation fails."""
+
     pass
 
 
@@ -29,11 +30,11 @@ class GitOperations:
             True if it's a local path, False if it's a remote Git URL
         """
         # Remote URLs have protocols or SSH format
-        if repo_url.startswith(('https://', 'http://', 'git://', 'ssh://')):
+        if repo_url.startswith(("https://", "http://", "git://", "ssh://")):
             return False
 
         # SSH format (git@host:path)
-        if '@' in repo_url and ':' in repo_url and not repo_url.startswith('/'):
+        if "@" in repo_url and ":" in repo_url and not repo_url.startswith("/"):
             return False
 
         # Everything else is treated as a local path
@@ -41,10 +42,7 @@ class GitOperations:
 
     @staticmethod
     def clone_repository(
-        repo_url: str,
-        target_dir: Optional[Path] = None,
-        branch: Optional[str] = None,
-        depth: int = 1
+        repo_url: str, target_dir: Optional[Path] = None, branch: Optional[str] = None, depth: int = 1
     ) -> Path:
         """
         Clone a Git repository or use a local directory.
@@ -77,33 +75,27 @@ class GitOperations:
 
         # Create target directory if not provided
         if target_dir is None:
-            target_dir = Path(tempfile.mkdtemp(prefix='instructionkit-'))
+            target_dir = Path(tempfile.mkdtemp(prefix="instructionkit-"))
         else:
             target_dir.mkdir(parents=True, exist_ok=True)
 
         # Build git clone command
-        cmd = ['git', 'clone']
+        cmd = ["git", "clone"]
 
         # Add depth for shallow clone
         if depth > 0:
-            cmd.extend(['--depth', str(depth)])
+            cmd.extend(["--depth", str(depth)])
 
         # Add branch if specified
         if branch:
-            cmd.extend(['--branch', branch])
+            cmd.extend(["--branch", branch])
 
         # Add URL and target directory
         cmd.extend([repo_url, str(target_dir)])
 
         try:
             # Execute git clone
-            subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True,
-                timeout=300  # 5 minute timeout
-            )
+            subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=300)  # 5 minute timeout
 
             return target_dir
 
@@ -138,11 +130,7 @@ class GitOperations:
             True if git command is available
         """
         try:
-            result = subprocess.run(
-                ['git', '--version'],
-                capture_output=True,
-                timeout=5
-            )
+            result = subprocess.run(["git", "--version"], capture_output=True, timeout=5)
             return result.returncode == 0
         except (subprocess.SubprocessError, FileNotFoundError):
             return False
@@ -156,12 +144,7 @@ class GitOperations:
             Git version string or None if not installed
         """
         try:
-            result = subprocess.run(
-                ['git', '--version'],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
+            result = subprocess.run(["git", "--version"], capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
                 # Output format: "git version 2.x.x"
                 return result.stdout.strip()
@@ -181,7 +164,7 @@ class GitOperations:
         # Only delete if it's a temporary directory
         if is_temp and repo_path.exists() and repo_path.is_dir():
             # Safety check: only delete if it's in temp directory
-            if 'instructionkit-' in str(repo_path) or '/tmp/' in str(repo_path):
+            if "instructionkit-" in str(repo_path) or "/tmp/" in str(repo_path):
                 shutil.rmtree(repo_path, ignore_errors=True)
 
 

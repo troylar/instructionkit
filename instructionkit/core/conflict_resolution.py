@@ -20,10 +20,7 @@ class ConflictResolver:
         self.default_strategy = default_strategy
 
     def resolve(
-        self,
-        instruction_name: str,
-        target_path: Path,
-        strategy: Optional[ConflictResolution] = None
+        self, instruction_name: str, target_path: Path, strategy: Optional[ConflictResolution] = None
     ) -> ConflictInfo:
         """
         Resolve a file conflict.
@@ -45,7 +42,7 @@ class ConflictResolver:
                 instruction_name=instruction_name,
                 existing_path=str(target_path),
                 resolution=ConflictResolution.SKIP,
-                new_path=None
+                new_path=None,
             )
 
         elif strategy == ConflictResolution.OVERWRITE:
@@ -53,7 +50,7 @@ class ConflictResolver:
                 instruction_name=instruction_name,
                 existing_path=str(target_path),
                 resolution=ConflictResolution.OVERWRITE,
-                new_path=str(target_path)  # Same path, will be overwritten
+                new_path=str(target_path),  # Same path, will be overwritten
             )
 
         elif strategy == ConflictResolution.RENAME:
@@ -63,7 +60,7 @@ class ConflictResolver:
                 instruction_name=instruction_name,
                 existing_path=str(target_path),
                 resolution=ConflictResolution.RENAME,
-                new_path=str(new_path)
+                new_path=str(new_path),
             )
 
         else:
@@ -81,11 +78,7 @@ class ConflictResolver:
         """
         return conflict_info.resolution != ConflictResolution.SKIP
 
-    def get_install_path(
-        self,
-        original_path: Path,
-        conflict_info: Optional[ConflictInfo] = None
-    ) -> Path:
+    def get_install_path(self, original_path: Path, conflict_info: Optional[ConflictInfo] = None) -> Path:
         """
         Get the actual path where file should be installed.
 
@@ -135,19 +128,17 @@ def prompt_conflict_resolution(instruction_name: str) -> ConflictResolution:
     while True:
         choice = input("Enter choice (1/2/3): ").strip()
 
-        if choice == '1':
+        if choice == "1":
             return ConflictResolution.SKIP
-        elif choice == '2':
+        elif choice == "2":
             return ConflictResolution.RENAME
-        elif choice == '3':
+        elif choice == "3":
             return ConflictResolution.OVERWRITE
         else:
             print("Invalid choice. Please enter 1, 2, or 3.")
 
 
-def check_conflicts(
-    target_paths: list[Path]
-) -> dict[str, Path]:
+def check_conflicts(target_paths: list[Path]) -> dict[str, Path]:
     """
     Check which target paths already exist.
 
@@ -168,10 +159,7 @@ def check_conflicts(
     return conflicts
 
 
-def batch_resolve_conflicts(
-    conflicts: dict[str, Path],
-    strategy: ConflictResolution
-) -> dict[str, ConflictInfo]:
+def batch_resolve_conflicts(conflicts: dict[str, Path], strategy: ConflictResolution) -> dict[str, ConflictInfo]:
     """
     Resolve multiple conflicts with the same strategy.
 

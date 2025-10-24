@@ -8,6 +8,7 @@ from typing import Optional
 
 class AIToolType(Enum):
     """Supported AI coding tool types."""
+
     CURSOR = "cursor"
     COPILOT = "copilot"
     WINSURF = "winsurf"
@@ -16,6 +17,7 @@ class AIToolType(Enum):
 
 class ConflictResolution(Enum):
     """Conflict resolution strategies."""
+
     SKIP = "skip"
     RENAME = "rename"
     OVERWRITE = "overwrite"
@@ -23,6 +25,7 @@ class ConflictResolution(Enum):
 
 class InstallationScope(Enum):
     """Installation scope."""
+
     GLOBAL = "global"
     PROJECT = "project"
 
@@ -41,6 +44,7 @@ class Instruction:
         checksum: SHA-256 hash for integrity validation
         ai_tools: List of compatible AI tools (empty = all compatible)
     """
+
     name: str
     description: str
     content: str
@@ -72,6 +76,7 @@ class InstructionBundle:
         instructions: List of instruction names in this bundle
         tags: Bundle-level tags
     """
+
     name: str
     description: str
     instructions: list[str]
@@ -98,7 +103,8 @@ class Repository:
         bundles: Available bundles
         metadata: Additional repository metadata
     """
-    url: str = ''
+
+    url: str = ""
     instructions: list[Instruction] = field(default_factory=list)
     bundles: list[InstructionBundle] = field(default_factory=list)
     metadata: dict[str, str] = field(default_factory=dict)
@@ -120,6 +126,7 @@ class InstallationRecord:
         scope: Installation scope (global or project)
         project_root: Project root path if scope is PROJECT
     """
+
     instruction_name: str
     ai_tool: AIToolType
     source_repo: str
@@ -142,34 +149,34 @@ class InstallationRecord:
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {
-            'instruction_name': self.instruction_name,
-            'ai_tool': self.ai_tool.value,
-            'source_repo': self.source_repo,
-            'installed_path': self.installed_path,
-            'installed_at': self.installed_at.isoformat(),
-            'checksum': self.checksum,
-            'bundle_name': self.bundle_name,
-            'scope': self.scope.value,
-            'project_root': self.project_root,
+            "instruction_name": self.instruction_name,
+            "ai_tool": self.ai_tool.value,
+            "source_repo": self.source_repo,
+            "installed_path": self.installed_path,
+            "installed_at": self.installed_at.isoformat(),
+            "checksum": self.checksum,
+            "bundle_name": self.bundle_name,
+            "scope": self.scope.value,
+            "project_root": self.project_root,
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'InstallationRecord':
+    def from_dict(cls, data: dict) -> "InstallationRecord":
         """Create from dictionary (JSON deserialization)."""
         # Handle backwards compatibility - old records won't have scope
-        scope_value = data.get('scope', 'global')
+        scope_value = data.get("scope", "global")
         scope = InstallationScope(scope_value) if isinstance(scope_value, str) else scope_value
 
         return cls(
-            instruction_name=data['instruction_name'],
-            ai_tool=AIToolType(data['ai_tool']),
-            source_repo=data['source_repo'],
-            installed_path=data['installed_path'],
-            installed_at=datetime.fromisoformat(data['installed_at']),
-            checksum=data.get('checksum'),
-            bundle_name=data.get('bundle_name'),
+            instruction_name=data["instruction_name"],
+            ai_tool=AIToolType(data["ai_tool"]),
+            source_repo=data["source_repo"],
+            installed_path=data["installed_path"],
+            installed_at=datetime.fromisoformat(data["installed_at"]),
+            checksum=data.get("checksum"),
+            bundle_name=data.get("bundle_name"),
             scope=scope,
-            project_root=data.get('project_root'),
+            project_root=data.get("project_root"),
         )
 
 
@@ -184,6 +191,7 @@ class ConflictInfo:
         resolution: How the conflict was resolved
         new_path: New path if renamed
     """
+
     instruction_name: str
     existing_path: str
     resolution: ConflictResolution
@@ -209,6 +217,7 @@ class LibraryInstruction:
         downloaded_at: When it was downloaded
         checksum: SHA-256 hash for integrity
     """
+
     id: str
     name: str
     description: str
@@ -234,40 +243,40 @@ class LibraryInstruction:
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'repo_namespace': self.repo_namespace,
-            'repo_url': self.repo_url,
-            'repo_name': self.repo_name,
-            'author': self.author,
-            'version': self.version,
-            'file_path': self.file_path,
-            'tags': self.tags,
-            'downloaded_at': self.downloaded_at.isoformat() if self.downloaded_at else None,
-            'checksum': self.checksum,
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "repo_namespace": self.repo_namespace,
+            "repo_url": self.repo_url,
+            "repo_name": self.repo_name,
+            "author": self.author,
+            "version": self.version,
+            "file_path": self.file_path,
+            "tags": self.tags,
+            "downloaded_at": self.downloaded_at.isoformat() if self.downloaded_at else None,
+            "checksum": self.checksum,
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'LibraryInstruction':
+    def from_dict(cls, data: dict) -> "LibraryInstruction":
         """Create from dictionary (JSON deserialization)."""
         downloaded_at = None
-        if data.get('downloaded_at'):
-            downloaded_at = datetime.fromisoformat(data['downloaded_at'])
+        if data.get("downloaded_at"):
+            downloaded_at = datetime.fromisoformat(data["downloaded_at"])
 
         return cls(
-            id=data['id'],
-            name=data['name'],
-            description=data['description'],
-            repo_namespace=data['repo_namespace'],
-            repo_url=data['repo_url'],
-            repo_name=data['repo_name'],
-            author=data['author'],
-            version=data['version'],
-            file_path=data['file_path'],
-            tags=data.get('tags', []),
+            id=data["id"],
+            name=data["name"],
+            description=data["description"],
+            repo_namespace=data["repo_namespace"],
+            repo_url=data["repo_url"],
+            repo_name=data["repo_name"],
+            author=data["author"],
+            version=data["version"],
+            file_path=data["file_path"],
+            tags=data.get("tags", []),
             downloaded_at=downloaded_at,
-            checksum=data.get('checksum'),
+            checksum=data.get("checksum"),
         )
 
 
@@ -287,6 +296,7 @@ class LibraryRepository:
         alias: User-friendly alias for this source (optional)
         instructions: List of instructions in this repository
     """
+
     namespace: str
     name: str
     description: str
@@ -307,33 +317,30 @@ class LibraryRepository:
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {
-            'namespace': self.namespace,
-            'name': self.name,
-            'description': self.description,
-            'url': self.url,
-            'author': self.author,
-            'version': self.version,
-            'downloaded_at': self.downloaded_at.isoformat(),
-            'alias': self.alias,
-            'instructions': [inst.to_dict() for inst in self.instructions],
+            "namespace": self.namespace,
+            "name": self.name,
+            "description": self.description,
+            "url": self.url,
+            "author": self.author,
+            "version": self.version,
+            "downloaded_at": self.downloaded_at.isoformat(),
+            "alias": self.alias,
+            "instructions": [inst.to_dict() for inst in self.instructions],
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'LibraryRepository':
+    def from_dict(cls, data: dict) -> "LibraryRepository":
         """Create from dictionary (JSON deserialization)."""
-        instructions = [
-            LibraryInstruction.from_dict(inst)
-            for inst in data.get('instructions', [])
-        ]
+        instructions = [LibraryInstruction.from_dict(inst) for inst in data.get("instructions", [])]
 
         return cls(
-            namespace=data['namespace'],
-            name=data['name'],
-            description=data['description'],
-            url=data['url'],
-            author=data['author'],
-            version=data['version'],
-            downloaded_at=datetime.fromisoformat(data['downloaded_at']),
-            alias=data.get('alias'),  # Optional field, may not exist in old data
+            namespace=data["namespace"],
+            name=data["name"],
+            description=data["description"],
+            url=data["url"],
+            author=data["author"],
+            version=data["version"],
+            downloaded_at=datetime.fromisoformat(data["downloaded_at"]),
+            alias=data.get("alias"),  # Optional field, may not exist in old data
             instructions=instructions,
         )

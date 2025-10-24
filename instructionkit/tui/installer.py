@@ -142,6 +142,7 @@ class InstructionInstallerScreen(Screen):
 
         # Get current directory info for display
         from pathlib import Path
+
         self.current_dir = Path.cwd()
         self.project_root = find_project_root()
 
@@ -159,17 +160,13 @@ class InstructionInstallerScreen(Screen):
         # Branded title section
         with Container(id="title-container"):
             yield Static(
-                "🎯 [bold cyan]InstructionKit[/bold cyan] [dim]│[/dim] "
-                "Browse & Install Instructions",
+                "🎯 [bold cyan]InstructionKit[/bold cyan] [dim]│[/dim] " "Browse & Install Instructions",
                 id="app-title",
             )
 
         # Search container
         with Container(id="search-container"):
-            yield Input(
-                placeholder="🔍 Search instructions by name or description...",
-                id="search-input"
-            )
+            yield Input(placeholder="🔍 Search instructions by name or description...", id="search-input")
 
         # Filter container
         with Horizontal(id="filter-container"):
@@ -318,15 +315,15 @@ class InstructionInstallerScreen(Screen):
         if search:
             query = search.lower()
             self.filtered_instructions = [
-                inst for inst in self.filtered_instructions
+                inst
+                for inst in self.filtered_instructions
                 if query in inst.name.lower() or query in inst.description.lower()
             ]
 
         # Apply repo filter
         if repo_namespace:
             self.filtered_instructions = [
-                inst for inst in self.filtered_instructions
-                if inst.repo_namespace == repo_namespace
+                inst for inst in self.filtered_instructions if inst.repo_namespace == repo_namespace
             ]
 
         self.refresh_table()
@@ -443,16 +440,15 @@ class InstructionInstallerScreen(Screen):
             return
 
         # Get selected instructions
-        selected_instructions = [
-            inst for inst in self.instructions
-            if inst.id in self.selected_ids
-        ]
+        selected_instructions = [inst for inst in self.instructions if inst.id in self.selected_ids]
 
         # Return result with selected tools as a list
-        self.dismiss({
-            "instructions": selected_instructions,
-            "tools": list(self.selected_tools),  # Return as list
-        })
+        self.dismiss(
+            {
+                "instructions": selected_instructions,
+                "tools": list(self.selected_tools),  # Return as list
+            }
+        )
 
 
 class InstructionInstallerApp(App):

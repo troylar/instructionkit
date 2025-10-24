@@ -27,10 +27,7 @@ def show_tools() -> int:
         is_installed = tool.is_installed()
         status = "[green]✓ Installed[/green]" if is_installed else "[red]✗ Not found[/red]"
 
-        table.add_row(
-            tool.tool_name,
-            status
-        )
+        table.add_row(tool.tool_name, status)
 
     # Display table
     console.print()
