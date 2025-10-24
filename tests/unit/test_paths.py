@@ -1,10 +1,7 @@
 """Unit tests for path utilities."""
 
-import os
 from pathlib import Path
 from unittest.mock import Mock, patch
-
-import pytest
 
 from instructionkit.utils.paths import (
     ensure_directory_exists,

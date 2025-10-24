@@ -158,7 +158,11 @@ class InstructionInstallerScreen(Screen):
 
         # Branded title section
         with Container(id="title-container"):
-            yield Static("🎯 [bold cyan]InstructionKit[/bold cyan] [dim]│[/dim] Browse & Install Instructions", id="app-title")
+            yield Static(
+                "🎯 [bold cyan]InstructionKit[/bold cyan] [dim]│[/dim] "
+                "Browse & Install Instructions",
+                id="app-title",
+            )
 
         # Search container
         with Container(id="search-container"):
