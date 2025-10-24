@@ -40,7 +40,9 @@ class TestRelativePathStorage:
         # Verify path is relative in JSON
         assert len(data) == 1
         saved_path = data[0]["installed_path"]
-        assert saved_path == ".github/instructions/test.md"
+        # Normalize for cross-platform comparison (Windows uses backslashes)
+        normalized_path = Path(saved_path).as_posix()
+        assert normalized_path == ".github/instructions/test.md"
         assert not Path(saved_path).is_absolute()
 
     def test_project_installation_no_project_root_field(self, temp_dir: Path):
@@ -75,7 +77,8 @@ class TestRelativePathStorage:
         tracker_file = temp_dir / "installations.json"
         tracker = InstallationTracker(tracker_file)
 
-        absolute_path = "/Users/test/.cursor/rules/global.mdc"
+        # Use temp_dir to create a truly absolute path that works on all platforms
+        absolute_path = str(temp_dir / ".cursor" / "rules" / "global.mdc")
         record = InstallationRecord(
             instruction_name="global-instruction",
             ai_tool=AIToolType.CURSOR,
@@ -247,7 +250,9 @@ class TestBackwardCompatibility:
             data = json.load(f)
 
         # Should now be in new format
-        assert data[0]["installed_path"] == ".github/instructions/test.md"
+        # Normalize for cross-platform comparison (Windows uses backslashes)
+        normalized_path = Path(data[0]["installed_path"]).as_posix()
+        assert normalized_path == ".github/instructions/test.md"
         assert "project_root" not in data[0]
 
     def test_mixed_old_and_new_format(self, temp_dir: Path):
