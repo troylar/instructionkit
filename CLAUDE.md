@@ -390,11 +390,12 @@ This allows GitHub Actions to publish without needing API tokens or passwords.
 
 ### Pre-Release Checklist
 
+**IMPORTANT:** Before creating a release, you **must** run `invoke release-check` locally to ensure everything is working. This prevents CI failures and failed releases.
+
 1. **Ensure you're on the main branch** (or merge feature branch PR first)
 2. **Working directory must be clean** (no uncommitted changes)
-3. **All tests must pass**: `invoke test`
-4. **Code quality checks must pass**: `invoke quality`
-5. **CI/CD pipeline must be green** on GitHub Actions
+3. **All checks must pass locally**: `invoke release-check`
+4. **CI/CD pipeline must be green** on GitHub Actions (if PR was merged)
 
 ### Release Steps
 
@@ -412,7 +413,10 @@ gh pr status
 git status
 ```
 
-**Action:** If on a feature branch with an open PR, merge the PR to main first, then pull main locally.
+**Action:** If on a feature branch with an open PR:
+- Ensure all CI checks are passing
+- Merge the PR to main
+- Then pull main locally
 
 #### 2. Switch to Main and Pull Latest
 ```bash
@@ -420,15 +424,18 @@ git checkout main
 git pull origin main
 ```
 
-#### 3. Run Pre-Release Checks (Optional but Recommended)
+#### 3. Run Pre-Release Checks (REQUIRED)
 ```bash
 # This runs clean, quality, and test
 invoke release-check
 ```
 
-**Note:** The GitHub Actions workflow will also run these checks before publishing.
+**IMPORTANT:** This step is **required** before proceeding with the release. It verifies locally that:
+- All tests pass
+- Code quality checks pass (lint, format, typecheck)
+- Build artifacts are clean
 
-**Action:** Fix any failures before proceeding.
+**Action:** Fix any failures before proceeding. Do NOT create a release if this command fails.
 
 #### 4. Determine Version Bump
 
@@ -593,7 +600,7 @@ For a standard release from main branch:
 # 1. Ensure clean state
 git checkout main && git pull
 
-# 2. Optional: Run checks locally
+# 2. REQUIRED: Run checks locally (DO NOT SKIP!)
 invoke release-check
 
 # 3. Update version in pyproject.toml and CHANGELOG.md
