@@ -183,6 +183,76 @@ tests/
 - Docstrings for all public functions/classes (Google style)
 - Line length: 120 characters
 
+## Git & Commit Conventions
+
+**Commit Message Format:**
+```
+<type>: <subject>
+
+[optional issue reference]
+
+<body>
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `test`: Adding or updating tests
+- `refactor`: Code refactoring
+- `docs`: Documentation changes
+- `chore`: Maintenance tasks
+- `perf`: Performance improvements
+
+**Issue References:**
+Always reference GitHub issues in commit messages to create automatic links and tracking:
+
+- **Closing issues**: Use `Fixes #123`, `Closes #123`, or `Resolves #123` in the commit body to automatically close the issue when merged to main
+  ```
+  fix: remove duplicate installation confirmation prompt
+
+  Fixes #1
+
+  The inskit install command was prompting users twice...
+  ```
+
+- **Referencing issues**: Use `Refs #123` or `See #123` to reference related issues without closing them
+  ```
+  test: add unit tests for duplicate confirmation fix
+
+  Refs #1
+
+  Add comprehensive unit tests...
+  ```
+
+**Examples:**
+```bash
+# Bug fix that closes an issue
+git commit -m "fix: handle empty library gracefully
+
+Fixes #42
+
+Previously the CLI would crash when the library was empty.
+This commit adds proper error handling..."
+
+# Test addition referencing an issue
+git commit -m "test: add tests for library edge cases
+
+Refs #42
+
+Adds tests to verify empty library handling..."
+
+# Feature with multiple issue references
+git commit -m "feat: add batch installation support
+
+Closes #15, Refs #12
+
+Allows installing multiple instructions in one command..."
+```
+
 ## Important Implementation Details
 
 ### Project Root Detection
