@@ -304,43 +304,6 @@ def install_from_library_tui(
     selected_instructions = result["instructions"]
     selected_tools = result["tools"]  # Now a list of tool names
 
-    # Detect project root for showing paths
-    from instructionkit.utils.project import find_project_root
-
-    project_root = find_project_root()
-    if not project_root:
-        print_error("Could not detect project root. Make sure you're in a project directory.")
-        return 1
-
-    # Get detector to show actual install paths
-    detector = get_detector()
-
-    # Show detailed confirmation of what will be installed
-    console.print("\n[bold cyan]📦 Installation Preview[/bold cyan]")
-    console.print(f"\n[bold]Project:[/bold] {project_root}")
-    console.print(f"[bold]Instructions:[/bold] {len(selected_instructions)} selected")
-    console.print(f"[bold]Target tools:[/bold] {', '.join(selected_tools)}\n")
-
-    # Show where files will be created
-    console.print("[bold yellow]The following files will be created:[/bold yellow]\n")
-
-    for tool_name in selected_tools:
-        ai_tool = detector.get_tool_by_name(tool_name)
-        if ai_tool:
-            tool_dir = ai_tool.get_project_instructions_directory(project_root)
-            console.print(f"[cyan]{ai_tool.tool_name}[/cyan] → {tool_dir}")
-            for inst in selected_instructions:
-                filename = f"{inst.name}{ai_tool.get_instruction_file_extension()}"
-                console.print(f"  • {filename}")
-            console.print()
-
-    # Ask for confirmation
-    from rich.prompt import Confirm
-
-    if not Confirm.ask("\n[bold]Proceed with installation?[/bold]", default=True):
-        console.print("[dim]Installation cancelled[/dim]")
-        return 0
-
     return install_from_library_direct_multi_tool(
         instruction_ids=[inst.id for inst in selected_instructions],
         tools=selected_tools,
