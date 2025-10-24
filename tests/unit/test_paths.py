@@ -51,10 +51,11 @@ class TestSafeFileName:
 class TestResolveConflictName:
     """Test conflict name resolution."""
 
-    def test_resolve_with_suffix(self):
-        original = Path("/path/to/file.md")
+    def test_resolve_with_suffix(self, tmp_path):
+        original = tmp_path / "file.md"
         resolved = resolve_conflict_name(original, "backup")
-        assert str(resolved) == "/path/to/file-backup.md"
+        assert resolved.name == "file-backup.md"
+        assert resolved.parent == tmp_path
 
     def test_resolve_without_suffix(self, tmp_path):
         # Create a file
