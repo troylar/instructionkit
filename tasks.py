@@ -370,11 +370,12 @@ def tree(c, level=2):
     Options:
         -l, --level: Tree depth level (default: 2)
     """
-    cmd = f"tree -L {level} -I '__pycache__|*.pyc|*.egg-info|htmlcov|.pytest_cache|.mypy_cache|.ruff_cache'"
+    ignore = "__pycache__|*.pyc|*.egg-info|htmlcov|.pytest_cache|.mypy_cache|.ruff_cache"
+    cmd = f"tree -L {level} -I '{ignore}'"
     c.run(cmd, pty=True)
 
 
-@task
+@task(name="security-check")
 def security_check(c):
     """Run security checks with bandit and safety."""
     print("🔒 Running security checks...\n")
