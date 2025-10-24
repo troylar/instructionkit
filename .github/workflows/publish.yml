@@ -18,8 +18,6 @@ jobs:
   build-and-publish:
     name: Build and publish to PyPI
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.event_name == 'release' && 'pypi' || inputs.repository }}
     permissions:
       id-token: write  # Required for trusted publishing
       contents: read
