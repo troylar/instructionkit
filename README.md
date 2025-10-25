@@ -2,30 +2,59 @@
 
 # 🎯 InstructionKit
 
-**Manage AI coding tool instructions from any source**
+**Get your AI coding assistant following best practices in under 2 minutes**
 
 [![CI](https://github.com/troylar/instructionkit/actions/workflows/ci.yml/badge.svg)](https://github.com/troylar/instructionkit/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/troylar/instructionkit/branch/main/graph/badge.svg)](https://codecov.io/gh/troylar/instructionkit)
 [![PyPI version](https://img.shields.io/pypi/v/instructionkit.svg)](https://pypi.org/project/instructionkit/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-[Quick Start](#-quick-start) • [Features](#-features) • [Interactive TUI](#interactive-tui-browser) • [Library Management](#library-management) • [Usage](#-usage)
+**Supports:** Cursor • GitHub Copilot • Windsurf • Claude Code
 
 </div>
 
 ---
 
-## 🌟 Overview
+## 🚀 Get Started in 60 Seconds
 
-InstructionKit is a powerful CLI tool that enables developers to **browse, install, and manage** instructions for AI coding assistants. Download instruction repositories to your local library, browse them with an interactive TUI, and install exactly what you need. Whether you're standardizing your team's coding practices, sharing best practices across projects, or building a personal library of prompts, InstructionKit makes it effortless.
+```bash
+# 1. Install
+pip install instructionkit
 
-**Supports:** Cursor • GitHub Copilot • Windsurf • Claude Code
+# 2. Download 12 tested instruction examples
+inskit download --from https://github.com/troylar/instructionkit-examples
 
-> **CLI name:** The command-line entry point is `inskit`. Older docs may reference `instructionkit`; use `inskit` for all commands.
+# 3. Browse & install with interactive TUI
+inskit install
+```
 
-**New:** Interactive TUI for browsing and selecting instructions from your library!
+**✨ What you just got:**
+- 🐍 Python best practices (type hints, async patterns)
+- ⚛️ React & TypeScript patterns
+- 🧪 Testing with pytest
+- 🔐 Security (OWASP Top 10)
+- 🐳 Docker optimization
+- 📝 Documentation standards
+- ...and more!
+
+Your AI assistant now follows these guidelines automatically when you code. **No configuration needed.**
+
+👉 **[Browse all 12 examples](https://github.com/troylar/instructionkit-examples)** or keep reading to use your own instructions.
+
+---
+
+## 🌟 What is InstructionKit?
+
+A powerful CLI tool that enables developers to **browse, install, and manage** instructions for AI coding assistants. Download instruction repositories to your local library, browse them with an interactive TUI, and install exactly what you need.
+
+Perfect for:
+- ⚡️ **Getting started fast** with curated examples
+- 🏢 **Standardizing team practices** across projects
+- 📚 **Building personal libraries** of coding patterns
+- 🔄 **Sharing knowledge** across your organization
+
+> **CLI name:** Commands use `inskit` (short for InstructionKit)
 
 ## ✨ Features
 
@@ -101,69 +130,30 @@ InstructionKit is a powerful CLI tool that enables developers to **browse, insta
 </tr>
 </table>
 
-## 🚀 Quick Start
+## 📚 Using Your Own Instructions
 
-### Installation
-
-```bash
-pip install instructionkit
-```
-
-### ⚡️ Try Official Examples (2-Minute Setup)
-
-Get started immediately with our curated examples:
+Want to use company or custom instructions instead? It's just as easy:
 
 ```bash
-# Download official example instructions
-inskit download --from https://github.com/troylar/instructionkit-examples
+# Download from your GitHub repo
+inskit download --from https://github.com/yourcompany/instructions
 
 # Browse and install with the TUI
 inskit install
 ```
 
-**What you get:** 12 tested instructions covering Python, JavaScript/TypeScript, React, testing, API design, security, documentation, Git, and Docker - ready to use with your AI coding assistant!
+The interactive TUI lets you:
+- 🔍 Search and filter by tags
+- ☑️ Select multiple instructions
+- 🎯 Choose which AI tools to install to
+- 📦 See exactly what gets installed
 
-👉 See [instructionkit-examples](https://github.com/troylar/instructionkit-examples) for the full list.
-
----
-
-### The New Way: Library + Interactive TUI
-
-**Step 1: Download instructions to your library**
+**Managing your library:**
 
 ```bash
-# Download from GitHub
-inskit download --from https://github.com/company/instructions
-
-# Download from local folder (for testing)
-inskit download --from ./my-instructions
-```
-
-**Step 2: Browse and install with the TUI**
-
-```bash
-# Launch the interactive browser
-inskit install
-```
-
-This opens a beautiful terminal UI where you can:
-
-- 🔍 Search and filter instructions
-- ☑️ Select multiple instructions with Space/Enter
-- 🎯 Pick which AI tools to install to
-- 📦 Install with confirmation to your project
-
-**Step 3: Manage your library**
-
-```bash
-# See what's in your library
-inskit list library
-
-# Update to get latest changes
-inskit update --all
-
-# Remove a repository
-inskit delete <repo-namespace>
+inskit list library              # See what's downloaded
+inskit update --all              # Get latest updates
+inskit delete <repo-namespace>   # Remove a repository
 ```
 
 ### Alternative: Direct Installation
