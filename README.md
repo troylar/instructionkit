@@ -109,6 +109,24 @@ InstructionKit is a powerful CLI tool that enables developers to **browse, insta
 pip install instructionkit
 ```
 
+### ⚡️ Try Official Examples (2-Minute Setup)
+
+Get started immediately with our curated examples:
+
+```bash
+# Download official example instructions
+inskit download --from https://github.com/troylar/instructionkit-examples
+
+# Browse and install with the TUI
+inskit install
+```
+
+**What you get:** 7 tested instructions covering Python, JavaScript, testing, API design, security, and Git - ready to use with your AI coding assistant!
+
+👉 See [instructionkit-examples](https://github.com/troylar/instructionkit-examples) for the full list.
+
+---
+
 ### The New Way: Library + Interactive TUI
 
 **Step 1: Download instructions to your library**
