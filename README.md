@@ -121,7 +121,7 @@ inskit download --from https://github.com/troylar/instructionkit-examples
 inskit install
 ```
 
-**What you get:** 7 tested instructions covering Python, JavaScript, testing, API design, security, and Git - ready to use with your AI coding assistant!
+**What you get:** 12 tested instructions covering Python, JavaScript/TypeScript, React, testing, API design, security, documentation, Git, and Docker - ready to use with your AI coding assistant!
 
 👉 See [instructionkit-examples](https://github.com/troylar/instructionkit-examples) for the full list.
 
