@@ -135,7 +135,8 @@ def download_instructions(
 
         # Prepare library instructions
         library_instructions = []
-        repo_dir = library.library_dir / repo_namespace / "instructions"
+        library_repo_dir = library.library_dir / repo_namespace
+        repo_dir = library_repo_dir / "instructions"
         repo_dir.mkdir(parents=True, exist_ok=True)
 
         console.print("\n[bold]Copying instructions to library...[/bold]\n")
@@ -171,6 +172,15 @@ def download_instructions(
             library_instructions.append(lib_inst)
 
             console.print(f"  ✓ {instruction.name}")
+
+        # Preserve .git directory for Git sources to enable updates
+        if not is_local:
+            git_dir = repo_path / ".git"
+            if git_dir.exists():
+                dest_git_dir = library_repo_dir / ".git"
+                if dest_git_dir.exists():
+                    shutil.rmtree(dest_git_dir)
+                shutil.copytree(git_dir, dest_git_dir)
 
         # Add to library
         library_repo = library.add_repository(
