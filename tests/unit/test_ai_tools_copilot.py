@@ -81,7 +81,7 @@ class TestCopilotTool:
 
     def test_get_instruction_file_extension(self, copilot_tool):
         """Test instruction file extension."""
-        assert copilot_tool.get_instruction_file_extension() == ".md"
+        assert copilot_tool.get_instruction_file_extension() == ".instructions.md"
 
     def test_get_project_instructions_directory(self, copilot_tool, temp_dir):
         """Test project instructions directory."""
@@ -110,7 +110,7 @@ class TestCopilotTool:
 
         assert path.exists()
         assert path.read_text() == "Test content"
-        assert path.suffix == ".md"
+        assert path.name.endswith(".instructions.md")
 
     def test_repr(self, copilot_tool):
         """Test string representation."""

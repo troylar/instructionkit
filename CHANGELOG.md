@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+- **GitHub Copilot file extension**: Instructions now use `.instructions.md` extension (was `.md`) (#15)
+  - Required by GitHub Copilot's [official specification](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions)
+  - Previous installations with `.md` extension will not be recognized by Copilot
+  - **Action required** if you have existing Copilot instructions:
+    ```bash
+    inskit uninstall <instruction-name> --tool copilot
+    inskit install <instruction-name>
+    ```
+  - Affects: GitHub Copilot only (Cursor, Claude Code, Windsurf unchanged)
+
 ### Added
 - Git-based repository versioning support - download and manage multiple versions of instruction repositories
   - `inskit download --ref <tag|branch|commit>` to download specific Git references
