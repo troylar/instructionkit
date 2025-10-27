@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-10-27
+
+### Fixed
+- Git repository updates now work correctly - `.git` directory is preserved during download (#16)
+  - Previously, downloading from Git URLs would skip the `.git` directory, preventing `inskit update --all` from working
+  - Update command would show "Not a Git repository (local source)" for all Git-based repositories
+  - Now the entire `.git` directory is copied to the library alongside instruction files
+  - Enables proper Git-based updates via `inskit update --all` and `inskit update --namespace`
+  - Local (non-Git) sources continue to work as before
+
 ## [0.3.0] - 2025-10-27
 
 ### Breaking Changes
