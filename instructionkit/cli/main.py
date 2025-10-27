@@ -110,6 +110,12 @@ def download(
         "-f",
         help="Source URL or local directory path",
     ),
+    ref: Optional[str] = typer.Option(
+        None,
+        "--ref",
+        "-r",
+        help="Git reference (tag, branch, or commit) to download",
+    ),
     alias: Optional[str] = typer.Option(
         None,
         "--as",
@@ -133,6 +139,12 @@ def download(
       # Download from GitHub (auto-generates alias)
       inskit download --from github.com/company/instructions
 
+      # Download specific version
+      inskit download --from github.com/company/instructions --ref v1.0.0
+
+      # Download from branch
+      inskit download --from github.com/company/instructions --ref main
+
       # Download with custom alias
       inskit download --from github.com/company/instructions --as company
 
@@ -142,7 +154,7 @@ def download(
       # Force re-download
       inskit download --from github.com/company/instructions --force
     """
-    exit_code = download_instructions(repo=source, force=force, alias=alias)
+    exit_code = download_instructions(repo=source, ref=ref, force=force, alias=alias)
     raise typer.Exit(code=exit_code)
 
 
