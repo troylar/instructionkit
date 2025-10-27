@@ -128,6 +128,7 @@ class LibraryManager:
         repo_version: str,
         instructions: list[LibraryInstruction],
         alias: Optional[str] = None,
+        namespace: Optional[str] = None,
     ) -> LibraryRepository:
         """
         Add a repository to the library.
@@ -140,12 +141,14 @@ class LibraryManager:
             repo_version: Repository version
             instructions: List of instructions to add
             alias: User-friendly alias (auto-generated if not provided)
+            namespace: Repository namespace (auto-generated if not provided)
 
         Returns:
             Created LibraryRepository
         """
-        # Generate namespace
-        namespace = self.get_repo_namespace(repo_url, repo_name)
+        # Generate namespace if not provided
+        if namespace is None:
+            namespace = self.get_repo_namespace(repo_url, repo_name)
 
         # Auto-generate alias if not provided
         if alias is None:

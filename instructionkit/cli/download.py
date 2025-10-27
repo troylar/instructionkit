@@ -181,6 +181,7 @@ def download_instructions(
             repo_version=repository.metadata.get("version", "1.0.0"),
             instructions=library_instructions,
             alias=alias,
+            namespace=repo_namespace,
         )
 
         # Build success message
