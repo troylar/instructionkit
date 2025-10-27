@@ -356,6 +356,22 @@ class InstallationTracker:
         records = self._read_records()
         return [r for r in records if r.bundle_name == bundle_name]
 
+    def find_instructions_by_name(
+        self, instruction_name: str, project_root: Optional[Path] = None
+    ) -> list[InstallationRecord]:
+        """
+        Find all installations with a specific instruction name.
+
+        Args:
+            instruction_name: Name of instruction to search for
+            project_root: Project root for project-scoped search (None for all scopes)
+
+        Returns:
+            List of installation records with this name
+        """
+        records = self.get_installed_instructions(project_root=project_root)
+        return [r for r in records if r.instruction_name == instruction_name]
+
     def list_installations(self) -> list[InstallationRecord]:
         """
         Get all installation records.

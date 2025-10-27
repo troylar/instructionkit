@@ -6,6 +6,7 @@ from typing import Optional
 
 import typer
 from rich.console import Console
+from rich.prompt import Confirm
 
 from instructionkit.ai_tools.base import AITool
 from instructionkit.ai_tools.detector import AIToolDetector, get_detector
@@ -113,6 +114,83 @@ def _load_instructions_from_library(instruction_ids: list[str], library: Library
     return instructions
 
 
+def _detect_installed_collisions(
+    instructions: list[LibraryInstruction],
+    ai_tools: list[AITool],
+    install_names: dict[str, str],
+    project_root: Optional[Path],
+) -> dict[str, list[InstallationRecord]]:
+    """Detect collisions with already-installed instructions.
+
+    Args:
+        instructions: List of instructions to install
+        ai_tools: List of AI tools to install to
+        install_names: Mapping of instruction IDs to install names
+        project_root: Project root path
+
+    Returns:
+        Dictionary mapping instruction_id to list of existing installations with same name
+    """
+    tracker = InstallationTracker()
+    collisions = {}
+
+    for inst in instructions:
+        install_name = install_names[inst.id]
+
+        # Check if this name is already used in any tool
+        existing = tracker.find_instructions_by_name(install_name, project_root)
+
+        # Filter to only collisions from different repositories
+        different_repo_collisions = [e for e in existing if e.source_repo != inst.repo_url]
+
+        if different_repo_collisions:
+            collisions[inst.id] = different_repo_collisions
+
+    return collisions
+
+
+def _prompt_for_custom_filename(
+    instruction: LibraryInstruction,
+    existing_installations: list[InstallationRecord],
+    current_name: str,
+) -> Optional[str]:
+    """Prompt user to provide custom filename for collision resolution.
+
+    Args:
+        instruction: Instruction being installed
+        existing_installations: List of existing installations with same name
+        current_name: Current proposed install name
+
+    Returns:
+        Custom filename or None to skip installation
+    """
+    console.print(f"\n[yellow]⚠️  Name Collision:[/yellow] '{current_name}' is already installed")
+    console.print("\n[bold]Existing installations:[/bold]")
+    for existing in existing_installations:
+        repo_display = existing.source_repo or "unknown"
+        ref_display = existing.source_ref or "unknown"
+        console.print(f"  • {existing.ai_tool.value}: {repo_display} @ {ref_display}")
+
+    console.print("\n[bold]New installation:[/bold]")
+    console.print(f"  • Repository: {instruction.repo_url}")
+    console.print(f"  • Namespace: {instruction.repo_namespace}")
+
+    console.print("\n[bold]Options:[/bold]")
+    console.print("  [1] Provide custom filename")
+    console.print("  [2] Skip this instruction")
+
+    choice = typer.prompt("Select (1-2)", default="2")
+
+    if choice == "1":
+        custom_name = typer.prompt(
+            "Enter custom filename (without extension)",
+            default=f"{instruction.repo_namespace.replace('@', '-').replace('/', '-')}_{instruction.name}",
+        )
+        return str(custom_name)
+    else:
+        return None
+
+
 def _resolve_name_conflicts(instructions: list[LibraryInstruction]) -> Optional[dict[str, str]]:
     """Resolve naming conflicts for instructions with duplicate names.
 
@@ -211,9 +289,72 @@ def _show_installation_preview(
         console.print()
 
     # Ask for confirmation
-    from rich.prompt import Confirm
-
     return Confirm.ask("\n[bold]Proceed with installation?[/bold]", default=True)
+
+
+def _check_for_upgrades(
+    instructions: list,
+    ai_tools: list,
+    install_names: dict[str, str],
+    project_root: Optional[Path],
+) -> dict[str, tuple[InstallationRecord, LibraryInstruction]]:
+    """Check if any instructions being installed are upgrades of existing installations.
+
+    Args:
+        instructions: List of instructions to install
+        ai_tools: List of AI tools to install to
+        install_names: Mapping of instruction IDs to install names
+        project_root: Project root path
+
+    Returns:
+        Dictionary mapping instruction_id to (existing_record, new_instruction) for upgrades
+    """
+    tracker = InstallationTracker()
+    upgrades = {}
+
+    for ai_tool in ai_tools:
+        for inst in instructions:
+            install_name = install_names[inst.id]
+
+            # Check if this instruction is already installed for this tool
+            existing = tracker.get_installation(install_name, ai_tool.tool_type)
+
+            if existing:
+                # Extract ref from both old and new
+                old_ref = existing.source_ref
+                new_ref, new_ref_type = _extract_ref_from_namespace(inst.repo_namespace)
+
+                # Check if versions differ (potential upgrade)
+                if old_ref and new_ref and old_ref != new_ref:
+                    key = f"{inst.id}_{ai_tool.tool_type.value}"
+                    upgrades[key] = (existing, inst)
+
+    return upgrades
+
+
+def _prompt_for_upgrade(
+    existing: InstallationRecord,
+    new_instruction: LibraryInstruction,
+) -> bool:
+    """Prompt user to confirm upgrade from one version to another.
+
+    Args:
+        existing: Existing installation record
+        new_instruction: New instruction being installed
+
+    Returns:
+        True if user confirms upgrade, False otherwise
+    """
+    old_ref = existing.source_ref or "unknown"
+    new_ref, _ = _extract_ref_from_namespace(new_instruction.repo_namespace)
+    new_ref = new_ref or "unknown"
+
+    console.print(f"\n[yellow]⚠️  Upgrade Detected:[/yellow] {existing.instruction_name}")
+    console.print(f"  Current version: [cyan]{old_ref}[/cyan]")
+    console.print(f"  New version:     [green]{new_ref}[/green]")
+    console.print(f"  Tool: {existing.ai_tool.value}")
+
+    return Confirm.ask("\n[bold]Upgrade to new version?[/bold]", default=True)
 
 
 def _perform_installation(
@@ -393,10 +534,40 @@ def install_from_library_direct_multi_tool(
     if ai_tools is None:
         return 1
 
+    # Detect collisions with installed instructions from different repositories
+    collisions = _detect_installed_collisions(instructions, ai_tools, install_names, project_root)
+    if collisions:
+        console.print("\n[bold cyan]Handling Name Collisions[/bold cyan]")
+        for inst in instructions:
+            if inst.id in collisions:
+                current_name = install_names[inst.id]
+                custom_name = _prompt_for_custom_filename(inst, collisions[inst.id], current_name)
+                if custom_name is None:
+                    # User chose to skip
+                    console.print(f"[dim]Skipping {current_name}[/dim]")
+                    # Remove from installation list
+                    instructions = [i for i in instructions if i.id != inst.id]
+                else:
+                    # Use custom name
+                    install_names[inst.id] = custom_name
+
+        if not instructions:
+            console.print("[yellow]No instructions remaining to install[/yellow]")
+            return 0
+
     # Show preview and confirm
     if not _show_installation_preview(project_root, instructions, ai_tools, install_names):
         console.print("[dim]Installation cancelled[/dim]")
         return 0
+
+    # Check for upgrades and prompt if needed
+    upgrades = _check_for_upgrades(instructions, ai_tools, install_names, project_root)
+    if upgrades:
+        console.print("\n[bold cyan]Upgrade Confirmation[/bold cyan]")
+        for key, (existing, new_inst) in upgrades.items():
+            if not _prompt_for_upgrade(existing, new_inst):
+                console.print("[dim]Installation cancelled[/dim]")
+                return 0
 
     # Perform installation
     installed_count, skipped_count = _perform_installation(
@@ -464,10 +635,40 @@ def install_from_library_direct(
             print_error("No AI coding tools detected")
             return 1
 
+    # Detect collisions with installed instructions from different repositories
+    collisions = _detect_installed_collisions(instructions, ai_tools, install_names, project_root)
+    if collisions:
+        console.print("\n[bold cyan]Handling Name Collisions[/bold cyan]")
+        for inst in instructions:
+            if inst.id in collisions:
+                current_name = install_names[inst.id]
+                custom_name = _prompt_for_custom_filename(inst, collisions[inst.id], current_name)
+                if custom_name is None:
+                    # User chose to skip
+                    console.print(f"[dim]Skipping {current_name}[/dim]")
+                    # Remove from installation list
+                    instructions = [i for i in instructions if i.id != inst.id]
+                else:
+                    # Use custom name
+                    install_names[inst.id] = custom_name
+
+        if not instructions:
+            console.print("[yellow]No instructions remaining to install[/yellow]")
+            return 0
+
     # Show preview and confirm
     if not _show_installation_preview(project_root, instructions, ai_tools, install_names):
         console.print("[dim]Installation cancelled[/dim]")
         return 0
+
+    # Check for upgrades and prompt if needed
+    upgrades = _check_for_upgrades(instructions, ai_tools, install_names, project_root)
+    if upgrades:
+        console.print("\n[bold cyan]Upgrade Confirmation[/bold cyan]")
+        for key, (existing, new_inst) in upgrades.items():
+            if not _prompt_for_upgrade(existing, new_inst):
+                console.print("[dim]Installation cancelled[/dim]")
+                return 0
 
     # Perform installation
     installed_count, skipped_count = _perform_installation(
