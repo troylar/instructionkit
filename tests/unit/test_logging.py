@@ -3,8 +3,6 @@
 import logging
 from pathlib import Path
 
-import pytest
-
 from instructionkit.utils.logging import get_logger, setup_logging
 
 

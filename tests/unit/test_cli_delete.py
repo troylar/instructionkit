@@ -1,7 +1,6 @@
 """Tests for delete CLI command."""
 
 from datetime import datetime
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
