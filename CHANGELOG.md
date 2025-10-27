@@ -16,6 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatic update behavior: branch-based installs auto-update, tag/commit-based installs remain pinned
   - `inskit update` intelligently updates only mutable references (branches)
   - Version display in TUI installer and `inskit list` commands
+- **Upgrade detection and prompts** - when installing a newer version of an existing instruction:
+  - Automatically detects version changes (e.g., v1.0.0 → v2.0.0)
+  - Displays side-by-side version comparison with old and new versions
+  - Prompts for user confirmation before upgrading
+  - Works across all AI tools (Cursor, Claude Code, Copilot, Windsurf)
+- **Name collision handling** - when installing instructions with duplicate names from different repositories:
+  - Detects when instruction name already exists from a different repository
+  - Displays detailed information about existing and new installations
+  - Allows users to provide custom filename to avoid conflicts
+  - Option to skip installation if collision cannot be resolved
+  - `find_instructions_by_name()` method in `InstallationTracker` for collision detection
 - New `RefType` enum for tracking Git reference types (tag, branch, commit)
 - `GitOperations` class with functions for:
   - `detect_ref_type()` - automatically determine if a reference is a tag, branch, or commit
@@ -27,11 +38,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `get_versioned_namespace()` - creates unique namespaces like `repo@v1.0.0`
   - `list_repository_versions()` - lists all downloaded versions of a repository
 - Enhanced update command with progress bars and detailed status reporting
+- Comprehensive unit tests for upgrade detection and collision handling (8 new tests)
 
 ### Changed
 - `InstallationRecord` now includes `source_ref` and `source_ref_type` fields for version tracking
 - Library organization now supports version-specific namespaces (e.g., `github_com_user_repo@v1.0.0`)
 - Update workflow now filters installations by ref mutability (only updates branches)
+- Installation workflow now includes upgrade and collision checks before file operations
 
 ## [0.2.0] - 2025-10-24
 
