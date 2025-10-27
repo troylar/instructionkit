@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-10-27
+
 ### Breaking Changes
 - **GitHub Copilot file extension**: Instructions now use `.instructions.md` extension (was `.md`) (#15)
   - Required by GitHub Copilot's [official specification](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions)
@@ -49,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `get_versioned_namespace()` - creates unique namespaces like `repo@v1.0.0`
   - `list_repository_versions()` - lists all downloaded versions of a repository
 - Enhanced update command with progress bars and detailed status reporting
-- Comprehensive unit tests for upgrade detection and collision handling (8 new tests)
+- Comprehensive unit tests: 72 new tests, improving coverage from 46% to 57%
 
 ### Changed
 - `InstallationRecord` now includes `source_ref` and `source_ref_type` fields for version tracking
