@@ -137,6 +137,8 @@ class InstallationTracker:
                 checksum=record.checksum,
                 bundle_name=record.bundle_name,
                 scope=record.scope,
+                source_ref=record.source_ref,
+                source_ref_type=record.source_ref_type,
             )
         else:
             tracker_file = self.tracker_file
@@ -366,3 +368,30 @@ class InstallationTracker:
     def clear_all(self) -> None:
         """Clear all installation records (for testing)."""
         self._write_records([])
+
+    def get_updatable_instructions(self, project_root: Optional[Path] = None) -> list[InstallationRecord]:
+        """
+        Get installations that can be updated (from mutable refs like branches).
+
+        Args:
+            project_root: Project root to include project-scoped installations
+
+        Returns:
+            List of installation records with mutable source refs (branches)
+        """
+        from instructionkit.core.models import RefType
+
+        all_records = self.get_installed_instructions(project_root=project_root)
+
+        # Filter to only branch-based installations (mutable)
+        updatable = []
+        for record in all_records:
+            # If no ref type specified, assume it's updatable (old format or default branch)
+            if not record.source_ref_type:
+                updatable.append(record)
+            # Only branches are updatable
+            elif record.source_ref_type == RefType.BRANCH:
+                updatable.append(record)
+            # Tags and commits are immutable, skip them
+
+        return updatable

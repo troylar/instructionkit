@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Git-based repository versioning support - download and manage multiple versions of instruction repositories
+  - `inskit download --ref <tag|branch|commit>` to download specific Git references
+  - Support for tags (e.g., `v1.0.0`), branches (e.g., `main`), and commit hashes
+  - Multiple versions of the same repository can coexist in the library
+  - Version information tracked in installation records (`source_ref` and `source_ref_type`)
+  - Automatic update behavior: branch-based installs auto-update, tag/commit-based installs remain pinned
+  - `inskit update` intelligently updates only mutable references (branches)
+  - Version display in TUI installer and `inskit list` commands
+- New `RefType` enum for tracking Git reference types (tag, branch, commit)
+- `GitOperations` class with functions for:
+  - `detect_ref_type()` - automatically determine if a reference is a tag, branch, or commit
+  - `validate_remote_ref()` - verify Git references exist on remote before cloning
+  - `clone_at_ref()` - clone repository at a specific Git reference
+  - `check_for_updates()` - check if updates are available for branch-based repos
+  - `pull_repository_updates()` - pull latest changes with conflict detection
+- Versioned namespace generation in `LibraryManager`:
+  - `get_versioned_namespace()` - creates unique namespaces like `repo@v1.0.0`
+  - `list_repository_versions()` - lists all downloaded versions of a repository
+- Enhanced update command with progress bars and detailed status reporting
+
+### Changed
+- `InstallationRecord` now includes `source_ref` and `source_ref_type` fields for version tracking
+- Library organization now supports version-specific namespaces (e.g., `github_com_user_repo@v1.0.0`)
+- Update workflow now filters installations by ref mutability (only updates branches)
+
 ## [0.2.0] - 2025-10-24
 
 ### Changed

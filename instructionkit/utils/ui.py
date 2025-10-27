@@ -63,8 +63,9 @@ def format_installed_table(records: list[InstallationRecord], group_by_tool: boo
     table.add_column("Instruction", style="green", no_wrap=True)
     table.add_column("Scope", style="blue", no_wrap=True)
     table.add_column("Source Repository")
+    table.add_column("Version", style="magenta", no_wrap=True)
     table.add_column("Installed", style="yellow")
-    table.add_column("Bundle", style="magenta")
+    table.add_column("Bundle", style="dim")
 
     # Sort records
     if group_by_tool:
@@ -87,16 +88,36 @@ def format_installed_table(records: list[InstallationRecord], group_by_tool: boo
         # Scope display
         scope_display = record.scope.value.capitalize()
 
+        # Version display with badge
+        if record.source_ref and record.source_ref_type:
+            ref_type_badges = {
+                "tag": "📌",
+                "branch": "🌿",
+                "commit": "📍",
+            }
+            badge = ref_type_badges.get(record.source_ref_type.value, "")
+            version_display = f"{badge} {record.source_ref}"
+        else:
+            version_display = "-"
+
         if group_by_tool:
             # Show tool name only on first occurrence
             tool_display = record.ai_tool.value.capitalize() if record.ai_tool != current_tool else ""
             current_tool = record.ai_tool
 
             table.add_row(
-                tool_display, record.instruction_name, scope_display, repo_display, installed_date, bundle_display
+                tool_display,
+                record.instruction_name,
+                scope_display,
+                repo_display,
+                version_display,
+                installed_date,
+                bundle_display,
             )
         else:
-            table.add_row(record.instruction_name, scope_display, repo_display, installed_date, bundle_display)
+            table.add_row(
+                record.instruction_name, scope_display, repo_display, version_display, installed_date, bundle_display
+            )
 
     return table
 

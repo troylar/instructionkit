@@ -30,6 +30,14 @@ class InstallationScope(Enum):
     PROJECT = "project"
 
 
+class RefType(Enum):
+    """Git reference types for version control."""
+
+    TAG = "tag"
+    BRANCH = "branch"
+    COMMIT = "commit"
+
+
 @dataclass
 class Instruction:
     """
@@ -124,6 +132,8 @@ class InstallationRecord:
         checksum: File checksum at installation time
         bundle_name: If installed as part of bundle
         scope: Installation scope (global or project)
+        source_ref: Git reference (tag, branch, or commit) the instruction came from
+        source_ref_type: Type of Git reference (tag, branch, or commit)
     """
 
     instruction_name: str
@@ -134,6 +144,8 @@ class InstallationRecord:
     checksum: Optional[str] = None
     bundle_name: Optional[str] = None
     scope: InstallationScope = InstallationScope.GLOBAL
+    source_ref: Optional[str] = None
+    source_ref_type: Optional[RefType] = None
 
     def __post_init__(self) -> None:
         """Validate installation record."""
@@ -155,6 +167,8 @@ class InstallationRecord:
             "checksum": self.checksum,
             "bundle_name": self.bundle_name,
             "scope": self.scope.value,
+            "source_ref": self.source_ref,
+            "source_ref_type": self.source_ref_type.value if self.source_ref_type else None,
         }
 
     @classmethod
@@ -163,6 +177,12 @@ class InstallationRecord:
         # Handle backwards compatibility - old records won't have scope
         scope_value = data.get("scope", "global")
         scope = InstallationScope(scope_value) if isinstance(scope_value, str) else scope_value
+
+        # Handle backwards compatibility - old records won't have ref fields
+        source_ref = data.get("source_ref")
+        source_ref_type = None
+        if data.get("source_ref_type"):
+            source_ref_type = RefType(data["source_ref_type"])
 
         return cls(
             instruction_name=data["instruction_name"],
@@ -173,6 +193,8 @@ class InstallationRecord:
             checksum=data.get("checksum"),
             bundle_name=data.get("bundle_name"),
             scope=scope,
+            source_ref=source_ref,
+            source_ref_type=source_ref_type,
         )
 
 

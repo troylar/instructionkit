@@ -15,6 +15,7 @@ from instructionkit.core.models import (
     InstallationRecord,
     InstallationScope,
     LibraryInstruction,
+    RefType,
 )
 from instructionkit.storage.library import LibraryManager
 from instructionkit.storage.tracker import InstallationTracker
@@ -28,6 +29,38 @@ console = Console()
 # ============================================================================
 # Helper Functions - Shared Installation Logic
 # ============================================================================
+
+
+def _extract_ref_from_namespace(namespace: str) -> tuple[Optional[str], Optional[RefType]]:
+    """Extract Git reference from versioned namespace.
+
+    Args:
+        namespace: Repository namespace (e.g., 'github.com_owner_repo@v1.0.0')
+
+    Returns:
+        Tuple of (ref, ref_type) or (None, None) if no version info
+    """
+    if "@" not in namespace:
+        return (None, None)
+
+    # Split at @ to get the ref part
+    ref = namespace.split("@", 1)[1]
+
+    # Try to determine ref type from the ref format
+    # This is a best-effort detection since we don't have the original ref_type stored
+    import re
+
+    # Tags typically start with 'v' followed by numbers
+    if re.match(r"^v?\d+\.\d+", ref):
+        return (ref, RefType.TAG)
+    # Commit hashes are hex strings
+    elif re.match(r"^[0-9a-f]{7,40}$", ref):
+        return (ref, RefType.COMMIT)
+    # Everything else is likely a branch
+    else:
+        # Restore slashes that were converted to underscores
+        # This is approximate - feature_new might have been feature/new
+        return (ref, RefType.BRANCH)
 
 
 def _parse_conflict_strategy(conflict_strategy: str) -> Optional[ConflictResolution]:
@@ -246,6 +279,9 @@ def _perform_installation(
                 # Write to target
                 target_path.write_text(content, encoding="utf-8")
 
+                # Extract ref information from namespace
+                source_ref, source_ref_type = _extract_ref_from_namespace(inst.repo_namespace)
+
                 # Track installation
                 record = InstallationRecord(
                     instruction_name=install_name,
@@ -256,6 +292,8 @@ def _perform_installation(
                     checksum=inst.checksum,
                     bundle_name=None,
                     scope=install_scope,
+                    source_ref=source_ref,
+                    source_ref_type=source_ref_type,
                 )
                 tracker.add_installation(record, project_root)
 
