@@ -317,7 +317,7 @@ def _check_for_upgrades(
             install_name = install_names[inst.id]
 
             # Check if this instruction is already installed for this tool
-            existing = tracker.get_installation(install_name, ai_tool.tool_type)
+            existing = tracker.get_installation(install_name, ai_tool.tool_type, project_root)
 
             if existing:
                 # Extract ref from both old and new
@@ -736,7 +736,10 @@ def install_from_library_by_name(
     # Multiple matches - show options
     console.print(f"\n[yellow]Multiple instructions named '{name}' found:[/yellow]\n")
     for i, inst in enumerate(instructions, 1):
-        console.print(f"  [{i}] {inst.repo_name} (v{inst.version}) - {inst.author}")
+        # Extract ref from namespace for display
+        ref, ref_type = _extract_ref_from_namespace(inst.repo_namespace)
+        ref_display = f"@{ref}" if ref else f"v{inst.version}"
+        console.print(f"  [{i}] {inst.repo_name} ({ref_display}) - {inst.author}")
         console.print(f"      {inst.description}")
         console.print()
 

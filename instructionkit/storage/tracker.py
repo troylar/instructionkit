@@ -311,18 +311,21 @@ class InstallationTracker:
 
         return False
 
-    def get_installation(self, instruction_name: str, ai_tool: AIToolType) -> Optional[InstallationRecord]:
+    def get_installation(
+        self, instruction_name: str, ai_tool: AIToolType, project_root: Optional[Path] = None
+    ) -> Optional[InstallationRecord]:
         """
         Get installation record for specific instruction and tool.
 
         Args:
             instruction_name: Name of instruction
             ai_tool: AI tool type
+            project_root: Project root for project-scoped search
 
         Returns:
             Installation record if found, None otherwise
         """
-        records = self._read_records()
+        records = self.get_installed_instructions(project_root=project_root)
 
         for record in records:
             if record.instruction_name == instruction_name and record.ai_tool == ai_tool:
