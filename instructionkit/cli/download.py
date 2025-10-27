@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from instructionkit.core.checksum import calculate_file_checksum
-from instructionkit.core.git_operations import GitOperations
+from instructionkit.core.git_operations import GitOperations, RepositoryOperationError
 from instructionkit.core.models import LibraryInstruction
 from instructionkit.core.repository import RepositoryParser
 from instructionkit.storage.library import LibraryManager
@@ -25,6 +25,7 @@ def download_instructions(
     repo: str,
     force: bool = False,
     alias: Optional[str] = None,
+    ref: Optional[str] = None,
 ) -> int:
     """
     Download instructions from a repository into the local library.
@@ -33,31 +34,74 @@ def download_instructions(
         repo: Repository URL or local path
         force: If True, re-download even if already in library
         alias: User-friendly alias for this source (auto-generated if not provided)
+        ref: Git reference (tag, branch, or commit) to download
 
     Returns:
         Exit code (0 = success)
     """
     library = LibraryManager()
 
-    console.print(f"\n[bold]Downloading from:[/bold] {repo}\n")
+    # Display what we're downloading
+    if ref:
+        console.print(f"\n[bold]Downloading from:[/bold] {repo} [bold cyan]@{ref}[/bold cyan]\n")
+    else:
+        console.print(f"\n[bold]Downloading from:[/bold] {repo}\n")
 
     # Determine if local or remote
     is_local = GitOperations.is_local_path(repo)
     temp_repo_path = None  # Track temp directory for cleanup
+    ref_type = None  # Track the reference type
 
     try:
+        # Validate and detect ref type for remote repositories
+        if ref and not is_local:
+            try:
+                validated_ref, ref_type = GitOperations.detect_ref_type(repo, ref)
+                ref = validated_ref  # Use the validated reference
+            except RepositoryOperationError as e:
+                if e.error_type == "invalid_reference":
+                    print_error(f"Invalid reference '{ref}': not found in repository")
+                    return 1
+                elif e.error_type == "network_error":
+                    print_error("Network error: unable to access repository")
+                    return 1
+                else:
+                    print_error(f"Failed to validate reference: {e}")
+                    return 1
+
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             console=console,
         ) as progress:
             if is_local:
+                if ref:
+                    print_error("Version references (--ref) are not supported for local repositories")
+                    return 1
                 progress.add_task("Loading local repository...", total=None)
                 repo_path = Path(repo).resolve()
             else:
-                task = progress.add_task("Cloning repository...", total=None)
-                repo_path = GitOperations.clone_repository(repo)
-                temp_repo_path = repo_path  # Save for cleanup
+                if ref:
+                    task = progress.add_task(f"Cloning repository at {ref}...", total=None)
+                else:
+                    task = progress.add_task("Cloning repository...", total=None)
+
+                # Use new clone_at_ref for versioned cloning
+                import tempfile
+                from pathlib import Path as PathlibPath
+
+                temp_dir = PathlibPath(tempfile.mkdtemp(prefix="instructionkit-"))
+
+                try:
+                    GitOperations.clone_at_ref(repo, temp_dir, ref, ref_type)
+                    repo_path = temp_dir
+                    temp_repo_path = repo_path  # Save for cleanup
+                except RepositoryOperationError as e:
+                    if temp_dir.exists():
+                        shutil.rmtree(temp_dir, ignore_errors=True)
+                    print_error(f"Failed to clone repository: {e}")
+                    return 1
+
                 progress.update(task, completed=True)
 
             # Parse repository
@@ -67,20 +111,26 @@ def download_instructions(
             repository.url = repo
             progress.update(task, completed=True)
 
-        # Check if already exists (by URL to catch duplicates)
+        # Generate versioned namespace if ref is specified
         repo_name = repository.metadata.get("name", "Unknown")
-        repo_namespace = library.get_repo_namespace(repo, repo_name)
+        if ref:
+            repo_namespace = library.get_versioned_namespace(repo, ref)
+        else:
+            repo_namespace = library.get_repo_namespace(repo, repo_name)
 
-        # Check by both namespace and URL to catch duplicates
+        # Check if this specific version already exists
         existing_repo = library.get_repository(repo_namespace)
-        if not existing_repo:
-            existing_repo = library.get_repository_by_url(repo)
 
         if existing_repo and not force:
-            print_error(
-                f"Source '{existing_repo.alias or repo_name}' already exists in library.\n"
-                f"Use --force to re-download."
-            )
+            if ref:
+                print_error(
+                    f"Version '{ref}' of '{repo_name}' already exists in library.\n" f"Use --force to re-download."
+                )
+            else:
+                print_error(
+                    f"Source '{existing_repo.alias or repo_name}' already exists in library.\n"
+                    f"Use --force to re-download."
+                )
             return 1
 
         # Prepare library instructions
@@ -131,15 +181,24 @@ def download_instructions(
             repo_version=repository.metadata.get("version", "1.0.0"),
             instructions=library_instructions,
             alias=alias,
+            namespace=repo_namespace,
         )
 
-        print_success(
-            f"\n✓ Downloaded {len(library_instructions)} instruction(s) from '{repo_name}'\n"
-            f"  Alias: {library_repo.alias}\n"
-            f"  Namespace: {repo_namespace}\n"
-            f"  Use 'inskit list library' to see all downloaded instructions\n"
-            f"  Use 'inskit install' to install into your AI tools"
+        # Build success message
+        success_msg = f"\n✓ Downloaded {len(library_instructions)} instruction(s) from '{repo_name}'"
+        if ref and ref_type:
+            ref_type_badge = {"tag": "📌", "branch": "🌿", "commit": "📍"}.get(ref_type.value, "")
+            success_msg += f" {ref_type_badge} {ref}"
+        success_msg += f"\n  Alias: {library_repo.alias}\n" f"  Namespace: {repo_namespace}\n"
+        if ref:
+            ref_labels = {"tag": "Tag", "branch": "Branch", "commit": "Commit"}
+            ref_label = ref_labels.get(ref_type.value if ref_type else "", "Ref")
+            success_msg += f"  {ref_label}: {ref}\n"
+        success_msg += (
+            "  Use 'inskit list library' to see all downloaded instructions\n"
+            "  Use 'inskit install' to install into your AI tools"
         )
+        print_success(success_msg)
 
         return 0
 
@@ -163,6 +222,11 @@ def download_command(
         "-r",
         help="Repository URL or local path to download from",
     ),
+    ref: Optional[str] = typer.Option(
+        None,
+        "--ref",
+        help="Git reference (tag, branch, or commit) to download",
+    ),
     force: bool = typer.Option(
         False,
         "--force",
@@ -178,14 +242,23 @@ def download_command(
     instructions into your AI coding tools.
 
     Examples:
-        # Download from GitHub
+        # Download from GitHub (default branch)
         instructionkit download --repo https://github.com/company/instructions
 
-        # Download from local folder
+        # Download specific tag version
+        instructionkit download --repo https://github.com/company/instructions --ref v1.0.0
+
+        # Download from specific branch
+        instructionkit download --repo https://github.com/company/instructions --ref main
+
+        # Download from specific commit
+        instructionkit download --repo https://github.com/company/instructions --ref abc123def
+
+        # Download from local folder (no --ref support)
         instructionkit download --repo ./my-instructions
 
         # Force re-download
         instructionkit download --repo https://github.com/company/instructions --force
     """
-    exit_code = download_instructions(repo=repo, force=force)
+    exit_code = download_instructions(repo=repo, ref=ref, force=force)
     raise typer.Exit(code=exit_code)

@@ -6,10 +6,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from instructionkit.cli.install_new import (
+    _check_for_upgrades,
+    _detect_installed_collisions,
+    _prompt_for_upgrade,
     install_from_library_direct_multi_tool,
     install_from_library_tui,
 )
-from instructionkit.core.models import AIToolType, LibraryInstruction
+from instructionkit.core.models import AIToolType, InstallationRecord, LibraryInstruction, RefType
 
 
 @pytest.fixture
@@ -375,3 +378,296 @@ class TestInstallationFlow:
 
         # Verify success
         assert result == 0
+
+
+class TestUpgradeDetection:
+    """Tests for upgrade detection functionality."""
+
+    def test_check_for_upgrades_detects_version_change(self, mock_library_instruction, mock_project_with_git):
+        """Test that upgrade detection finds when version changes."""
+        # Create instruction with new version
+        new_instruction = LibraryInstruction(
+            id="test-repo@v2.0.0/python-style",
+            name="python-style",
+            description="Python style guidelines",
+            file_path="/fake/path/python-style.md",
+            checksum="xyz789",
+            tags=["python"],
+            repo_name="test-repo",
+            repo_namespace="test-repo@v2.0.0",
+            repo_url="https://github.com/test/test-repo.git",
+            version="2.0.0",
+            author="Test Author",
+        )
+
+        # Mock existing installation
+        existing_record = InstallationRecord(
+            instruction_name="python-style",
+            ai_tool=AIToolType.COPILOT,
+            source_repo="https://github.com/test/test-repo.git",
+            installed_path=".github/instructions/python-style.md",
+            installed_at=None,
+            checksum="abc123",
+            bundle_name=None,
+            scope=None,
+            source_ref="v1.0.0",
+            source_ref_type=RefType.TAG,
+        )
+
+        # Mock AI tool
+        mock_tool = MagicMock()
+        mock_tool.tool_type = AIToolType.COPILOT
+
+        with patch("instructionkit.cli.install_new.InstallationTracker") as mock_tracker_class:
+            mock_tracker = MagicMock()
+            mock_tracker.get_installation.return_value = existing_record
+            mock_tracker_class.return_value = mock_tracker
+
+            upgrades = _check_for_upgrades(
+                instructions=[new_instruction],
+                ai_tools=[mock_tool],
+                install_names={new_instruction.id: "python-style"},
+                project_root=mock_project_with_git,
+            )
+
+            # Should detect upgrade
+            assert len(upgrades) == 1
+            key = f"{new_instruction.id}_{AIToolType.COPILOT.value}"
+            assert key in upgrades
+            assert upgrades[key][0] == existing_record
+            assert upgrades[key][1] == new_instruction
+
+    def test_check_for_upgrades_no_existing_installation(self, mock_library_instruction, mock_project_with_git):
+        """Test that no upgrade detected when instruction not installed."""
+        mock_tool = MagicMock()
+        mock_tool.tool_type = AIToolType.COPILOT
+
+        with patch("instructionkit.cli.install_new.InstallationTracker") as mock_tracker_class:
+            mock_tracker = MagicMock()
+            mock_tracker.get_installation.return_value = None  # Not installed
+            mock_tracker_class.return_value = mock_tracker
+
+            upgrades = _check_for_upgrades(
+                instructions=[mock_library_instruction],
+                ai_tools=[mock_tool],
+                install_names={mock_library_instruction.id: "python-style"},
+                project_root=mock_project_with_git,
+            )
+
+            # No upgrades
+            assert len(upgrades) == 0
+
+    def test_check_for_upgrades_same_version(self, mock_library_instruction, mock_project_with_git):
+        """Test that no upgrade detected when version is same."""
+        existing_record = InstallationRecord(
+            instruction_name="python-style",
+            ai_tool=AIToolType.COPILOT,
+            source_repo="https://github.com/test/test-repo.git",
+            installed_path=".github/instructions/python-style.md",
+            installed_at=None,
+            checksum="abc123",
+            bundle_name=None,
+            scope=None,
+            source_ref="v1.0.0",
+            source_ref_type=RefType.TAG,
+        )
+
+        mock_tool = MagicMock()
+        mock_tool.tool_type = AIToolType.COPILOT
+
+        # Create instruction with same version in namespace
+        same_version_inst = LibraryInstruction(
+            id="test-repo@v1.0.0/python-style",
+            name="python-style",
+            description="Python style guidelines",
+            file_path="/fake/path/python-style.md",
+            checksum="abc123",
+            tags=["python"],
+            repo_name="test-repo",
+            repo_namespace="test-repo@v1.0.0",
+            repo_url="https://github.com/test/test-repo.git",
+            version="1.0.0",
+            author="Test Author",
+        )
+
+        with patch("instructionkit.cli.install_new.InstallationTracker") as mock_tracker_class:
+            mock_tracker = MagicMock()
+            mock_tracker.get_installation.return_value = existing_record
+            mock_tracker_class.return_value = mock_tracker
+
+            upgrades = _check_for_upgrades(
+                instructions=[same_version_inst],
+                ai_tools=[mock_tool],
+                install_names={same_version_inst.id: "python-style"},
+                project_root=mock_project_with_git,
+            )
+
+            # No upgrades (same version)
+            assert len(upgrades) == 0
+
+    @patch("rich.prompt.Confirm.ask")
+    def test_prompt_for_upgrade_user_confirms(self, mock_confirm):
+        """Test upgrade prompt when user confirms."""
+        mock_confirm.return_value = True
+
+        existing = InstallationRecord(
+            instruction_name="python-style",
+            ai_tool=AIToolType.COPILOT,
+            source_repo="https://github.com/test/test-repo.git",
+            installed_path=".github/instructions/python-style.md",
+            installed_at=None,
+            checksum="abc123",
+            bundle_name=None,
+            scope=None,
+            source_ref="v1.0.0",
+            source_ref_type=RefType.TAG,
+        )
+
+        new_inst = LibraryInstruction(
+            id="test-repo@v2.0.0/python-style",
+            name="python-style",
+            description="Python style guidelines",
+            file_path="/fake/path/python-style.md",
+            checksum="xyz789",
+            tags=["python"],
+            repo_name="test-repo",
+            repo_namespace="test-repo@v2.0.0",
+            repo_url="https://github.com/test/test-repo.git",
+            version="2.0.0",
+            author="Test Author",
+        )
+
+        result = _prompt_for_upgrade(existing, new_inst)
+
+        assert result is True
+        mock_confirm.assert_called_once()
+
+    @patch("rich.prompt.Confirm.ask")
+    def test_prompt_for_upgrade_user_declines(self, mock_confirm):
+        """Test upgrade prompt when user declines."""
+        mock_confirm.return_value = False
+
+        existing = InstallationRecord(
+            instruction_name="python-style",
+            ai_tool=AIToolType.COPILOT,
+            source_repo="https://github.com/test/test-repo.git",
+            installed_path=".github/instructions/python-style.md",
+            installed_at=None,
+            checksum="abc123",
+            bundle_name=None,
+            scope=None,
+            source_ref="v1.0.0",
+            source_ref_type=RefType.TAG,
+        )
+
+        new_inst = LibraryInstruction(
+            id="test-repo@v2.0.0/python-style",
+            name="python-style",
+            description="Python style guidelines",
+            file_path="/fake/path/python-style.md",
+            checksum="xyz789",
+            tags=["python"],
+            repo_name="test-repo",
+            repo_namespace="test-repo@v2.0.0",
+            repo_url="https://github.com/test/test-repo.git",
+            version="2.0.0",
+            author="Test Author",
+        )
+
+        result = _prompt_for_upgrade(existing, new_inst)
+
+        assert result is False
+
+
+class TestCollisionDetection:
+    """Tests for name collision detection."""
+
+    def test_detect_collision_different_repo(self, mock_library_instruction, mock_project_with_git):
+        """Test that collision detected when same name from different repo."""
+        # Existing installation from different repo
+        existing_record = InstallationRecord(
+            instruction_name="python-style",
+            ai_tool=AIToolType.COPILOT,
+            source_repo="https://github.com/other/other-repo.git",
+            installed_path=".github/instructions/python-style.md",
+            installed_at=None,
+            checksum="different123",
+            bundle_name=None,
+            scope=None,
+            source_ref="v1.0.0",
+            source_ref_type=RefType.TAG,
+        )
+
+        mock_tool = MagicMock()
+        mock_tool.tool_type = AIToolType.COPILOT
+
+        with patch("instructionkit.cli.install_new.InstallationTracker") as mock_tracker_class:
+            mock_tracker = MagicMock()
+            mock_tracker.find_instructions_by_name.return_value = [existing_record]
+            mock_tracker_class.return_value = mock_tracker
+
+            collisions = _detect_installed_collisions(
+                instructions=[mock_library_instruction],
+                ai_tools=[mock_tool],
+                install_names={mock_library_instruction.id: "python-style"},
+                project_root=mock_project_with_git,
+            )
+
+            # Should detect collision
+            assert len(collisions) == 1
+            assert mock_library_instruction.id in collisions
+            assert collisions[mock_library_instruction.id] == [existing_record]
+
+    def test_no_collision_same_repo(self, mock_library_instruction, mock_project_with_git):
+        """Test that no collision when same name from same repo."""
+        # Existing installation from same repo
+        existing_record = InstallationRecord(
+            instruction_name="python-style",
+            ai_tool=AIToolType.COPILOT,
+            source_repo="https://github.com/test/test-repo.git",  # Same repo
+            installed_path=".github/instructions/python-style.md",
+            installed_at=None,
+            checksum="abc123",
+            bundle_name=None,
+            scope=None,
+            source_ref="v1.0.0",
+            source_ref_type=RefType.TAG,
+        )
+
+        mock_tool = MagicMock()
+        mock_tool.tool_type = AIToolType.COPILOT
+
+        with patch("instructionkit.cli.install_new.InstallationTracker") as mock_tracker_class:
+            mock_tracker = MagicMock()
+            mock_tracker.find_instructions_by_name.return_value = [existing_record]
+            mock_tracker_class.return_value = mock_tracker
+
+            collisions = _detect_installed_collisions(
+                instructions=[mock_library_instruction],
+                ai_tools=[mock_tool],
+                install_names={mock_library_instruction.id: "python-style"},
+                project_root=mock_project_with_git,
+            )
+
+            # No collision (same repo)
+            assert len(collisions) == 0
+
+    def test_no_collision_when_not_installed(self, mock_library_instruction, mock_project_with_git):
+        """Test that no collision when instruction not installed."""
+        mock_tool = MagicMock()
+        mock_tool.tool_type = AIToolType.COPILOT
+
+        with patch("instructionkit.cli.install_new.InstallationTracker") as mock_tracker_class:
+            mock_tracker = MagicMock()
+            mock_tracker.find_instructions_by_name.return_value = []  # Not installed
+            mock_tracker_class.return_value = mock_tracker
+
+            collisions = _detect_installed_collisions(
+                instructions=[mock_library_instruction],
+                ai_tools=[mock_tool],
+                install_names={mock_library_instruction.id: "python-style"},
+                project_root=mock_project_with_git,
+            )
+
+            # No collisions
+            assert len(collisions) == 0

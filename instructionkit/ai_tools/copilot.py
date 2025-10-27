@@ -61,12 +61,14 @@ class CopilotTool(AITool):
         """
         Get the file extension for Copilot instructions.
 
-        Copilot uses markdown (.md) files for instructions.
+        GitHub Copilot requires path-specific instructions to end with
+        .instructions.md per official documentation:
+        https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions
 
         Returns:
             File extension including the dot
         """
-        return ".md"
+        return ".instructions.md"
 
     def get_project_instructions_directory(self, project_root: Path) -> Path:
         """

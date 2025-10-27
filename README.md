@@ -22,8 +22,10 @@
 # 1. Install
 pip install instructionkit
 
-# 2. Download 12 tested instruction examples
-inskit download --from https://github.com/troylar/instructionkit-examples
+# 2. Download instruction repository (with optional version control)
+inskit download --repo https://github.com/troylar/instructionkit-examples
+# Or pin to a specific version:
+# inskit download --repo https://github.com/user/repo --ref v1.0.0
 
 # 3. Browse & install with interactive TUI
 inskit install
@@ -97,12 +99,14 @@ Perfect for:
 </td>
 <td>
 
-### 📦 **Flexible Sources**
+### 📦 **Flexible Sources & Versioning**
 
 - Download from Git repositories (GitHub, GitLab, Bitbucket, self-hosted)
+- **Version Control:** Pin to tags, track branches, or lock to commits
 - Download from local folders (perfect for testing and development)
 - Support for private repositories with standard Git authentication
 - Bundle support for installing multiple instructions at once
+- Automatic updates for branch-based installations
 
 </td>
 </tr>
@@ -175,20 +179,35 @@ inskit list available --from https://github.com/company/instructions
 <details>
 <summary><b>Download Instructions to Your Library</b></summary>
 
-Build your local library of instruction repositories:
+Build your local library of instruction repositories with version control:
 
 ```bash
-# Download from Git repository
-inskit download --from https://github.com/company/instructions
+# Download from Git repository (default branch)
+inskit download --repo https://github.com/company/instructions
 
-# Download from local folder
-inskit download --from ./my-instructions
+# Download specific version by tag (pinned, won't auto-update)
+inskit download --repo https://github.com/company/instructions --ref v1.0.0
+
+# Download specific branch (will auto-update)
+inskit download --repo https://github.com/company/instructions --ref main
+
+# Download specific commit (pinned, won't auto-update)
+inskit download --repo https://github.com/company/instructions --ref abc123def
+
+# Download from local folder (no version control)
+inskit download --repo ./my-instructions
 
 # Re-download to get latest updates
-inskit download --from https://github.com/company/instructions --force
+inskit download --repo https://github.com/company/instructions --force
 ```
 
-Your library is stored in `~/.instructionkit/library/` and organized by repository namespace.
+**Version Control Benefits:**
+- 📌 **Tags:** Pin to specific releases (e.g., `v1.0.0`) - won't auto-update
+- 🌿 **Branches:** Track latest changes (e.g., `main`, `develop`) - auto-updates
+- 📍 **Commits:** Lock to exact state (e.g., `abc123`) - won't auto-update
+- 📦 **Multiple Versions:** Install different versions of same repo side-by-side
+
+Your library is stored in `~/.instructionkit/library/` and organized by repository namespace and version.
 
 </details>
 
@@ -217,6 +236,24 @@ inskit update --namespace github.com_company_instructions
 
 # Update all repositories in library
 inskit update --all
+```
+
+**Smart Update Behavior:**
+- 🌿 **Branches:** Automatically pull latest changes from remote
+- 📌 **Tags:** Skipped (immutable - won't update)
+- 📍 **Commits:** Skipped (immutable - won't update)
+- 🔄 **Installed Files:** Automatically updated after pulling changes
+
+**Example Output:**
+```
+Updating 3 repository(ies)...
+
+⊘ Skipped: python-standards (tag v1.0.0 is immutable)
+✓ Updated: react-patterns (branch main)
+✓ Updated: api-guidelines (branch develop)
+
+✓ Updated: 2 repository(ies)
+⊘ Skipped: 1 immutable reference(s)
 ```
 
 </details>
@@ -381,11 +418,29 @@ inskit list installed
 # Filter by AI tool
 inskit list installed --tool cursor
 
-# Filter by source alias/name
-inskit list installed --source company
+# Filter by source repository
+inskit list installed --repo https://github.com/company/instructions
 ```
 
-Shows where each instruction is installed and which tools have it.
+**Shows comprehensive information:**
+- Instruction name and AI tool
+- Source repository URL
+- **Version information** with visual badges:
+  - 📌 v1.0.0 (tag - pinned version)
+  - 🌿 main (branch - tracking latest)
+  - 📍 abc123 (commit - locked to specific state)
+- Installation date
+- Project scope
+
+**Example Output:**
+```
+Installed Instructions
+────────────────────────────────────────────────────────────
+AI Tool    Instruction       Scope    Source         Version      Installed
+Claude     python-style      Project  company/...    📌 v1.0.0   2025-10-26
+Cursor     react-patterns    Project  company/...    🌿 main     2025-10-26
+Claude     api-guidelines    Project  company/...    📍 abc123   2025-10-26
+```
 
 </details>
 
@@ -718,10 +773,10 @@ See **[DEVELOPMENT.md](DEVELOPMENT.md)** for complete development guide includin
 
 ## 🗺 Roadmap
 
+- [x] **Version Control:** Pin to tags, track branches, or lock to commits ✅ v0.2.0
 - [ ] **Template Variables:** Support for dynamic instruction content with variables
 - [ ] **Instruction Search:** Search across all available instructions by content
 - [ ] **Dependency Management:** Automatic installation of instruction dependencies
-- [ ] **Version Control:** Manage multiple versions of instructions
 - [ ] **Remote Catalogs:** Centralized instruction catalogs for discovery
 - [ ] **Instruction Validation:** Lint and validate instruction content
 - [ ] **Export/Backup:** Export installed instructions for backup or migration

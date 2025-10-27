@@ -128,6 +128,7 @@ class LibraryManager:
         repo_version: str,
         instructions: list[LibraryInstruction],
         alias: Optional[str] = None,
+        namespace: Optional[str] = None,
     ) -> LibraryRepository:
         """
         Add a repository to the library.
@@ -140,12 +141,14 @@ class LibraryManager:
             repo_version: Repository version
             instructions: List of instructions to add
             alias: User-friendly alias (auto-generated if not provided)
+            namespace: Repository namespace (auto-generated if not provided)
 
         Returns:
             Created LibraryRepository
         """
-        # Generate namespace
-        namespace = self.get_repo_namespace(repo_url, repo_name)
+        # Generate namespace if not provided
+        if namespace is None:
+            namespace = self.get_repo_namespace(repo_url, repo_name)
 
         # Auto-generate alias if not provided
         if alias is None:
@@ -367,3 +370,60 @@ class LibraryManager:
             return None
 
         return Path(instruction.file_path)
+
+    def get_versioned_namespace(self, repo_identifier: str, ref: str) -> str:
+        """
+        Generate filesystem-safe namespace for repo@ref.
+
+        Args:
+            repo_identifier: Repository identifier (URL or name)
+            ref: Git reference (tag, branch, or commit)
+
+        Returns:
+            Versioned namespace string (e.g., 'github.com_owner_repo@v1.0.0')
+        """
+        import re
+
+        # Get base namespace without version
+        base_namespace = self.get_repo_namespace(repo_identifier, "")
+
+        # Sanitize ref for filesystem (replace special chars)
+        # Handle refs like 'feature/new-feature' or 'refs/tags/v1.0.0'
+        safe_ref = re.sub(r"[^a-zA-Z0-9._-]", "_", ref)
+
+        return f"{base_namespace}@{safe_ref}"
+
+    def list_repository_versions(self, repo_identifier: str) -> list[tuple[str, str]]:
+        """
+        List all downloaded versions of a repository.
+
+        Args:
+            repo_identifier: Repository identifier (URL or base namespace)
+
+        Returns:
+            List of tuples (version_ref, full_namespace) for all versions found
+        """
+        import re
+
+        # Get base namespace pattern to match
+        base_namespace = self.get_repo_namespace(repo_identifier, "")
+
+        # Load index
+        index = self.load_index()
+
+        # Find all namespaces that match base pattern with version suffix
+        versions = []
+        pattern = re.compile(rf"^{re.escape(base_namespace)}@(.+)$")
+
+        for namespace in index.keys():
+            match = pattern.match(namespace)
+            if match:
+                version_ref = match.group(1)
+                # Convert sanitized ref back (e.g., 'feature_new-feature' -> original might vary)
+                versions.append((version_ref, namespace))
+
+        # Also check if there's a non-versioned namespace (legacy support)
+        if base_namespace in index:
+            versions.append(("default", base_namespace))
+
+        return versions
