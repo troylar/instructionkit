@@ -1,0 +1,47 @@
+# Auto-label PRs based on changed files
+
+'type: documentation':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - 'docs/**'
+
+'type: tests':
+  - changed-files:
+    - any-glob-to-any-file: 'tests/**/*.py'
+
+'scope: cli':
+  - changed-files:
+    - any-glob-to-any-file: 'instructionkit/cli/**'
+
+'scope: core':
+  - changed-files:
+    - any-glob-to-any-file: 'instructionkit/core/**'
+
+'scope: storage':
+  - changed-files:
+    - any-glob-to-any-file: 'instructionkit/storage/**'
+
+'scope: ai-tools':
+  - changed-files:
+    - any-glob-to-any-file: 'instructionkit/ai_tools/**'
+
+'scope: tui':
+  - changed-files:
+    - any-glob-to-any-file: 'instructionkit/tui/**'
+
+'scope: utils':
+  - changed-files:
+    - any-glob-to-any-file: 'instructionkit/utils/**'
+
+'type: ci/cd':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/**'
+      - '.githooks/**'
+
+'type: dependencies':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'pyproject.toml'
+      - 'requirements*.txt'
