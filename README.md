@@ -599,6 +599,69 @@ inskit template install https://github.com/client/api-standards --as client
 - Consistent coding patterns across all your projects
 - Update once, applies everywhere (global) or update all projects (script)
 
+**Updating Templates Across All Projects:**
+
+**Option 1: Global Installation (Simple - One Command)**
+```bash
+# Update once, applies to all projects
+inskit template update python --scope global
+
+# ✓ All 12 projects now have the updated templates
+```
+
+**Option 2: Bulk Project Installation (Script Needed)**
+
+Create an update script:
+```bash
+#!/bin/bash
+# update-templates.sh
+
+PROJECTS=(
+  ~/projects/api-server
+  ~/projects/data-pipeline
+  ~/projects/ml-toolkit
+  ~/projects/cli-app
+  ~/projects/web-scraper
+  ~/projects/automation-scripts
+  ~/projects/discord-bot
+  ~/projects/file-converter
+  ~/projects/backup-utility
+  ~/projects/monitoring-tool
+  ~/projects/config-manager
+  ~/projects/test-framework
+)
+
+for project in "${PROJECTS[@]}"; do
+  if [ -d "$project" ]; then
+    echo "Updating templates in $project..."
+    cd "$project"
+    inskit template update python
+    echo "✓ Updated"
+  fi
+done
+
+echo "✓ Templates updated in all projects"
+```
+
+**Run the bulk update:**
+```bash
+chmod +x update-templates.sh
+./update-templates.sh
+
+# Output:
+# Updating templates in /Users/you/projects/api-server...
+# ✓ Updated
+# Updating templates in /Users/you/projects/data-pipeline...
+# ✓ Updated
+# ...
+# ✓ Templates updated in all projects
+```
+
+**Why Global is Easier for Solo Developers:**
+- **Global**: One command to install, one command to update
+- **Project-specific**: Need scripts for install and update
+- **Recommendation**: Use global unless you need per-project version control
+
 ### Scenario 9: Migrating an Existing Project to Templates
 
 **Context:** You have a 2-year-old project with no templates. Want to add standards.
