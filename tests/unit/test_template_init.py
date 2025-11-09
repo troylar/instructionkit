@@ -42,7 +42,7 @@ class TestTemplateInit:
         assert (repo_path / ".claude" / "hooks" / "example-hook.md").exists()
 
         # Verify content is not empty
-        instruction = (repo_path / ".claude" / "rules" / "example-instruction.md").read_text()
+        instruction = (repo_path / ".claude" / "rules" / "example-instruction.md").read_text(encoding='utf-8')
         assert len(instruction) > 100
         assert "Example Coding Standards" in instruction
 
@@ -56,11 +56,11 @@ class TestTemplateInit:
             init_command(directory=repo_name, namespace=custom_namespace)
 
         # Verify namespace in manifest
-        manifest = (repo_path / "templatekit.yaml").read_text()
+        manifest = (repo_path / "templatekit.yaml").read_text(encoding='utf-8')
         assert custom_namespace in manifest
 
         # Verify namespace in README
-        readme = (repo_path / "README.md").read_text()
+        readme = (repo_path / "README.md").read_text(encoding='utf-8')
         assert custom_namespace in readme
 
     def test_init_with_description(self, tmp_path):
@@ -73,11 +73,11 @@ class TestTemplateInit:
             init_command(directory=repo_name, description=description)
 
         # Verify description in manifest
-        manifest = (repo_path / "templatekit.yaml").read_text()
+        manifest = (repo_path / "templatekit.yaml").read_text(encoding='utf-8')
         assert description in manifest
 
         # Verify description in README
-        readme = (repo_path / "README.md").read_text()
+        readme = (repo_path / "README.md").read_text(encoding='utf-8')
         assert description in readme
 
     def test_init_with_author(self, tmp_path):
@@ -90,7 +90,7 @@ class TestTemplateInit:
             init_command(directory=repo_name, author=author)
 
         # Verify author in manifest
-        manifest = (repo_path / "templatekit.yaml").read_text()
+        manifest = (repo_path / "templatekit.yaml").read_text(encoding='utf-8')
         assert author in manifest
 
     def test_init_existing_directory_no_force(self, tmp_path):
@@ -127,7 +127,7 @@ class TestTemplateInit:
         with patch("instructionkit.cli.template_init.Path.resolve", return_value=repo_path):
             init_command(directory=repo_name)
 
-        manifest_content = (repo_path / "templatekit.yaml").read_text()
+        manifest_content = (repo_path / "templatekit.yaml").read_text(encoding='utf-8')
 
         # Verify required fields
         assert "name:" in manifest_content
@@ -153,7 +153,7 @@ class TestTemplateInit:
         with patch("instructionkit.cli.template_init.Path.resolve", return_value=repo_path):
             init_command(directory=repo_name)
 
-        readme_content = (repo_path / "README.md").read_text()
+        readme_content = (repo_path / "README.md").read_text(encoding='utf-8')
 
         # Verify essential sections
         assert "Installation" in readme_content or "installation" in readme_content.lower()
@@ -173,7 +173,7 @@ class TestTemplateInit:
         with patch("instructionkit.cli.template_init.Path.resolve", return_value=repo_path):
             init_command(directory=repo_name)
 
-        gitignore_content = (repo_path / ".gitignore").read_text()
+        gitignore_content = (repo_path / ".gitignore").read_text(encoding='utf-8')
 
         # Verify important ignores
         assert ".instructionkit/" in gitignore_content
@@ -188,7 +188,7 @@ class TestTemplateInit:
         with patch("instructionkit.cli.template_init.Path.resolve", return_value=repo_path):
             init_command(directory=repo_name)
 
-        readme = (repo_path / "README.md").read_text()
+        readme = (repo_path / "README.md").read_text(encoding='utf-8')
 
         # Namespace should have underscores instead of hyphens
         assert "my_awesome_templates" in readme
@@ -208,12 +208,12 @@ class TestTemplateInit:
             )
 
         # Verify all customizations applied
-        manifest = (repo_path / "templatekit.yaml").read_text()
+        manifest = (repo_path / "templatekit.yaml").read_text(encoding='utf-8')
         assert "ACME Engineering Standards" in manifest
         assert "ACME Engineering Team" in manifest
 
         # Verify namespace in README (namespace is used in install examples, not in manifest)
-        readme = (repo_path / "README.md").read_text()
+        readme = (repo_path / "README.md").read_text(encoding='utf-8')
         assert "acme" in readme
 
     def test_init_file_content_quality(self, tmp_path):
@@ -225,19 +225,19 @@ class TestTemplateInit:
             init_command(directory=repo_name)
 
         # Check instruction file has guidance
-        instruction = (repo_path / ".claude" / "rules" / "example-instruction.md").read_text()
+        instruction = (repo_path / ".claude" / "rules" / "example-instruction.md").read_text(encoding='utf-8')
         assert "Purpose" in instruction
         assert "Customization" in instruction
         assert len(instruction) > 500  # Should be substantial
 
         # Check command file has guidance
-        command = (repo_path / ".claude" / "commands" / "example-command.md").read_text()
+        command = (repo_path / ".claude" / "commands" / "example-command.md").read_text(encoding='utf-8')
         assert "Purpose" in command
         assert "Example" in command or "example" in command.lower()
         assert len(command) > 500
 
         # Check hook file has guidance
-        hook = (repo_path / ".claude" / "hooks" / "example-hook.md").read_text()
+        hook = (repo_path / ".claude" / "hooks" / "example-hook.md").read_text(encoding='utf-8')
         assert "Purpose" in hook
         assert "Hook Types" in hook or "hook" in hook.lower()
         assert len(hook) > 500
