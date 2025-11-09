@@ -155,6 +155,17 @@ class TestDeriveNamespace:
         namespace = derive_namespace("https://github.com/acme/templates", override="team-2024")
         assert namespace == "team-2024"
 
+    def test_override_whitespace_only_raises(self):
+        """Test override with only whitespace raises error."""
+        with pytest.raises(ValueError, match="Namespace override cannot be empty"):
+            derive_namespace("https://github.com/acme/templates", override="   ")
+
+    def test_override_too_long_raises(self):
+        """Test override exceeding max length raises error."""
+        long_override = "a" * 51
+        with pytest.raises(ValueError, match="exceeds maximum length"):
+            derive_namespace("https://github.com/acme/templates", override=long_override)
+
 
 class TestGetInstallPath:
     """Tests for get_install_path function."""

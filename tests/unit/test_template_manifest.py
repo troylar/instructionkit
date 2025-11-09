@@ -131,6 +131,22 @@ bundles:
         assert manifest.bundles[0].name == "python-stack"
         assert len(manifest.bundles[0].template_refs) == 2
 
+    def test_manifest_with_invalid_structure_raises(self, temp_repo):
+        """Test that invalid manifest structure raises TemplateManifestError."""
+        manifest_path = temp_repo / "templatekit.yaml"
+        # Create a manifest that will cause ValueError in parse_manifest
+        manifest_path.write_text(
+            """
+name: 123
+description: Test
+version: 1.0.0
+templates: not_a_list
+"""
+        )
+
+        with pytest.raises(TemplateManifestError, match="Invalid manifest structure"):
+            load_manifest(manifest_path)
+
 
 class TestParseManifest:
     """Tests for parse_manifest function."""
