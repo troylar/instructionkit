@@ -8,6 +8,11 @@ from instructionkit.cli.delete import delete_from_library
 from instructionkit.cli.download import download_instructions
 from instructionkit.cli.install_new import install_instruction_unified
 from instructionkit.cli.list import list_available, list_installed, list_library
+from instructionkit.cli.template import template_app
+from instructionkit.cli.template_install import install_command as template_install_command
+from instructionkit.cli.template_list import list_command as template_list_command
+from instructionkit.cli.template_uninstall import uninstall_command as template_uninstall_command
+from instructionkit.cli.template_update import update_command as template_update_command
 from instructionkit.cli.tools import show_tools
 from instructionkit.cli.uninstall import uninstall_instruction
 from instructionkit.cli.update import update_repository
@@ -21,6 +26,15 @@ app = typer.Typer(
 # Create list subcommand group
 list_app = typer.Typer(help="List instructions")
 app.add_typer(list_app, name="list")
+
+# Create template subcommand group
+app.add_typer(template_app, name="template")
+
+# Register template commands
+template_app.command(name="install")(template_install_command)
+template_app.command(name="list")(template_list_command)
+template_app.command(name="update")(template_update_command)
+template_app.command(name="uninstall")(template_uninstall_command)
 
 
 @list_app.callback(invoke_without_command=True)

@@ -38,6 +38,34 @@ class RefType(Enum):
     COMMIT = "commit"
 
 
+class ConflictType(Enum):
+    """Types of conflicts during template updates."""
+
+    NONE = "none"  # No conflict, safe to update
+    LOCAL_MODIFIED = "local_modified"  # User modified local file
+    BOTH_MODIFIED = "both_modified"  # Both local and remote changed
+
+
+class IssueType(Enum):
+    """Types of validation issues."""
+
+    TRACKING_INCONSISTENCY = "tracking_inconsistency"  # File exists but not tracked
+    MISSING_FILE = "missing_file"  # Tracked but file missing
+    OUTDATED = "outdated"  # Newer version available
+    BROKEN_DEPENDENCY = "broken_dependency"  # Required template not installed
+    LOCAL_MODIFICATION = "local_modification"  # File changed since install
+    SEMANTIC_CONFLICT = "semantic_conflict"  # AI detected conflicting guidance
+    CLARITY_ISSUE = "clarity_issue"  # AI detected unclear instructions
+
+
+class IssueSeverity(Enum):
+    """Severity levels for validation issues."""
+
+    ERROR = "error"  # Must fix
+    WARNING = "warning"  # Should fix
+    INFO = "info"  # Nice to know
+
+
 @dataclass
 class Instruction:
     """
@@ -362,3 +390,263 @@ class LibraryRepository:
             alias=data.get("alias"),  # Optional field, may not exist in old data
             instructions=instructions,
         )
+
+
+# Template Sync System Models
+
+
+@dataclass
+class TemplateFile:
+    """
+    Represents a template file with IDE targeting.
+
+    Attributes:
+        path: Relative path from repository root
+        ide: Target IDE ("all", "cursor", "claude", "windsurf", "copilot")
+    """
+
+    path: str
+    ide: str = "all"
+
+    def __post_init__(self) -> None:
+        """Validate template file data."""
+        if not self.path:
+            raise ValueError("Template file path cannot be empty")
+        valid_ides = ["all", "cursor", "claude", "windsurf", "copilot"]
+        if self.ide not in valid_ides:
+            raise ValueError(f"Invalid IDE type: {self.ide}. Must be one of {valid_ides}")
+
+
+@dataclass
+class TemplateDefinition:
+    """
+    Represents a single template definition from manifest.
+
+    Attributes:
+        name: Template identifier
+        description: What this template provides
+        files: List of template files
+        tags: Categorization tags
+        dependencies: Other templates required by this one
+    """
+
+    name: str
+    description: str
+    files: list[TemplateFile]
+    tags: list[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        """Validate template definition."""
+        if not self.name:
+            raise ValueError("Template name cannot be empty")
+        if not self.description:
+            raise ValueError("Template description cannot be empty")
+        if not self.files:
+            raise ValueError("Template must have at least one file")
+
+
+@dataclass
+class TemplateBundle:
+    """
+    Represents a predefined bundle of templates.
+
+    Attributes:
+        name: Bundle identifier
+        description: What this bundle provides
+        template_refs: Template names in this bundle
+        tags: Categorization tags
+    """
+
+    name: str
+    description: str
+    template_refs: list[str]
+    tags: list[str] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        """Validate template bundle."""
+        if not self.name:
+            raise ValueError("Bundle name cannot be empty")
+        if not self.description:
+            raise ValueError("Bundle description cannot be empty")
+        if len(self.template_refs) < 2:
+            raise ValueError("Bundle must contain at least 2 templates")
+
+
+@dataclass
+class TemplateManifest:
+    """
+    Represents a template repository manifest (templatekit.yaml).
+
+    Attributes:
+        name: Repository name
+        description: Repository description
+        version: Semantic version
+        author: Author or team name
+        templates: Available templates
+        bundles: Predefined bundles
+    """
+
+    name: str
+    description: str
+    version: str
+    author: Optional[str] = None
+    templates: list[TemplateDefinition] = field(default_factory=list)
+    bundles: list[TemplateBundle] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        """Validate manifest data."""
+        if not self.name:
+            raise ValueError("Manifest name cannot be empty")
+        if not self.description:
+            raise ValueError("Manifest description cannot be empty")
+        if not self.version:
+            raise ValueError("Manifest version cannot be empty")
+        if not self.templates:
+            raise ValueError("Manifest must contain at least one template")
+
+
+@dataclass
+class TemplateInstallationRecord:
+    """
+    Tracks an installed template.
+
+    Attributes:
+        id: Unique installation ID (UUID)
+        template_name: Installed template identifier
+        source_repo: Source repository name
+        source_version: Repository version at install
+        namespace: Repository namespace (derived from repo name)
+        installed_path: Absolute path to installed file
+        scope: Installation scope (project or global)
+        installed_at: Installation timestamp
+        checksum: SHA-256 of installed content
+        ide_type: Target IDE for this installation
+        custom_metadata: User-defined metadata
+    """
+
+    id: str
+    template_name: str
+    source_repo: str
+    source_version: str
+    namespace: str
+    installed_path: str
+    scope: InstallationScope
+    installed_at: datetime
+    checksum: str
+    ide_type: AIToolType
+    custom_metadata: dict[str, str] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        """Validate installation record."""
+        if not self.id:
+            raise ValueError("Installation ID cannot be empty")
+        if not self.template_name:
+            raise ValueError("Template name cannot be empty")
+        if not self.source_repo:
+            raise ValueError("Source repository cannot be empty")
+        if not self.namespace:
+            raise ValueError("Namespace cannot be empty")
+        if not self.installed_path:
+            raise ValueError("Installed path cannot be empty")
+        if len(self.checksum) != 64:  # SHA-256 is always 64 hex characters
+            raise ValueError("Checksum must be a valid SHA-256 hash (64 characters)")
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "id": self.id,
+            "template_name": self.template_name,
+            "source_repo": self.source_repo,
+            "source_version": self.source_version,
+            "namespace": self.namespace,
+            "installed_path": self.installed_path,
+            "scope": self.scope.value,
+            "installed_at": self.installed_at.isoformat(),
+            "checksum": self.checksum,
+            "ide_type": self.ide_type.value,
+            "custom_metadata": self.custom_metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "TemplateInstallationRecord":
+        """Create from dictionary (JSON deserialization)."""
+        return cls(
+            id=data["id"],
+            template_name=data["template_name"],
+            source_repo=data["source_repo"],
+            source_version=data["source_version"],
+            namespace=data["namespace"],
+            installed_path=data["installed_path"],
+            scope=InstallationScope(data["scope"]),
+            installed_at=datetime.fromisoformat(data["installed_at"]),
+            checksum=data["checksum"],
+            ide_type=AIToolType(data["ide_type"]),
+            custom_metadata=data.get("custom_metadata", {}),
+        )
+
+
+@dataclass
+class AIAnalysis:
+    """
+    AI-provided analysis for validation issues.
+
+    Attributes:
+        confidence: AI confidence (0.0-1.0)
+        explanation: Why AI flagged this
+        suggested_fix: AI-generated fix
+        can_merge: For conflicts: is merge possible?
+        merge_suggestion: Merged version if applicable
+    """
+
+    confidence: float
+    explanation: str
+    suggested_fix: Optional[str] = None
+    can_merge: Optional[bool] = None
+    merge_suggestion: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        """Validate AI analysis data."""
+        if not 0.0 <= self.confidence <= 1.0:
+            raise ValueError("Confidence must be between 0.0 and 1.0")
+        if not self.explanation:
+            raise ValueError("Explanation cannot be empty")
+
+
+@dataclass
+class ValidationIssue:
+    """
+    Represents a problem detected during template validation.
+
+    Attributes:
+        issue_type: Type of validation issue
+        severity: How critical the issue is
+        title: Short description of issue
+        description: Detailed explanation
+        affected_items: Templates/repos affected
+        recommendation: How to fix the issue
+        auto_fixable: Can system auto-fix this?
+        fix_command: Command to fix issue
+        ai_analysis: AI-provided insights
+    """
+
+    issue_type: IssueType
+    severity: IssueSeverity
+    title: str
+    description: str
+    affected_items: list[str]
+    recommendation: str
+    auto_fixable: bool
+    fix_command: Optional[str] = None
+    ai_analysis: Optional[AIAnalysis] = None
+
+    def __post_init__(self) -> None:
+        """Validate validation issue data."""
+        if not self.title:
+            raise ValueError("Issue title cannot be empty")
+        if not self.description:
+            raise ValueError("Issue description cannot be empty")
+        if not self.affected_items:
+            raise ValueError("Issue must affect at least one item")
+        if not self.recommendation:
+            raise ValueError("Issue recommendation cannot be empty")

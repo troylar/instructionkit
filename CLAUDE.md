@@ -624,6 +624,7 @@ The GitHub Actions workflow (`.github/workflows/publish.yml`) handles building a
 ## Active Technologies
 - Markdown (instruction content) | Python 3.10+ (for InstructionKit CLI - no changes needed) + Git (for repository hosting), existing InstructionKit commands (no new dependencies) (001-example-instruction-repo)
 - GitHub repository at `troylar/instructionkit-examples` | Git-based versioning (001-example-instruction-repo)
+- Python 3.10+ (targeting 3.10-3.13) (002-template-sync-system)
 
 ## Recent Changes
 - 001-example-instruction-repo: Added Markdown (instruction content) | Python 3.10+ (for InstructionKit CLI - no changes needed) + Git (for repository hosting), existing InstructionKit commands (no new dependencies)

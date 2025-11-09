@@ -1,9 +1,13 @@
-"""Conflict resolution for instruction installations."""
+"""Conflict resolution for instruction and template installations."""
 
 from pathlib import Path
 from typing import Optional
 
-from instructionkit.core.models import ConflictInfo, ConflictResolution
+from rich.console import Console
+from rich.prompt import Prompt
+
+from instructionkit.core.checksum import sha256_file, sha256_string
+from instructionkit.core.models import ConflictInfo, ConflictResolution, ConflictType, TemplateInstallationRecord
 from instructionkit.utils.paths import resolve_conflict_name
 
 
@@ -178,3 +182,135 @@ def batch_resolve_conflicts(conflicts: dict[str, Path], strategy: ConflictResolu
         resolutions[instruction_name] = resolution
 
     return resolutions
+
+
+# Template Sync System - Checksum-based conflict detection
+
+
+def detect_conflict(
+    installed_file: Path, new_template_content: str, installation_record: TemplateInstallationRecord
+) -> ConflictType:
+    """
+    Detect if conflict exists between installed and new template using checksums.
+
+    Args:
+        installed_file: Path to currently installed file
+        new_template_content: Content of new template version
+        installation_record: Original installation record with checksum
+
+    Returns:
+        ConflictType indicating conflict status
+
+    Example:
+        >>> from pathlib import Path
+        >>> conflict = detect_conflict(
+        ...     Path(".cursor/rules/acme.test.md"),
+        ...     "new template content",
+        ...     installation_record
+        ... )
+        >>> conflict == ConflictType.NONE
+        True
+    """
+    if not installed_file.exists():
+        # File doesn't exist, no conflict
+        return ConflictType.NONE
+
+    # Calculate current file checksum
+    current_checksum = sha256_file(installed_file)
+
+    # Get original checksum at installation
+    original_checksum = installation_record.checksum
+
+    # Calculate new template checksum
+    new_checksum = sha256_string(new_template_content)
+
+    # Decision matrix:
+    if current_checksum == original_checksum:
+        # File unchanged since installation
+        if new_checksum == original_checksum:
+            return ConflictType.NONE  # No changes anywhere
+        else:
+            return ConflictType.NONE  # Only remote changed, safe to update
+    else:
+        # File modified locally
+        if new_checksum == original_checksum:
+            return ConflictType.LOCAL_MODIFIED  # Only local changed
+        else:
+            return ConflictType.BOTH_MODIFIED  # Both changed
+
+
+def prompt_conflict_resolution_template(template_name: str, conflict_type: ConflictType) -> ConflictResolution:
+    """
+    Interactive prompt for template conflict resolution using Rich.
+
+    Args:
+        template_name: Name of conflicting template
+        conflict_type: Type of conflict detected
+
+    Returns:
+        User's resolution choice
+
+    Example:
+        >>> resolution = prompt_conflict_resolution_template(
+        ...     "test-command",
+        ...     ConflictType.BOTH_MODIFIED
+        ... )
+    """
+    console = Console()
+
+    console.print(f"\n[yellow]⚠️  Conflict detected for '{template_name}'[/yellow]")
+
+    if conflict_type == ConflictType.LOCAL_MODIFIED:
+        console.print("Local file was modified since installation")
+    elif conflict_type == ConflictType.BOTH_MODIFIED:
+        console.print("Both local and remote versions have changes")
+
+    console.print("\nChoose action:")
+    console.print("  [K]eep local version (ignore remote update)")
+    console.print("  [O]verwrite with remote version (discard local changes)")
+    console.print("  [R]ename local and install remote")
+
+    choice = Prompt.ask("Your choice", choices=["k", "o", "r", "K", "O", "R"], default="k").lower()
+
+    return {"k": ConflictResolution.SKIP, "o": ConflictResolution.OVERWRITE, "r": ConflictResolution.RENAME}[choice]
+
+
+def apply_resolution(template_path: Path, new_content: str, resolution: ConflictResolution) -> Path:
+    """
+    Apply conflict resolution and install template.
+
+    Args:
+        template_path: Original template path
+        new_content: New template content
+        resolution: How to resolve the conflict
+
+    Returns:
+        Path where template was actually installed
+
+    Raises:
+        ValueError: If resolution strategy is unknown
+    """
+    if resolution == ConflictResolution.SKIP:
+        # Keep existing file, don't install
+        return template_path
+
+    elif resolution == ConflictResolution.OVERWRITE:
+        # Overwrite existing file
+        template_path.write_text(new_content, encoding="utf-8")
+        return template_path
+
+    elif resolution == ConflictResolution.RENAME:
+        # Rename local file and install new one
+        # Generate new path with suffix
+        renamed_path = resolve_conflict_name(template_path)
+
+        # Rename existing file
+        if template_path.exists():
+            template_path.rename(renamed_path)
+
+        # Install new content at original path
+        template_path.write_text(new_content, encoding="utf-8")
+        return template_path
+
+    else:
+        raise ValueError(f"Unknown conflict resolution strategy: {resolution}")
