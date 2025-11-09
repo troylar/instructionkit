@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-11-09
+
+### Added
+- **Template Sync System** - Repository-based distribution of IDE artifacts (instructions, commands, hooks) (#17)
+  - Install templates with namespace isolation using dot notation (e.g., `acme.security-rules`)
+  - Support for instructions, slash commands, and prompt hooks
+  - Cross-IDE compatibility (Claude Code, Cursor, Windsurf, GitHub Copilot)
+  - Template library management with `inskit template` commands
+  - Installation tracking with checksum verification
+- **Template Validation** - Health checking system for installed templates
+  - `inskit template validate` command with severity-based reporting (error/warning/info)
+  - Detects missing files, local modifications, and outdated versions
+  - Checksum-based verification using SHA-256 hashing
+  - Validates template integrity across project and global scopes
+  - `--fix` flag for automatic remediation of issues
+  - `--verbose` flag for detailed diagnostic output
+- **Automatic Backup System** - Protection against accidental data loss
+  - Automatic timestamped backups before any template overwrite
+  - Backups stored in `.instructionkit/backups/<timestamp>/`
+  - `inskit template backup list` - View available backups
+  - `inskit template backup restore` - Restore files from backups
+  - `inskit template backup cleanup` - Remove old backups (default: 30 days)
+  - Support for both project and global scopes
+- **Interactive Conflict Resolution** - User prompts for template conflicts
+  - Rich terminal UI for conflict resolution choices
+  - Three strategies: Keep local, Overwrite (with backup), or Rename
+  - Side-by-side conflict information display
+  - Prevents accidental overwrites of modified templates
+- Template-specific CLI commands:
+  - `inskit template install` - Install templates from library
+  - `inskit template list` - List available templates
+  - `inskit template update` - Update installed templates
+  - `inskit template uninstall` - Remove installed templates
+
+### Changed
+- Default conflict resolution strategy changed from `skip` to `prompt` for template operations
+  - Users are now interactively prompted when conflicts are detected
+  - Provides better visibility and control over file operations
+- Enhanced README.md with comprehensive template sync documentation
+  - Added validation command reference with examples
+  - Documented backup management workflow
+  - Updated features section with safety improvements
+  - Added template system architecture documentation
+
+### Fixed
+- Templates with local modifications are now safely detected before updates
+- Conflict resolution now creates backups before destructive operations
+
 ## [0.3.1] - 2025-10-27
 
 ### Fixed
