@@ -13,6 +13,7 @@ from instructionkit.cli.template_install import install_command as template_inst
 from instructionkit.cli.template_list import list_command as template_list_command
 from instructionkit.cli.template_uninstall import uninstall_command as template_uninstall_command
 from instructionkit.cli.template_update import update_command as template_update_command
+from instructionkit.cli.template_validate import validate_command as template_validate_command
 from instructionkit.cli.tools import show_tools
 from instructionkit.cli.uninstall import uninstall_instruction
 from instructionkit.cli.update import update_repository
@@ -35,6 +36,7 @@ template_app.command(name="install")(template_install_command)
 template_app.command(name="list")(template_list_command)
 template_app.command(name="update")(template_update_command)
 template_app.command(name="uninstall")(template_uninstall_command)
+template_app.command(name="validate")(template_validate_command)
 
 
 @list_app.callback(invoke_without_command=True)
