@@ -417,7 +417,189 @@ inskit template install https://github.com/acme-corp/python-standards --as pytho
 echo "✓ Templates installed. Run 'inskit template list' to verify."
 ```
 
-### Scenario 7: Migrating an Existing Project to Templates
+### Scenario 7: Applying Templates to Your Current Project
+
+**Context:** You're actively working on a project and discover a useful template repository you want to use.
+
+**Step 1: You're working on your project**
+```bash
+cd ~/projects/my-api
+# You're coding along, no templates installed yet
+```
+
+**Step 2: Discover a template repo**
+```bash
+# Maybe you found it on GitHub, or a colleague shared it
+# Example: OWASP security templates
+# URL: https://github.com/owasp/ai-coding-templates
+```
+
+**Step 3: Install templates to your current project**
+```bash
+# Install directly to your current project
+inskit template install https://github.com/owasp/ai-coding-templates --as owasp
+
+# ✓ Installed 5 templates:
+#   - owasp.input-validation.md
+#   - owasp.authentication.md
+#   - owasp.sql-injection.md
+#   - owasp.xss-prevention.md
+#   - owasp.secrets-management.md
+```
+
+**Step 4: Templates are immediately available**
+```bash
+# Check what's installed
+ls .claude/rules/
+# owasp.input-validation.md
+# owasp.authentication.md
+# owasp.sql-injection.md
+# ...
+
+# Your AI assistant now knows these security patterns!
+```
+
+**Step 5: (Optional) Share with your team**
+```bash
+# Commit the installation tracking so teammates get the same templates
+git add .instructionkit/template-installations.json
+git commit -m "feat: add OWASP security templates"
+git push
+
+# Your team can now run the same command:
+# inskit template install https://github.com/owasp/ai-coding-templates --as owasp
+```
+
+**Step 6: Apply multiple template repos**
+```bash
+# Add more as you discover them
+inskit template install https://github.com/company/python-standards --as python
+inskit template install https://github.com/team/api-patterns --as api
+
+# Now you have:
+# .claude/rules/owasp.*     (security)
+# .claude/rules/python.*    (coding standards)
+# .claude/rules/api.*       (API design patterns)
+```
+
+**Result:**
+- Templates applied immediately to current project
+- No project restructuring needed
+- Can layer multiple template repos
+- Team can sync by running same commands
+
+**Common Discovery Sources:**
+- GitHub search: "instructionkit templates python"
+- Colleague shares a repo URL
+- Company internal template registry
+- Open source communities
+
+### Scenario 8: Applying Templates to Multiple Existing Projects at Once
+
+**Context:** You're an individual developer with a dozen Python projects and want to apply the same templates to all of them.
+
+**Best Solution: Global Installation**
+```bash
+# Install templates globally - they apply to ALL projects
+inskit template install https://github.com/yourname/python-standards --as python --scope global
+inskit template install https://github.com/community/python-best-practices --as best-practices --scope global
+
+# ✓ Templates now available in ALL Python projects on your machine
+```
+
+**How Global Installation Works:**
+```bash
+# Templates installed to ~/.claude/rules/
+ls ~/.claude/rules/
+# python.coding-standards.md
+# python.async-patterns.md
+# best-practices.error-handling.md
+# best-practices.testing.md
+
+# Work in ANY project, templates are active
+cd ~/projects/project-1  # Templates active
+cd ~/projects/project-2  # Templates active
+cd ~/projects/project-12 # Templates active
+```
+
+**Alternative: Bulk Project Installation (if you need project-specific tracking)**
+
+Create a script to install to specific projects:
+```bash
+#!/bin/bash
+# apply-templates.sh
+
+TEMPLATE_REPO="https://github.com/yourname/python-standards"
+PROJECTS=(
+  ~/projects/api-server
+  ~/projects/data-pipeline
+  ~/projects/ml-toolkit
+  ~/projects/cli-app
+  ~/projects/web-scraper
+  ~/projects/automation-scripts
+  ~/projects/discord-bot
+  ~/projects/file-converter
+  ~/projects/backup-utility
+  ~/projects/monitoring-tool
+  ~/projects/config-manager
+  ~/projects/test-framework
+)
+
+for project in "${PROJECTS[@]}"; do
+  echo "Installing templates in $project..."
+  cd "$project"
+  inskit template install "$TEMPLATE_REPO" --as python
+  echo "✓ Done"
+done
+
+echo "✓ Templates installed in ${#PROJECTS[@]} projects"
+```
+
+**Run the bulk installation:**
+```bash
+chmod +x apply-templates.sh
+./apply-templates.sh
+
+# Output:
+# Installing templates in /Users/you/projects/api-server...
+# ✓ Done
+# Installing templates in /Users/you/projects/data-pipeline...
+# ✓ Done
+# ...
+# ✓ Templates installed in 12 projects
+```
+
+**When to Use Global vs. Project Installation:**
+
+| Use Global | Use Project Installation |
+|------------|-------------------------|
+| Same templates for all projects | Different templates per project |
+| Personal coding standards | Team-specific standards (varies by project) |
+| Solo developer | Working with teams |
+| Don't need to commit template config | Want to commit `.instructionkit/template-installations.json` |
+| Quick setup | Explicit per-project tracking |
+
+**Example: Mix Global and Project-Specific**
+```bash
+# Global: Your personal Python standards (all projects)
+inskit template install https://github.com/yourname/python-standards --as personal --scope global
+
+# Project-specific: Client requirements (only this project)
+cd ~/projects/client-api
+inskit template install https://github.com/client/api-standards --as client
+
+# Result in client-api project:
+# ~/.claude/rules/personal.* (global, from personal standards)
+# ~/projects/client-api/.claude/rules/client.* (project-specific)
+```
+
+**Result:**
+- All 12 Python projects get your standards instantly (if using global)
+- Or specific projects get templates (if using script)
+- Consistent coding patterns across all your projects
+- Update once, applies everywhere (global) or update all projects (script)
+
+### Scenario 9: Migrating an Existing Project to Templates
 
 **Context:** You have a 2-year-old project with no templates. Want to add standards.
 
@@ -491,7 +673,7 @@ Templates provide:
 - New team members get consistent guidance
 - Can evolve standards over time via template updates
 
-### Scenario 8: Working on Multiple Client Projects
+### Scenario 10: Working on Multiple Client Projects
 
 **Context:** You're a consultant working on 3 different client projects simultaneously.
 
@@ -551,7 +733,7 @@ inskit template install https://github.com/client-c/mobile-standards --as client
 - No mixing of client requirements
 - Switch projects, templates switch automatically
 
-### Scenario 9: Inheriting a Messy Legacy Project
+### Scenario 11: Inheriting a Messy Legacy Project
 
 **Context:** Taking over a 5-year-old project with inconsistent code and no documentation.
 
@@ -637,7 +819,7 @@ inskit template update legacy
 - Can track migration progress via template updates
 - New team members understand both current and target state
 
-### Scenario 10: Contributing to Open Source Projects
+### Scenario 12: Contributing to Open Source Projects
 
 **Context:** You contribute to multiple open-source projects, each with different standards.
 
@@ -692,7 +874,7 @@ inskit template install https://github.com/kubernetes/contributor-templates --as
 - Contributions meet project requirements
 - Personal tools available everywhere
 
-### Scenario 11: Switching Tech Stacks on Existing Project
+### Scenario 13: Switching Tech Stacks on Existing Project
 
 **Context:** Migrating a project from Node.js to Python.
 
@@ -738,7 +920,7 @@ git commit -m "Complete migration to Python stack"
 - Keep old standards during migration for reference
 - Clean removal when migration complete
 
-### Scenario 12: Updating Templates on Running Production Project
+### Scenario 14: Updating Templates on Running Production Project
 
 **Context:** Your production app needs to adopt new security standards.
 
