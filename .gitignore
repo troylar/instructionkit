@@ -38,6 +38,7 @@ htmlcov/
 coverage.xml
 *.cover
 .hypothesis/
+.snapshots/
 
 # IDEs and Editors
 .vscode/
