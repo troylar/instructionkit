@@ -114,9 +114,241 @@ Each repository gets a namespace to prevent conflicts. When you install with `--
 - Company standards + team practices + personal tools all coexist
 - Clear ownership (know which repo each template came from)
 
-### Installation Scopes
-- **Project** (default) - Templates installed in current project only
-- **Global** - Templates available across all projects
+### Installation Scopes: Project vs Global
+
+**Two places to install templates:**
+
+| Scope | Where Files Go | When Active | Best For |
+|-------|---------------|-------------|----------|
+| **Project** (default) | `<project>/.claude/rules/`<br>`<project>/.instructionkit/` | Only in that project directory | Project-specific standards, team practices |
+| **Global** | `~/.claude/rules/`<br>`~/.instructionkit/` | All projects on your machine | Personal tools, company-wide policies |
+
+**Example:**
+
+```bash
+# Project scope (default)
+cd ~/projects/backend-api
+inskit template install https://github.com/acme/backend-standards --as backend
+# Files go to: ~/projects/backend-api/.claude/rules/backend.*
+# Only active when working in ~/projects/backend-api/
+
+# Global scope (use --scope global)
+inskit template install https://github.com/acme/security-policy --as acme-security --scope global
+# Files go to: ~/.claude/rules/acme-security.*
+# Active in ALL projects
+```
+
+**Can I mix both? YES!**
+
+```bash
+# Global: Company security policy (applies to all projects)
+inskit template install https://github.com/acme/security --as acme-security --scope global
+
+# Project: Backend-specific patterns (only for this project)
+cd ~/projects/backend-api
+inskit template install https://github.com/acme/backend --as backend
+
+# Your IDE now has BOTH:
+# ~/.claude/rules/acme-security.* (global, always available)
+# ~/projects/backend-api/.claude/rules/backend.* (project-specific)
+```
+
+**Decision Guide:**
+
+| Install Global | Install Project |
+|---------------|-----------------|
+| Company security policies | Team-specific practices |
+| Personal productivity tools | Project architecture patterns |
+| Code review checklists (all code) | Technology-specific guides (this stack) |
+| Your coding shortcuts | Experimental/testing templates |
+
+---
+
+## Use Cases: Starting from Zero
+
+### Scenario 1: New Team Member Onboarding
+
+**Context:** You just joined ACME Corp as a backend engineer.
+
+**Step 1: Install company-wide standards (global)**
+```bash
+# Security policies apply to ALL your work
+inskit template install https://github.com/acme-corp/security-policy --as acme-security --scope global
+
+# Company code review checklist
+inskit template install https://github.com/acme-corp/code-review --as acme-review --scope global
+```
+
+**Step 2: Clone your team's project**
+```bash
+cd ~/projects
+git clone https://github.com/acme-corp/backend-api.git
+cd backend-api
+```
+
+**Step 3: Install project-specific templates**
+```bash
+# Backend team API standards (only for backend projects)
+inskit template install https://github.com/acme-corp/backend-team --as backend
+
+# This project's specific templates
+inskit template install https://github.com/acme-corp/api-patterns --as api
+```
+
+**Result:**
+- **Global templates** (security, code review) → Available in ALL projects
+- **Project templates** (backend, API) → Only in this project
+- Your IDE has layered guidance: company-wide + team + project
+
+### Scenario 2: Starting a New Project
+
+**Context:** Creating a new Python backend service.
+
+**Step 1: Company standards (if not already installed globally)**
+```bash
+# Only need to do this once on your machine
+inskit template install https://github.com/company/standards --as company --scope global
+```
+
+**Step 2: Create project and install project-specific templates**
+```bash
+mkdir my-new-service
+cd my-new-service
+git init
+
+# Python backend templates (specific to this tech stack)
+inskit template install https://github.com/company/python-backend --as python-backend
+
+# API design patterns (this service is an API)
+inskit template install https://github.com/company/api-design --as api
+```
+
+**Step 3: Commit template configuration**
+```bash
+# Let your team get the same setup automatically
+git add .instructionkit/
+git commit -m "Add template configuration"
+git push
+```
+
+**When teammates clone:**
+```bash
+git clone <repo>
+cd <repo>
+
+# Templates are NOT automatically installed, but tracked
+# They can see what to install:
+cat .instructionkit/template-installations.json
+
+# Then install the same templates:
+inskit template install https://github.com/company/python-backend --as python-backend
+inskit template install https://github.com/company/api-design --as api
+```
+
+### Scenario 3: Solo Developer / Personal Use
+
+**Context:** You want consistent coding habits across all your projects.
+
+**Install everything globally:**
+```bash
+# Your personal coding standards (all projects)
+inskit template install https://github.com/yourname/my-standards --as personal --scope global
+
+# Community best practices (all projects)
+inskit template install https://github.com/python/best-practices --as python-community --scope global
+
+# Your productivity shortcuts (all projects)
+inskit template install https://github.com/yourname/shortcuts --as shortcuts --scope global
+```
+
+**Result:**
+- All your projects automatically have these templates
+- No per-project setup needed
+- Consistent experience everywhere
+
+### Scenario 4: Large Organization with Multiple Teams
+
+**Context:** ACME Corp has Platform, Backend, Frontend, and Mobile teams.
+
+**Global (Company-Wide):**
+```bash
+# Everyone installs these (security, legal, compliance)
+inskit template install https://github.com/acme/security-policy --as acme-security --scope global
+inskit template install https://github.com/acme/code-review-standards --as acme-review --scope global
+inskit template install https://github.com/acme/legal-compliance --as acme-legal --scope global
+```
+
+**Project (Team-Specific):**
+
+**Backend Team:**
+```bash
+cd ~/projects/backend-service
+inskit template install https://github.com/acme/backend-standards --as backend
+inskit template install https://github.com/acme/python-patterns --as python
+inskit template install https://github.com/acme/database-patterns --as database
+```
+
+**Frontend Team:**
+```bash
+cd ~/projects/web-app
+inskit template install https://github.com/acme/frontend-standards --as frontend
+inskit template install https://github.com/acme/react-patterns --as react
+inskit template install https://github.com/acme/accessibility --as a11y
+```
+
+**Mobile Team:**
+```bash
+cd ~/projects/mobile-app
+inskit template install https://github.com/acme/mobile-standards --as mobile
+inskit template install https://github.com/acme/ios-patterns --as ios
+inskit template install https://github.com/acme/android-patterns --as android
+```
+
+**Result:**
+- **Global templates** same for everyone (security, review, legal)
+- **Project templates** customized per team/tech stack
+- No conflicts, clear separation
+
+### Scenario 5: Selective Installation (Mix & Match)
+
+**Context:** You work on multiple types of projects and want different templates for each.
+
+```bash
+# Global: Your personal tools (available everywhere)
+inskit template install https://github.com/yourname/personal-tools --as personal --scope global
+
+# Global: Company security (required for all projects)
+inskit template install https://github.com/company/security --as security --scope global
+
+# Project 1: Backend API
+cd ~/projects/backend-api
+inskit template install https://github.com/company/python-backend --as backend
+inskit template install https://github.com/company/api-patterns --as api
+
+# Project 2: Frontend Web App
+cd ~/projects/web-app
+inskit template install https://github.com/company/react-frontend --as frontend
+inskit template install https://github.com/company/accessibility --as a11y
+
+# Project 3: Data Science
+cd ~/projects/ml-pipeline
+inskit template install https://github.com/company/data-science --as ds
+inskit template install https://github.com/company/ml-ops --as mlops
+```
+
+**Your IDE in each project:**
+
+**Backend API:**
+- Global: `personal.*`, `security.*`
+- Project: `backend.*`, `api.*`
+
+**Frontend Web App:**
+- Global: `personal.*`, `security.*`
+- Project: `frontend.*`, `a11y.*`
+
+**Data Science:**
+- Global: `personal.*`, `security.*`
+- Project: `ds.*`, `mlops.*`
 
 ---
 
