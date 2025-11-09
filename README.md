@@ -352,6 +352,465 @@ inskit template install https://github.com/company/ml-ops --as mlops
 
 ---
 
+## Use Cases: Existing Projects
+
+### Scenario 6: Joining an Existing Project with Templates
+
+**Context:** You clone a project that already uses InstructionKit templates.
+
+**Step 1: Clone the project**
+```bash
+git clone https://github.com/acme-corp/backend-api.git
+cd backend-api
+```
+
+**Step 2: Check what templates the project uses**
+```bash
+# Look at the tracking file
+cat .instructionkit/template-installations.json
+```
+
+**Output shows:**
+```json
+{
+  "installations": [
+    {
+      "namespace": "backend",
+      "source_repo": "https://github.com/acme-corp/backend-standards",
+      "templates": ["api-design", "database-patterns", "testing-guide"]
+    },
+    {
+      "namespace": "python",
+      "source_repo": "https://github.com/acme-corp/python-standards",
+      "templates": ["coding-standards", "async-patterns"]
+    }
+  ]
+}
+```
+
+**Step 3: Install the same templates**
+```bash
+# Install exactly what the project uses
+inskit template install https://github.com/acme-corp/backend-standards --as backend
+inskit template install https://github.com/acme-corp/python-standards --as python
+```
+
+**Step 4: Verify installation**
+```bash
+inskit template list
+
+# Should match what's in template-installations.json
+```
+
+**Result:**
+- Your IDE now has the same templates as your teammates
+- Code reviews consistent across the team
+- AI assistant follows project standards
+
+**Pro Tip:** Create a setup script for new team members:
+```bash
+#!/bin/bash
+# setup-templates.sh
+echo "Installing project templates..."
+inskit template install https://github.com/acme-corp/backend-standards --as backend
+inskit template install https://github.com/acme-corp/python-standards --as python
+echo "✓ Templates installed. Run 'inskit template list' to verify."
+```
+
+### Scenario 7: Migrating an Existing Project to Templates
+
+**Context:** You have a 2-year-old project with no templates. Want to add standards.
+
+**Step 1: Identify what standards you need**
+```bash
+cd ~/projects/legacy-api
+
+# This is a Python API project, so we need:
+# - Python coding standards
+# - API design patterns
+# - Database best practices
+# - Testing guidelines
+```
+
+**Step 2: Create a template repository (if none exists)**
+```bash
+cd ~/
+inskit template init backend-standards --namespace backend
+
+cd backend-standards
+# Customize templates based on existing project conventions
+# Add: .claude/rules/api-design.md (document current patterns)
+# Add: .claude/rules/database-patterns.md (document DB conventions)
+# Add: .claude/commands/run-tests.md (standardize testing)
+
+git init
+git add .
+git commit -m "Initial backend standards"
+git remote add origin https://github.com/yourorg/backend-standards.git
+git push -u origin main
+```
+
+**Step 3: Install templates in existing project**
+```bash
+cd ~/projects/legacy-api
+
+# Install your new templates
+inskit template install https://github.com/yourorg/backend-standards --as backend
+```
+
+**Step 4: Commit template configuration**
+```bash
+git add .instructionkit/
+git add .claude/  # or .cursor/, .windsurf/, etc.
+git commit -m "feat: add InstructionKit templates for coding standards"
+git push
+```
+
+**Step 5: Document for team**
+```markdown
+# Add to README.md
+
+## Development Setup
+
+### Templates
+This project uses InstructionKit for coding standards and patterns.
+
+1. Install InstructionKit: `pip install instructionkit`
+2. Install project templates: `inskit template install https://github.com/yourorg/backend-standards --as backend`
+3. Verify: `inskit template list`
+
+Templates provide:
+- Python coding standards
+- API design patterns
+- Database conventions
+- Testing commands
+```
+
+**Result:**
+- Legacy project now has modern standards
+- New team members get consistent guidance
+- Can evolve standards over time via template updates
+
+### Scenario 8: Working on Multiple Client Projects
+
+**Context:** You're a consultant working on 3 different client projects simultaneously.
+
+**Global Setup (Your personal tools):**
+```bash
+# Install once - available everywhere
+inskit template install https://github.com/yourname/consultant-tools --as personal --scope global
+inskit template install https://github.com/yourname/productivity --as productivity --scope global
+```
+
+**Client A - FinTech Project:**
+```bash
+cd ~/clients/fintech-api
+
+# Client A's security requirements (strict finance regulations)
+inskit template install https://github.com/client-a/security-standards --as clienta-security
+
+# Client A's Python standards
+inskit template install https://github.com/client-a/python-patterns --as clienta-python
+```
+
+**Client B - E-commerce Project:**
+```bash
+cd ~/clients/ecommerce-platform
+
+# Client B's standards (different tech stack)
+inskit template install https://github.com/client-b/react-standards --as clientb-react
+inskit template install https://github.com/client-b/api-design --as clientb-api
+```
+
+**Client C - Healthcare Project:**
+```bash
+cd ~/clients/healthcare-app
+
+# Client C's HIPAA compliance templates
+inskit template install https://github.com/client-c/hipaa-compliance --as clientc-hipaa
+inskit template install https://github.com/client-c/mobile-standards --as clientc-mobile
+```
+
+**Your IDE in each project:**
+
+**FinTech Project:**
+- Global: `personal.*`, `productivity.*` (yours)
+- Project: `clienta-security.*`, `clienta-python.*` (client-specific)
+
+**E-commerce Project:**
+- Global: `personal.*`, `productivity.*` (yours)
+- Project: `clientb-react.*`, `clientb-api.*` (client-specific)
+
+**Healthcare Project:**
+- Global: `personal.*`, `productivity.*` (yours)
+- Project: `clientc-hipaa.*`, `clientc-mobile.*` (client-specific)
+
+**Result:**
+- Personal tools available everywhere
+- Each client's standards isolated to their projects
+- No mixing of client requirements
+- Switch projects, templates switch automatically
+
+### Scenario 9: Inheriting a Messy Legacy Project
+
+**Context:** Taking over a 5-year-old project with inconsistent code and no documentation.
+
+**Step 1: Document current state with templates**
+```bash
+cd ~/projects/legacy-mess
+
+# Create templates that document what you found
+inskit template init legacy-api-docs --namespace legacy
+
+cd legacy-api-docs
+
+# Document existing patterns (even if messy)
+cat > .claude/rules/current-patterns.md << 'EOF'
+# Current API Patterns
+
+## What We Have (Document Before Changing)
+
+### Authentication
+- Currently using custom JWT implementation (see auth.py)
+- No refresh tokens
+- Tokens expire after 24 hours
+
+### Database
+- Direct SQL queries (no ORM)
+- Connection pooling via custom pool.py
+- Transactions managed manually
+
+### Error Handling
+- Mix of exceptions and return codes
+- Some endpoints return 200 with error in body
+- No consistent error format
+
+## What We're Moving Toward
+[Add improvement plan here]
+EOF
+
+git init
+git add .
+git commit -m "Document current state"
+git remote add origin https://github.com/yourorg/legacy-api-docs.git
+git push -u origin main
+```
+
+**Step 2: Install in project**
+```bash
+cd ~/projects/legacy-mess
+inskit template install https://github.com/yourorg/legacy-api-docs --as legacy
+```
+
+**Step 3: Add improvement templates**
+```bash
+# Add better standards as separate templates
+inskit template install https://github.com/yourorg/modern-api-standards --as modern
+```
+
+**Your IDE now has:**
+- `legacy.*` - Documents current (messy) patterns
+- `modern.*` - Shows where you want to go
+
+**Step 4: Gradually migrate**
+```bash
+# Update template repository as you refactor
+cd ~/legacy-api-docs
+
+# Update current-patterns.md to show progress
+# Add migration-guide.md command
+
+git add .
+git commit -m "Update patterns - migrated auth to OAuth2"
+git push
+```
+
+**Update in project:**
+```bash
+cd ~/projects/legacy-mess
+inskit template update legacy
+```
+
+**Result:**
+- Legacy patterns documented (don't have to remember everything)
+- Clear target patterns defined
+- Can track migration progress via template updates
+- New team members understand both current and target state
+
+### Scenario 10: Contributing to Open Source Projects
+
+**Context:** You contribute to multiple open-source projects, each with different standards.
+
+**Global (Your personal setup):**
+```bash
+inskit template install https://github.com/yourname/oss-contributor-tools --as personal --scope global
+```
+
+**Project: Django (Python web framework):**
+```bash
+cd ~/oss/django
+
+# Install Django contribution guidelines
+inskit template install https://github.com/django/contributor-templates --as django
+
+# Your IDE now has Django's:
+# - Coding standards (PEP 8 + Django conventions)
+# - PR templates
+# - Testing requirements
+# - Documentation standards
+```
+
+**Project: React (JavaScript library):**
+```bash
+cd ~/oss/react
+
+# Install React contribution guidelines
+inskit template install https://github.com/facebook/react-contributor-templates --as react
+
+# Your IDE now has React's:
+# - JavaScript style guide
+# - Testing with Jest
+# - Commit message conventions
+```
+
+**Project: Kubernetes (Go infrastructure):**
+```bash
+cd ~/oss/kubernetes
+
+# Install Kubernetes contribution guidelines
+inskit template install https://github.com/kubernetes/contributor-templates --as k8s
+
+# Your IDE now has K8s:
+# - Go coding standards
+# - API conventions
+# - CRD development patterns
+```
+
+**Result:**
+- Each OSS project has its own standards
+- Switch projects → standards switch automatically
+- Contributions meet project requirements
+- Personal tools available everywhere
+
+### Scenario 11: Switching Tech Stacks on Existing Project
+
+**Context:** Migrating a project from Node.js to Python.
+
+**Before Migration:**
+```bash
+cd ~/projects/api-server
+
+# Current templates (Node.js)
+inskit template list
+# Shows: nodejs.*, express.*, typescript.*
+```
+
+**During Migration (Both stacks):**
+```bash
+# Keep Node.js templates for reference
+# Add Python templates for new code
+inskit template install https://github.com/company/python-standards --as python
+inskit template install https://github.com/company/fastapi-patterns --as fastapi
+
+# Your IDE now has BOTH:
+# - nodejs.* (for understanding old code)
+# - python.*, fastapi.* (for writing new code)
+```
+
+**After Migration Complete:**
+```bash
+# Remove old Node.js templates
+inskit template uninstall nodejs
+inskit template uninstall express
+inskit template uninstall typescript
+
+# Only Python templates remain
+inskit template list
+# Shows: python.*, fastapi.*
+
+# Update project tracking
+git add .instructionkit/
+git commit -m "Complete migration to Python stack"
+```
+
+**Result:**
+- Templates evolve with your tech stack
+- Keep old standards during migration for reference
+- Clean removal when migration complete
+
+### Scenario 12: Updating Templates on Running Production Project
+
+**Context:** Your production app needs to adopt new security standards.
+
+**Step 1: Check current state**
+```bash
+cd ~/projects/production-api
+inskit template list
+
+# Shows: security.owasp-2017.md (old)
+```
+
+**Step 2: Update security template repository**
+```bash
+# Security team updated their repository with OWASP 2021
+# https://github.com/company/security-standards updated
+```
+
+**Step 3: Preview changes before updating**
+```bash
+# Validate current templates first
+inskit template validate
+
+# Output shows:
+# ℹ INFO: security.owasp - Newer version available (2017 → 2021)
+```
+
+**Step 4: Update templates**
+```bash
+inskit template update security
+
+# Interactive prompt appears:
+# ⚠️  Conflict detected for 'security.owasp'
+# Local file was modified since installation
+#
+# Choose action:
+#   [K]eep local version (ignore update)
+#   [O]verwrite with new version (backup created)
+#   [R]ename local and install new
+#
+# Your choice [k/o/r] (k): o
+
+# Backup created: .instructionkit/backups/20251109_143052/security.owasp.md
+# ✓ Updated: .claude/rules/security.owasp.md
+```
+
+**Step 5: Review changes**
+```bash
+# Compare old vs new
+diff .instructionkit/backups/20251109_143052/security.owasp.md \
+     .claude/rules/security.owasp.md
+
+# Shows: OWASP 2021 new vulnerabilities added
+```
+
+**Step 6: Rollback if needed**
+```bash
+# If update breaks something, restore from backup
+inskit template backup restore 20251109_143052 security.owasp.md
+
+# Or keep both versions
+inskit template backup restore 20251109_143052 security.owasp.md \
+  --target .claude/rules/security.owasp-2017.md
+```
+
+**Result:**
+- Production project stays current with latest standards
+- Automatic backups prevent data loss
+- Can rollback if update causes issues
+- Team stays synchronized with security updates
+
+---
+
 ## Getting Started
 
 ### 1. Create Your First Template Repository
