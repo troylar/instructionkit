@@ -103,6 +103,7 @@ jobs:
 
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
+        continue-on-error: true  # Requires GitHub Advanced Security
         with:
           fail-on-severity: moderate
 

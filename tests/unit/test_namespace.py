@@ -196,7 +196,8 @@ class TestGetInstallPath:
 
     def test_path_is_absolute(self):
         """Test that returned path maintains absolute status if base is absolute."""
-        base_path = Path("/absolute/path")
+        # Use Path.cwd() to get a platform-independent absolute path
+        base_path = Path.cwd() / "absolute" / "path"
         install_path = get_install_path("acme", "test", base_path, "md")
         assert install_path.is_absolute()
 
