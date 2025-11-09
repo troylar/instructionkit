@@ -2,8 +2,7 @@
 
 import uuid
 from datetime import datetime
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 import typer
@@ -38,9 +37,7 @@ class TestValidationIssue:
 
     def test_initialization_with_default_remediation(self):
         """Test ValidationIssue with empty remediation."""
-        issue = ValidationIssue(
-            severity="warning", template="test", issue_type="modified", description="File modified"
-        )
+        issue = ValidationIssue(severity="warning", template="test", issue_type="modified", description="File modified")
 
         assert issue.remediation == ""
 

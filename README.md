@@ -117,7 +117,8 @@ Perfect for:
 
 - Auto-detect installed AI coding tools
 - Track all installed instructions with metadata
-- Smart conflict resolution (skip, rename, overwrite)
+- **Interactive conflict resolution** - prompts before overwriting
+- **Template validation** - check health and detect issues
 - Easy uninstall functionality
 
 </td>
@@ -593,6 +594,11 @@ bundles:
 
 **NEW in v0.4.0:** Repository-based distribution for maintaining consistent IDE artifacts across multiple projects. Sync coding standards, commands, hooks, and any IDE content your team needs.
 
+**Latest Features:**
+- ✨ **Template Validation** - Check template health, detect modifications, find missing files
+- 🛡️ **Interactive Conflict Resolution** - Prompts before overwriting, prevents data loss
+- 🔍 **Modification Detection** - Checksum-based tracking of local changes
+
 ### What Are Templates?
 
 Templates are **any reusable IDE artifacts** that teams can install and keep synchronized across projects. This includes:
@@ -715,14 +721,87 @@ inskit template list
 # - Hooks automatically active
 # All namespaced to avoid conflicts!
 
-# 4. Update to latest version
+# 4. Validate template health
+inskit template validate
+# Checks for missing files, local modifications, outdated versions
+
+# 5. Update to latest version
 inskit template update company
 
-# 5. Uninstall when no longer needed
+# 6. Uninstall when no longer needed
 inskit template uninstall company
 ```
 
 ### Command Reference
+
+#### `inskit template validate`
+
+**NEW in v0.4.0:** Validate installed templates for health issues and detect problems before they cause issues.
+
+```bash
+# Validate all templates (project + global)
+inskit template validate
+
+# Validate only project templates
+inskit template validate --scope project
+
+# Validate only global templates
+inskit template validate --scope global
+
+# Show detailed information
+inskit template validate --verbose
+
+# Attempt to fix issues automatically (future feature)
+inskit template validate --fix
+```
+
+**What it checks:**
+1. **Missing Files** - Templates tracked but files deleted
+2. **Local Modifications** - Detects if you've edited installed templates (checksum mismatch)
+3. **Outdated Versions** - Checks if newer versions are available in library
+4. **Broken Dependencies** - Validates template references and structure
+
+**Output Format:**
+- **Errors** (❌): Critical issues that require action (missing files)
+- **Warnings** (⚠️): Important but non-critical (local modifications)
+- **Info** (ℹ️): Helpful notifications (newer versions available)
+
+**Example output:**
+```
+Validating project templates (/path/to/project)...
+  Found 8 template(s)
+
+Validation Summary:
+  ✗ 1 error(s)
+  ⚠ 2 warning(s)
+  ℹ 1 info
+
+Validation Issues
+Severity  Template                    Issue Type       Description                          Remediation
+✗ ERROR   company.python-standards    missing_file     Installed file not found             Reinstall template with: inskit template install...
+⚠ WARNING company.security-guidelines modified         Template has been modified locally   Update to restore original: inskit template update company
+ℹ INFO    company.test-api           outdated         Newer version available (1.0.0 → 1.2.0) Update with: inskit template update company
+```
+
+**Use Cases:**
+- **Before Updates**: Check template health before updating
+- **Troubleshooting**: Diagnose why templates aren't working
+- **Team Onboarding**: Verify team members have correct templates
+- **CI/CD**: Add to CI pipeline to catch template issues early
+
+**Best Practices:**
+```bash
+# Run validation weekly or when something seems off
+inskit template validate
+
+# Check before major updates
+inskit template validate
+inskit template update --all
+
+# Verify after git clone/pull
+git pull
+inskit template validate
+```
 
 #### `inskit template install <repo-url>`
 
@@ -741,8 +820,11 @@ inskit template install https://github.com/acme/templates --scope global
 # Use custom namespace (default: derived from repo name)
 inskit template install https://github.com/acme/templates --as acme-eng
 
-# Force overwrite existing templates
-inskit template install https://github.com/acme/templates --force
+# Conflict resolution (by default, prompts interactively)
+inskit template install https://github.com/acme/templates                    # Prompt for each conflict
+inskit template install https://github.com/acme/templates --conflict skip    # Skip existing files
+inskit template install https://github.com/acme/templates --conflict rename  # Rename on conflict
+inskit template install https://github.com/acme/templates --conflict overwrite # Force overwrite
 ```
 
 **What it does:**
@@ -762,10 +844,17 @@ inskit template install https://github.com/acme/templates --force
 - Prevents conflicts when using multiple template repos
 - Each repo's content is isolated by namespace
 
+**Conflict Handling:**
+When installing templates that already exist, InstructionKit will **prompt you interactively** (NEW in v0.4.0):
+- Shows which files will be affected
+- Asks for your choice: Keep existing, Rename, or Overwrite
+- Prevents accidental data loss
+- Can be overridden with `--conflict` flag for automation
+
 **Options:**
 - `--scope project|global` - Install to project (default) or globally
 - `--as <namespace>` - Override namespace (default: repo name)
-- `--force` - Overwrite existing templates without prompting
+- `--conflict prompt|skip|rename|overwrite` - Conflict resolution strategy (default: prompt)
 
 **Project vs Global:**
 - **Project** (default): Installed in current project's IDE directories
@@ -860,10 +949,12 @@ inskit template update --all --dry-run
 5. Updates template files and installation records
 
 **Conflict resolution:**
-When conflicts detected, you'll be prompted:
-- **Overwrite**: Replace with new version (lose local changes)
-- **Keep**: Keep your local version (skip update)
-- **Skip**: Don't update this template
+When conflicts detected, you'll be prompted interactively for each file:
+- **[K]eep local version**: Preserve your changes (ignore remote update)
+- **[O]verwrite with remote**: Replace with new version (discard local changes)
+- **[R]ename local and install remote**: Keep both versions side-by-side
+
+The default choice is "Keep" to prevent accidental loss of local modifications.
 
 **Options:**
 - `--all` - Update all repositories instead of specific one
@@ -1759,14 +1850,15 @@ See **[DEVELOPMENT.md](DEVELOPMENT.md)** for complete development guide includin
 
 - [x] **Version Control:** Pin to tags, track branches, or lock to commits ✅ v0.2.0
 - [x] **Template Sync System:** Repository-based template distribution with namespace isolation ✅ v0.4.0
+- [x] **Template Validation:** Health checks, modification detection, version tracking ✅ v0.4.0
+- [x] **Interactive Conflict Resolution:** Prompts before overwriting files ✅ v0.4.0
 - [ ] **Cross-IDE Template Conversion:** Automatic template format conversion for different IDEs
 - [ ] **Interactive Template Selection:** TUI for browsing and selecting templates
-- [ ] **Template Validation:** AI-powered validation of template content and structure
 - [ ] **Template Variables:** Support for dynamic instruction content with variables
 - [ ] **Instruction Search:** Search across all available instructions by content
 - [ ] **Dependency Management:** Automatic installation of instruction dependencies
 - [ ] **Remote Catalogs:** Centralized instruction catalogs for discovery
-- [ ] **Instruction Validation:** Lint and validate instruction content
+- [ ] **Instruction Content Validation:** AI-powered validation and linting of instruction content
 - [ ] **Export/Backup:** Export installed instructions for backup or migration
 
 ## 📄 License
