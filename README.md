@@ -591,20 +591,23 @@ bundles:
 
 ## 🔄 Template Sync System
 
-**NEW in v0.4.0:** Repository-based template distribution for maintaining consistent coding standards, commands, and workflows across multiple projects.
+**NEW in v0.4.0:** Repository-based distribution for maintaining consistent IDE artifacts across multiple projects. Sync coding standards, commands, hooks, and any IDE content your team needs.
 
 ### What Are Templates?
 
-Templates are **reusable command definitions** that teams can install and keep synchronized across projects. Unlike regular instructions (which are general guidelines), templates are executable patterns like:
+Templates are **any reusable IDE artifacts** that teams can install and keep synchronized across projects. This includes:
 
-- 🎯 **Slash commands** for Claude Code (e.g., `/test-api`, `/review-security`)
-- 🔧 **Project scaffolding** patterns (e.g., `/setup-fastapi`, `/add-endpoint`)
-- 📋 **Workflow automations** (e.g., `/pre-commit-check`, `/update-deps`)
-- 🏗️ **Architecture patterns** (e.g., `/add-service`, `/setup-monitoring`)
+- 📝 **Instructions/Rules** - Coding standards, best practices, guidelines (e.g., `python-standards.md`, `security-checklist.md`)
+- 🎯 **Commands** - Slash commands for Claude Code (e.g., `/test-api`, `/review-pr`)
+- 🪝 **Hooks** - Claude Code hooks for automation (e.g., pre-prompt, post-prompt hooks)
+- 🔧 **Any IDE Artifact** - Anything you want version-controlled and synchronized
 
-**Key Difference from Instructions:**
-- **Instructions**: General coding guidelines (style, patterns, best practices)
-- **Templates**: Executable commands with specific, repeatable actions
+**Typical Use Cases:**
+- Company-wide coding standards and guidelines
+- Team-specific instructions and best practices
+- Reusable commands and workflows
+- IDE hooks for automation
+- Any content in `.claude/rules/`, `.claude/commands/`, `.claude/hooks/`, etc.
 
 ### Why Templates?
 
@@ -624,24 +627,47 @@ Templates are **reusable command definitions** that teams can install and keep s
 Templates require a Git repository with `templatekit.yaml`:
 
 ```
-my-templates/
+company-templates/
 ├── templatekit.yaml              # Required: Template manifest
 ├── .claude/
-│   └── commands/
-│       ├── test-api.md          # Claude Code slash command
-│       └── review-pr.md         # Another slash command
-└── README.md                     # Optional: Documentation
+│   ├── rules/
+│   │   ├── python-standards.md   # Coding standards
+│   │   └── security-guidelines.md # Security best practices
+│   ├── commands/
+│   │   ├── test-api.md           # Slash command
+│   │   └── review-pr.md          # Another command
+│   └── hooks/
+│       └── pre-prompt.md         # Claude Code hook
+└── README.md                      # Optional: Documentation
 ```
 
 **templatekit.yaml Format:**
 
 ```yaml
-name: ACME Engineering Templates
-description: Standard commands for all ACME projects
+name: ACME Engineering Standards
+description: Company coding standards, commands, and hooks for all projects
 version: 1.0.0
 author: ACME Engineering Team
 
 templates:
+  # Coding standards (instructions/rules)
+  - name: python-standards
+    description: Python coding standards and best practices
+    ide: claude
+    files:
+      - path: .claude/rules/python-standards.md
+        type: instruction
+    tags: [python, standards]
+
+  - name: security-guidelines
+    description: Security checklist and OWASP guidelines
+    ide: claude
+    files:
+      - path: .claude/rules/security-guidelines.md
+        type: instruction
+    tags: [security]
+
+  # Commands (slash commands)
   - name: test-api
     description: Run API integration tests with coverage
     ide: claude
@@ -650,42 +676,50 @@ templates:
         type: command
     tags: [testing, api]
 
-  - name: review-pr
-    description: Review pull request for security and best practices
+  # Hooks (automation)
+  - name: pre-prompt
+    description: Pre-prompt hook for context injection
     ide: claude
     files:
-      - path: .claude/commands/review-pr.md
-        type: command
-    tags: [review, security]
+      - path: .claude/hooks/pre-prompt.md
+        type: hook
+    tags: [automation]
 
 bundles:
-  - name: testing-suite
-    description: Complete testing command set
+  - name: python-stack
+    description: Complete Python development setup
     templates:
+      - python-standards
       - test-api
-      - test-unit
-      - test-e2e
-    tags: [testing]
+    tags: [python]
 ```
 
 ### Quick Start
 
 ```bash
-# 1. Install templates from a repository (creates acme.test-api.md, acme.review-pr.md, etc.)
-inskit template install https://github.com/acme/templates
+# 1. Install templates from a repository
+inskit template install https://github.com/company/standards
+
+# This installs (with namespace prefix):
+# - company.python-standards.md (coding standards)
+# - company.security-guidelines.md (security checklist)
+# - company.test-api.md (slash command)
+# - company.pre-prompt.md (hook)
 
 # 2. List installed templates
 inskit template list
 
-# 3. Update to latest version
-inskit template update acme-templates
+# 3. Your IDE now has:
+# - Instructions in .claude/rules/company.python-standards.md
+# - Commands accessible as /company.test-api
+# - Hooks automatically active
+# All namespaced to avoid conflicts!
 
-# 4. Use templates in your IDE
-# Claude Code: /acme.test-api
-# Commands are namespaced to avoid conflicts!
+# 4. Update to latest version
+inskit template update company
 
 # 5. Uninstall when no longer needed
-inskit template uninstall acme-templates
+inskit template uninstall company
 ```
 
 ### Command Reference
@@ -715,15 +749,18 @@ inskit template install https://github.com/acme/templates --force
 1. Clones repository to `~/.instructionkit/templates/{namespace}/`
 2. Parses `templatekit.yaml` manifest
 3. Auto-detects IDEs in your project
-4. Installs templates with namespace prefix (e.g., `acme.test-api.md`)
+4. Installs templates with namespace prefix (e.g., `company.python-standards.md`)
 5. Tracks installation in `.instructionkit/template-installations.json`
 6. Stores SHA-256 checksums for conflict detection
 
 **Namespace isolation:**
 - Templates always installed with namespace: `{namespace}.{template-name}.md`
-- Example: `acme.test-api.md` (from repo "acme")
+- Examples:
+  - `company.python-standards.md` (instruction/rule)
+  - `company.test-api.md` (command - accessible as `/company.test-api`)
+  - `company.pre-prompt.md` (hook)
 - Prevents conflicts when using multiple template repos
-- Commands become `/acme.test-api` in Claude Code
+- Each repo's content is isolated by namespace
 
 **Options:**
 - `--scope project|global` - Install to project (default) or globally
@@ -768,15 +805,16 @@ inskit template list --verbose
 
 **Example output:**
 ```
-Repository: ACME Engineering Templates (v1.2.0)
-Namespace: acme
+Repository: ACME Engineering Standards (v1.2.0)
+Namespace: company
 
-Template        IDE     Scope     Installed
-test-api       claude  Project   2025-11-09
-review-pr      claude  Project   2025-11-09
-setup-fastapi  claude  Project   2025-11-09
+Template             IDE     Scope     Installed
+python-standards     claude  Project   2025-11-09
+security-guidelines  claude  Project   2025-11-09
+test-api            claude  Project   2025-11-09
+pre-prompt          claude  Project   2025-11-09
 
-Total: 3 templates from 1 repository(ies)
+Total: 4 templates from 1 repository(ies)
 ```
 
 **Options:**
@@ -835,16 +873,17 @@ When conflicts detected, you'll be prompted:
 
 **Example output:**
 ```
-Checking acme-templates for updates...
+Checking company for updates...
 Found updates (v1.0.0 → v1.2.0)
 
-Updating acme.test-api... ✓
-Updating acme.review-pr...
+Updating company.python-standards... ✓
+Updating company.security-guidelines... ✓
+Updating company.test-api...
   ⚠️  Conflict detected: local_modified
   Resolution: [Overwrite/Keep/Skip]? keep
-Skipping acme.review-pr
+Skipping company.test-api
 
-✓ Updated 1 template(s)
+✓ Updated 2 template(s)
 Skipped 1 template(s) due to conflicts
 ```
 
@@ -886,74 +925,123 @@ inskit template uninstall acme-templates --keep-files
 **Example output:**
 ```
 The following templates will be removed:
-  - acme.test-api (claude)
-  - acme.review-pr (claude)
-  - acme.setup-fastapi (claude)
+  - company.python-standards (claude)
+  - company.security-guidelines (claude)
+  - company.test-api (claude)
+  - company.pre-prompt (claude)
 
-Remove 3 template(s) from acme-templates? [y/N]: y
+Remove 4 template(s) from company? [y/N]: y
 
-Removing acme.test-api... ✓
-Removing acme.review-pr... ✓
-Removing acme.setup-fastapi... ✓
+Removing company.python-standards... ✓
+Removing company.security-guidelines... ✓
+Removing company.test-api... ✓
+Removing company.pre-prompt... ✓
 
-✓ Uninstalled 3 template(s)
+✓ Uninstalled 4 template(s)
 ```
 
 ### Tutorials
 
 #### Tutorial 1: Team Template Repository
 
-**Scenario:** Set up company-wide templates for all engineering projects.
+**Scenario:** Set up company-wide coding standards and tools for all engineering projects.
 
 **Step 1: Create Template Repository**
 
 ```bash
 # Create new repo
-mkdir acme-templates
-cd acme-templates
+mkdir company-standards
+cd company-standards
 git init
 
 # Create template structure
-mkdir -p .claude/commands
+mkdir -p .claude/rules .claude/commands .claude/hooks
 
-# Create your first template
+# Create coding standards (instruction/rule)
+cat > .claude/rules/python-standards.md << 'EOF'
+# Python Coding Standards
+
+Our company Python standards:
+
+## Type Hints
+- All functions must have type hints
+- Use `from __future__ import annotations` for forward references
+- Prefer built-in types (list[str]) over typing module (List[str])
+
+## Error Handling
+- Use specific exception types, not bare except
+- Always provide context in exception messages
+- Log errors with appropriate levels
+
+## Testing
+- Minimum 80% code coverage
+- Use pytest for all tests
+- Mock external dependencies
+EOF
+
+# Create security guidelines
+cat > .claude/rules/security-guidelines.md << 'EOF'
+# Security Guidelines
+
+## Input Validation
+- Validate all user inputs
+- Use parameterized queries (no string concatenation for SQL)
+- Sanitize file paths and names
+
+## Authentication
+- Never store passwords in plain text
+- Use bcrypt or argon2 for hashing
+- Implement rate limiting on auth endpoints
+
+## Dependencies
+- Run security scans weekly
+- Keep dependencies updated
+- Review CVE reports
+EOF
+
+# Create a command
 cat > .claude/commands/test-api.md << 'EOF'
 # Test API Endpoints
 
-Run comprehensive API integration tests:
-
-1. Start test database
-2. Run pytest with coverage
-3. Generate HTML coverage report
-4. Display results
-
-Command:
-```bash
-pytest tests/integration/api/ --cov=api --cov-report=html
-open htmlcov/index.html
-```
+Run comprehensive API tests according to company standards.
 EOF
 
 # Create manifest
 cat > templatekit.yaml << 'EOF'
-name: ACME Engineering Templates
-description: Standard commands for all ACME projects
+name: Company Engineering Standards
+description: Coding standards, security guidelines, and tools
 version: 1.0.0
-author: ACME Engineering Team
+author: Engineering Team
 
 templates:
+  - name: python-standards
+    description: Python coding standards for all projects
+    ide: claude
+    files:
+      - path: .claude/rules/python-standards.md
+        type: instruction
+    tags: [python, standards]
+
+  - name: security-guidelines
+    description: Security checklist and best practices
+    ide: claude
+    files:
+      - path: .claude/rules/security-guidelines.md
+        type: instruction
+    tags: [security]
+
   - name: test-api
-    description: Run API integration tests with coverage
+    description: Run API integration tests
     ide: claude
     files:
       - path: .claude/commands/test-api.md
         type: command
-    tags: [testing, api]
+    tags: [testing]
 EOF
 
 # Commit and push
 git add .
-git commit -m "feat: add test-api template"
+git commit -m "feat: add company standards and guidelines"
 git push origin main
 ```
 
@@ -964,24 +1052,30 @@ git push origin main
 cd /path/to/project
 
 # Install templates
-inskit template install https://github.com/acme/templates
+inskit template install https://github.com/company/standards
 
 # Output:
-# Deriving namespace from repository: acme
+# Deriving namespace from repository: company
 #
-# Cloning repository from https://github.com/acme/templates...
+# Cloning repository from https://github.com/company/standards...
 # ✓ Repository cloned
 #
-# Installing 1 templates...
-# Installing acme.test-api... ✓
+# Installing 3 templates...
+# Installing company.python-standards... ✓
+# Installing company.security-guidelines... ✓
+# Installing company.test-api... ✓
 #
 # ✓ Installation complete
 #
-# Commands available:
-#   /acme.test-api
-
-# Use in Claude Code
-# Type: /acme.test-api
+# Files installed:
+#   .claude/rules/company.python-standards.md (instruction)
+#   .claude/rules/company.security-guidelines.md (instruction)
+#   .claude/commands/company.test-api.md (command)
+#
+# Now your IDE has:
+# - Coding standards always active
+# - Security guidelines enforced
+# - Commands available: /company.test-api
 ```
 
 **Step 3: Keep Templates Updated**
@@ -991,90 +1085,138 @@ inskit template install https://github.com/acme/templates
 inskit template update --all
 
 # Or update specific repository
-inskit template update acme
+inskit template update company
 ```
 
-**Step 4: Add More Templates**
+**Step 4: Add More Standards**
 
 ```bash
 # In template repo
-cat > .claude/commands/review-security.md << 'EOF'
-# Security Review
+cat > .claude/rules/testing-standards.md << 'EOF'
+# Testing Standards
 
-Review code for common security issues:
+## Unit Tests
+- Test business logic in isolation
+- Mock external dependencies
+- Aim for 80%+ coverage
 
-1. Check for SQL injection vulnerabilities
-2. Verify input validation
-3. Check authentication/authorization
-4. Review sensitive data handling
-5. Check dependency vulnerabilities
+## Integration Tests
+- Test API endpoints end-to-end
+- Use test database
+- Clean up data after tests
+EOF
 
-Use Semgrep and Bandit for automated scanning.
+# Add a hook for automation
+cat > .claude/hooks/pre-prompt.md << 'EOF'
+# Pre-Prompt Hook
+
+Before every request, remind Claude about:
+- Our Python standards (type hints, error handling)
+- Security guidelines (input validation, SQL injection prevention)
+- Testing requirements (80% coverage)
 EOF
 
 # Update manifest
 cat >> templatekit.yaml << 'EOF'
 
-  - name: review-security
-    description: Review code for security issues
+  - name: testing-standards
+    description: Testing requirements and best practices
     ide: claude
     files:
-      - path: .claude/commands/review-security.md
-        type: command
-    tags: [security, review]
+      - path: .claude/rules/testing-standards.md
+        type: instruction
+    tags: [testing]
+
+  - name: pre-prompt
+    description: Context injection before every Claude request
+    ide: claude
+    files:
+      - path: .claude/hooks/pre-prompt.md
+        type: hook
+    tags: [automation]
 EOF
 
 # Commit and push
 git add .
-git commit -m "feat: add security review template"
+git commit -m "feat: add testing standards and pre-prompt hook"
 git tag v1.1.0
 git push origin main --tags
 
 # Team members update
-inskit template update acme
+inskit template update company
 # Found updates (v1.0.0 → v1.1.0)
-# Updating acme.review-security... ✓
+# Updating company.testing-standards... ✓
+# Updating company.pre-prompt... ✓
 ```
 
 #### Tutorial 2: Personal Template Library
 
-**Scenario:** Build a personal collection of reusable commands across your projects.
+**Scenario:** Build a personal collection of coding preferences and tools.
 
 ```bash
 # Create personal template repo (local or GitHub)
-mkdir ~/my-templates
-cd ~/my-templates
+mkdir ~/my-standards
+cd ~/my-standards
 
 # Create structure
-mkdir -p .claude/commands
+mkdir -p .claude/rules .claude/commands
+
+# Add personal coding preferences
+cat > .claude/rules/my-python-style.md << 'EOF'
+# My Python Style Preferences
+
+## Documentation
+- Docstrings for all public functions
+- Use Google-style docstrings
+- Include examples for complex functions
+
+## Code Organization
+- Max 50 lines per function
+- Group related functions in classes
+- Use dataclasses for simple data structures
+EOF
+
+cat > .claude/rules/code-review-checklist.md << 'EOF'
+# My Code Review Checklist
+
+Before committing:
+- All tests pass
+- Type hints on all functions
+- No commented-out code
+- No print() statements (use logging)
+- Updated CHANGELOG.md
+EOF
 
 # Add personal commands
 cat > .claude/commands/daily-standup.md << 'EOF'
 # Generate Daily Standup
 
-Generate standup summary:
-1. List git commits from last 24h
-2. Show open PRs
-3. List assigned issues
-4. Check CI/CD status
-EOF
-
-cat > .claude/commands/refactor-imports.md << 'EOF'
-# Organize Python Imports
-
-Refactor imports using isort and autoflake:
-1. Remove unused imports
-2. Sort imports by type
-3. Format according to PEP 8
+Generate standup summary from git commits and issues.
 EOF
 
 # Create manifest
 cat > templatekit.yaml << 'EOF'
-name: Personal Templates
-description: My reusable commands
+name: Personal Standards
+description: My coding preferences and tools
 version: 1.0.0
 
 templates:
+  - name: my-python-style
+    description: Personal Python coding preferences
+    ide: claude
+    files:
+      - path: .claude/rules/my-python-style.md
+        type: instruction
+    tags: [python, style]
+
+  - name: code-review-checklist
+    description: My pre-commit checklist
+    ide: claude
+    files:
+      - path: .claude/rules/code-review-checklist.md
+        type: instruction
+    tags: [quality]
+
   - name: daily-standup
     description: Generate daily standup summary
     ide: claude
@@ -1082,99 +1224,105 @@ templates:
       - path: .claude/commands/daily-standup.md
         type: command
     tags: [productivity]
-
-  - name: refactor-imports
-    description: Organize Python imports
-    ide: claude
-    files:
-      - path: .claude/commands/refactor-imports.md
-        type: command
-    tags: [python, refactoring]
 EOF
 
 # Install globally (available in all projects)
-inskit template install ~/my-templates --scope global --as personal
+inskit template install ~/my-standards --scope global --as personal
 
 # Now available in any project:
-# /personal.daily-standup
-# /personal.refactor-imports
+# - Personal coding preferences always active
+# - Commands: /personal.daily-standup
 ```
 
 #### Tutorial 3: Multi-Repository Setup
 
-**Scenario:** Use templates from multiple sources (company + team + personal).
+**Scenario:** Combine standards from multiple sources (company + team + personal).
 
 ```bash
-# Install company-wide templates
-inskit template install https://github.com/company/templates --as company
+# Install company-wide standards
+inskit template install https://github.com/company/standards --as company
 
-# Install team-specific templates
-inskit template install https://github.com/company/backend-team-templates --as backend
+# Install team-specific standards
+inskit template install https://github.com/company/backend-team-standards --as backend
 
-# Install personal templates
-inskit template install ~/my-templates --scope global --as personal
+# Install personal preferences
+inskit template install ~/my-standards --scope global --as personal
 
 # List all templates
 inskit template list
 
-# Output shows namespaced commands:
-# Repository: Company Templates (v2.0.0)
+# Output shows all artifacts:
+# Repository: Company Standards (v2.0.0)
 # Namespace: company
-#   company.test-api
-#   company.deploy-staging
+#   company.python-standards (instruction)
+#   company.security-guidelines (instruction)
+#   company.test-api (command)
 #
-# Repository: Backend Team Templates (v1.5.0)
+# Repository: Backend Team Standards (v1.5.0)
 # Namespace: backend
-#   backend.setup-database
-#   backend.add-migration
+#   backend.api-guidelines (instruction)
+#   backend.database-patterns (instruction)
+#   backend.setup-database (command)
 #
-# Repository: Personal Templates (v1.0.0)
+# Repository: Personal Standards (v1.0.0)
 # Namespace: personal
-#   personal.daily-standup
-#   personal.refactor-imports
+#   personal.my-python-style (instruction)
+#   personal.code-review-checklist (instruction)
+#   personal.daily-standup (command)
 
-# Use commands with namespace:
-# /company.test-api
-# /backend.setup-database
-# /personal.daily-standup
+# Your IDE now has layers of guidance:
+# 1. Company-wide: security, python standards
+# 2. Team-specific: API patterns, database guidelines
+# 3. Personal: your own preferences and shortcuts
+#
+# Commands available: /company.test-api, /backend.setup-database, /personal.daily-standup
 ```
 
 ### Use Cases
 
 #### Team Standardization
 
-**Problem:** Team members use different commands and workflows.
+**Problem:** Team members follow different coding standards and practices.
 
 **Solution:**
 ```bash
-# Team lead creates template repo
-# Add templates for: testing, deployment, code review, etc.
+# Team lead creates standards repo with:
+# - Coding standards (Python, TypeScript, etc.)
+# - Security guidelines
+# - Testing requirements
+# - Useful commands
 
 # Team members install once
-inskit template install https://github.com/team/templates
+inskit template install https://github.com/team/standards
 
-# Everyone now has identical commands:
-# /team.test-all
-# /team.deploy-staging
-# /team.review-checklist
+# Everyone now has:
+# - Same coding standards (always active in IDE)
+# - Same security guidelines
+# - Same tools and commands
+# All synchronized across the team!
 
-# Update when new templates added
+# Update when standards evolve
 inskit template update --all
 ```
 
 #### Multi-Project Consistency
 
-**Problem:** Maintaining same commands across multiple microservices.
+**Problem:** Maintaining consistent standards across multiple microservices.
 
 **Solution:**
 ```bash
 # Install in each microservice
-cd service-auth && inskit template install https://github.com/company/templates
-cd service-payments && inskit template install https://github.com/company/templates
-cd service-notifications && inskit template install https://github.com/company/templates
+cd service-auth && inskit template install https://github.com/company/standards
+cd service-payments && inskit template install https://github.com/company/standards
+cd service-notifications && inskit template install https://github.com/company/standards
 
-# All services have identical commands
-# Update all at once:
+# All services now have:
+# - Same coding standards
+# - Same security guidelines
+# - Same tools and workflows
+# Perfect consistency across your architecture!
+
+# Update all at once when standards change:
 for dir in service-*/; do
   (cd "$dir" && inskit template update --all)
 done
@@ -1182,40 +1330,42 @@ done
 
 #### Template Testing & Development
 
-**Problem:** Need to test new templates before rolling out to team.
+**Problem:** Need to test new standards before rolling out to team.
 
 **Solution:**
 ```bash
 # Test locally first
-cd ~/template-dev
-# ... create/modify templates ...
+cd ~/standards-dev
+# ... create/modify coding standards, guidelines, etc. ...
 
 # Install to test project
 cd ~/test-project
-inskit template install ~/template-dev --force
+inskit template install ~/standards-dev --force
 
-# Test commands
-# /template-dev.new-command
+# Test in your IDE:
+# - Are standards clear and helpful?
+# - Do commands work as expected?
+# - Are hooks behaving correctly?
 
 # Once satisfied, push to Git
-cd ~/template-dev
+cd ~/standards-dev
 git push origin main
 
 # Team members get updates
 inskit template update --all
 ```
 
-#### Private Templates
+#### Private Standards
 
-**Problem:** Company has internal tools and requires private templates.
+**Problem:** Company has proprietary coding standards and internal guidelines.
 
 **Solution:**
 ```bash
 # Works with private repos (uses Git credentials)
-inskit template install git@github.com:company/private-templates.git
+inskit template install git@github.com:company/private-standards.git
 
 # Or with HTTPS + credentials
-inskit template install https://github.com/company/private-templates
+inskit template install https://github.com/company/private-standards
 
 # Git authentication methods:
 # - SSH keys
@@ -1223,7 +1373,8 @@ inskit template install https://github.com/company/private-templates
 # - Credential helpers
 # - Personal access tokens
 
-# Templates stay in company control
+# Your proprietary standards stay private
+# Fully under your control
 # No external dependencies
 ```
 
@@ -1244,12 +1395,36 @@ inskit template install https://github.com/company/private-templates
 {
   "installations": [
     {
-      "id": "uuid-here",
-      "template_name": "test-api",
-      "source_repo": "ACME Engineering Templates",
+      "id": "uuid-1",
+      "template_name": "python-standards",
+      "source_repo": "Company Engineering Standards",
       "source_version": "1.2.0",
-      "namespace": "acme",
-      "installed_path": ".claude/commands/acme.test-api.md",
+      "namespace": "company",
+      "installed_path": ".claude/rules/company.python-standards.md",
+      "scope": "project",
+      "installed_at": "2025-11-09T10:30:00",
+      "checksum": "sha256-hash-here",
+      "ide_type": "claude"
+    },
+    {
+      "id": "uuid-2",
+      "template_name": "test-api",
+      "source_repo": "Company Engineering Standards",
+      "source_version": "1.2.0",
+      "namespace": "company",
+      "installed_path": ".claude/commands/company.test-api.md",
+      "scope": "project",
+      "installed_at": "2025-11-09T10:30:00",
+      "checksum": "sha256-hash-here",
+      "ide_type": "claude"
+    },
+    {
+      "id": "uuid-3",
+      "template_name": "pre-prompt",
+      "source_repo": "Company Engineering Standards",
+      "source_version": "1.2.0",
+      "namespace": "company",
+      "installed_path": ".claude/hooks/company.pre-prompt.md",
       "scope": "project",
       "installed_at": "2025-11-09T10:30:00",
       "checksum": "sha256-hash-here",
@@ -1279,33 +1454,41 @@ inskit template install https://github.com/company/private-templates
    --as my-custom-template-repository-name  # Too long
    ```
 
-3. **Document Templates**
+3. **Document Standards Clearly**
    - Add clear descriptions in templatekit.yaml
-   - Include usage examples in template files
-   - Maintain a README in template repo
+   - Provide examples in instruction files
+   - Maintain a comprehensive README in template repo
+   - Explain WHY, not just WHAT
 
 4. **Test Before Distributing**
    ```bash
    # Test locally first
-   inskit template install ~/dev/templates --force
-   # Try commands
-   # Fix issues
+   inskit template install ~/dev/standards --force
+   # Test in your IDE:
+   # - Are instructions clear?
+   # - Do commands work?
+   # - Are standards helpful?
    # Then push to Git
    ```
 
-5. **Use Bundles for Related Templates**
+5. **Use Bundles for Related Content**
    ```yaml
    bundles:
-     - name: testing-suite
-       description: All testing commands
-       templates: [test-unit, test-integration, test-e2e]
+     - name: python-stack
+       description: Complete Python development setup
+       templates: [python-standards, testing-standards, test-api]
+     - name: security-pack
+       description: Security guidelines and tools
+       templates: [security-guidelines, security-review-command]
    ```
 
-6. **Keep Templates Updated**
+6. **Keep Standards Updated**
    ```bash
    # Set up periodic updates
-   # In CI/CD or weekly:
+   # Weekly or when standards change:
    inskit template update --all
+
+   # Team members stay in sync automatically
    ```
 
 ### Troubleshooting
@@ -1372,7 +1555,7 @@ templates:
     ide: string               # Target IDE: "claude", "cursor", "windsurf", "copilot"
     files:                    # One or more files
       - path: string          # Relative path in repo
-        type: string          # "command", "snippet", "template"
+        type: string          # "instruction", "command", "hook", or "template"
     tags: [string]            # Optional: for filtering
 
 # Bundles (optional)
