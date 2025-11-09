@@ -279,6 +279,9 @@ def apply_resolution(template_path: Path, new_content: str, resolution: Conflict
     """
     Apply conflict resolution and install template.
 
+    SAFETY: Automatically creates backups before overwriting files.
+    Backups stored in .instructionkit/backups/<timestamp>/
+
     Args:
         template_path: Original template path
         new_content: New template content
@@ -295,6 +298,16 @@ def apply_resolution(template_path: Path, new_content: str, resolution: Conflict
         return template_path
 
     elif resolution == ConflictResolution.OVERWRITE:
+        # SAFETY: Create backup before overwriting
+        if template_path.exists():
+            from instructionkit.utils.backup import create_backup
+
+            backup_path = create_backup(template_path)
+            from rich.console import Console
+
+            console = Console()
+            console.print(f"[dim]  Backup created: {backup_path.relative_to(backup_path.parent.parent)}[/dim]")
+
         # Overwrite existing file
         template_path.write_text(new_content, encoding="utf-8")
         return template_path
@@ -304,7 +317,7 @@ def apply_resolution(template_path: Path, new_content: str, resolution: Conflict
         # Generate new path with suffix
         renamed_path = resolve_conflict_name(template_path)
 
-        # Rename existing file
+        # Rename existing file (this preserves the original)
         if template_path.exists():
             template_path.rename(renamed_path)
 

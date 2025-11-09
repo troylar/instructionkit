@@ -9,6 +9,11 @@ from instructionkit.cli.download import download_instructions
 from instructionkit.cli.install_new import install_instruction_unified
 from instructionkit.cli.list import list_available, list_installed, list_library
 from instructionkit.cli.template import template_app
+from instructionkit.cli.template_backup import (
+    backup_cleanup_command,
+    backup_list_command,
+    backup_restore_command,
+)
 from instructionkit.cli.template_install import install_command as template_install_command
 from instructionkit.cli.template_list import list_command as template_list_command
 from instructionkit.cli.template_uninstall import uninstall_command as template_uninstall_command
@@ -31,12 +36,21 @@ app.add_typer(list_app, name="list")
 # Create template subcommand group
 app.add_typer(template_app, name="template")
 
+# Create backup subcommand group under template
+backup_app = typer.Typer(help="Manage template backups")
+template_app.add_typer(backup_app, name="backup")
+
 # Register template commands
 template_app.command(name="install")(template_install_command)
 template_app.command(name="list")(template_list_command)
 template_app.command(name="update")(template_update_command)
 template_app.command(name="uninstall")(template_uninstall_command)
 template_app.command(name="validate")(template_validate_command)
+
+# Register backup commands
+backup_app.command(name="list")(backup_list_command)
+backup_app.command(name="cleanup")(backup_cleanup_command)
+backup_app.command(name="restore")(backup_restore_command)
 
 
 @list_app.callback(invoke_without_command=True)
