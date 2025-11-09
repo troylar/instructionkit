@@ -10,7 +10,7 @@ from rich.prompt import Confirm
 
 from instructionkit.ai_tools.base import AITool
 from instructionkit.ai_tools.detector import AIToolDetector, get_detector
-from instructionkit.core.conflict_resolution import ConflictResolver
+from instructionkit.core.conflict_resolution import ConflictResolver, prompt_conflict_resolution
 from instructionkit.core.models import (
     ConflictResolution,
     InstallationRecord,
@@ -68,7 +68,7 @@ def _parse_conflict_strategy(conflict_strategy: str) -> Optional[ConflictResolut
     """Parse and validate conflict resolution strategy.
 
     Args:
-        conflict_strategy: Strategy string (skip, rename, overwrite)
+        conflict_strategy: Strategy string (prompt, skip, rename, overwrite)
 
     Returns:
         ConflictResolution enum or None if invalid
@@ -76,7 +76,9 @@ def _parse_conflict_strategy(conflict_strategy: str) -> Optional[ConflictResolut
     try:
         return ConflictResolution(conflict_strategy.lower())
     except ValueError:
-        print_error(f"Invalid conflict strategy: {conflict_strategy}. " "Must be 'skip', 'rename', or 'overwrite'.")
+        print_error(
+            f"Invalid conflict strategy: {conflict_strategy}. " "Must be 'prompt', 'skip', 'rename', or 'overwrite'."
+        )
         return None
 
 
@@ -395,18 +397,25 @@ def _perform_installation(
 
             # Handle existing files
             if target_path.exists():
-                if strategy == ConflictResolution.SKIP:
+                # Determine the actual strategy to use
+                actual_strategy = strategy
+
+                # If strategy is PROMPT, ask user interactively
+                if strategy == ConflictResolution.PROMPT:
+                    actual_strategy = prompt_conflict_resolution(install_name)
+
+                if actual_strategy == ConflictResolution.SKIP:
                     console.print(f"  [yellow]Skipped:[/yellow] {install_name} (already exists)")
                     skipped_count += 1
                     continue
-                elif strategy == ConflictResolution.RENAME:
-                    conflict_info = resolver.resolve(install_name, target_path, strategy)
+                elif actual_strategy == ConflictResolution.RENAME:
+                    conflict_info = resolver.resolve(install_name, target_path, actual_strategy)
                     if conflict_info.new_path is None:
                         console.print(f"  [red]Error:[/red] Failed to rename {install_name}")
                         continue
                     target_path = Path(conflict_info.new_path)
                     console.print(f"  [yellow]Renamed:[/yellow] {install_name} -> {target_path.name}")
-                elif strategy == ConflictResolution.OVERWRITE:
+                elif actual_strategy == ConflictResolution.OVERWRITE:
                     console.print(f"  [yellow]Overwriting:[/yellow] {install_name}")
 
             # Copy file from library
@@ -868,7 +877,7 @@ def install_instruction_unified(
     names: Optional[list[str]] = None,
     repo: Optional[str] = None,
     tools: Optional[list[str]] = None,
-    conflict_strategy: str = "skip",
+    conflict_strategy: str = "prompt",
     bundle: bool = False,
 ) -> int:
     """

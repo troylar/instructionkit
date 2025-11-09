@@ -1,0 +1,683 @@
+---
+# CLI Command Contracts: Template Sync System
+# Date: 2025-11-09
+# Feature: Template Sync System
+# Phase: Phase 1 - Design
+
+# This file defines the contract for all CLI commands in the template sync system.
+# Each command specifies inputs, outputs, behavior, error handling, and examples.
+
+version: "1.0"
+command_group: "template"
+description: "Manage template repositories for consistent project standards"
+
+commands:
+  - name: "install"
+    description: "Install templates from a repository"
+    usage: "inskit template install <repo-url> [OPTIONS]"
+
+    arguments:
+      - name: "repo-url"
+        type: "string"
+        required: true
+        description: "Git repository URL (https:// or git@)"
+        validation:
+          - "Must be valid Git URL"
+          - "Repository must be accessible with current Git credentials"
+        examples:
+          - "https://github.com/myteam/templates"
+          - "git@github.com:myteam/private-templates.git"
+
+    options:
+      - name: "--scope"
+        short: "-s"
+        type: "choice"
+        choices: ["project", "global"]
+        default: "project"
+        description: "Installation scope (project-level or global)"
+        behavior: |
+          - project: Install to current project directory (.cursor/rules/, .claude/rules/, etc.)
+          - global: Install to user home directory (~/.instructionkit/global-templates/)
+
+      - name: "--as"
+        type: "string"
+        required: false
+        description: "Override namespace (default: derived from repository name)"
+        validation:
+          - "Must be valid identifier (alphanumeric, hyphens)"
+          - "Max 50 characters"
+        examples:
+          - "company"
+          - "team-standards"
+        behavior: |
+          If specified, use this as namespace instead of deriving from repo URL.
+          Templates will be installed as {namespace}.{template-name}.md
+
+      - name: "--select"
+        short: "-i"
+        type: "boolean"
+        default: false
+        description: "Interactively select which templates to install"
+        behavior: |
+          If true, show interactive checklist of available templates.
+          User can select/deselect before installation proceeds.
+
+      - name: "--bundle"
+        short: "-b"
+        type: "string"
+        required: false
+        description: "Install a predefined bundle of templates"
+        validation:
+          - "Bundle name must exist in repository manifest"
+        examples:
+          - "python-essentials"
+          - "full-stack"
+
+      - name: "--force"
+        short: "-f"
+        type: "boolean"
+        default: false
+        description: "Overwrite existing templates without prompting"
+        behavior: |
+          Skip conflict resolution prompts.
+          Automatically overwrite any existing templates.
+
+    behavior: |
+      1. Derive namespace:
+         - If --as provided: use that value
+         - Else: extract repo name from URL (e.g., "templates" from github.com/org/templates)
+      2. Validate repo-url format and accessibility
+      3. Clone repository to ~/.instructionkit/templates/<repo-name>/
+      4. Parse templatekit.yaml manifest
+      5. Validate manifest schema
+      6. Check repository size against soft limits (100 templates, 50MB)
+         - If exceeded, warn but allow installation to proceed
+      7. If --select flag:
+         - Display interactive checklist of templates
+         - User selects templates to install
+      8. If --bundle specified:
+         - Resolve bundle to list of templates
+         - Validate all bundle templates exist
+      9. For each template to install:
+         a. Detect IDE(s) in current project
+         b. Convert template to IDE-specific format(s)
+         c. Construct namespaced filename: {namespace}.{template-name}.{ext}
+         d. Determine installation path: {base_path}/{namespace}.{template-name}.{ext}
+         e. Check for existing file at installation path
+         f. If exists and not --force:
+            - Prompt for conflict resolution (keep/overwrite/rename)
+         g. Write template file
+         h. Calculate SHA-256 checksum
+         i. Create TemplateInstallationRecord (with namespace field)
+         j. Show progress: "Installing {namespace}.{template-name}... ✓"
+      10. Save all installation records to installations.json
+      11. Display summary table with counts and namespace info
+
+    output:
+      success: |
+        Deriving namespace from repository: "team-standards"
+        Cloning repository from <repo-url>... ✓ Repository cloned
+
+        Installing team-standards.python-style-guide... ✓
+        Installing team-standards.test-command... ✓
+        Installing team-standards.deploy-command... ✓
+
+        ┌─────────────────────────────────────┐
+        │       Installation Summary          │
+        ├──────────┬───────┬──────────────────┤
+        │ Status   │ Count │ Templates        │
+        ├──────────┼───────┼──────────────────┤
+        │ ✓ Installed │ 3  │ team-standards.* │
+        └──────────┴───────┴──────────────────┘
+
+        Commands available:
+          /team-standards.python-style-guide
+          /team-standards.test
+          /team-standards.deploy
+
+        ✓ Installation complete
+
+      failure: |
+        # Authentication failure
+        ❌ Authentication failed for https://github.com/team/private-repo
+
+        To configure Git credentials:
+        - For HTTPS: git config --global credential.helper store
+        - For SSH: Add SSH key to GitHub
+
+        # Network failure
+        ❌ Failed to clone repository: Network unreachable
+
+        # Invalid manifest
+        ❌ Invalid manifest: templatekit.yaml not found in repository root
+
+    errors:
+      - code: "TEMPLATE_AUTH_ERROR"
+        message: "Authentication failed for repository"
+        exit_code: 1
+
+      - code: "TEMPLATE_NETWORK_ERROR"
+        message: "Failed to access repository (network error)"
+        exit_code: 1
+
+      - code: "TEMPLATE_MANIFEST_ERROR"
+        message: "Invalid or missing templatekit.yaml manifest"
+        exit_code: 1
+
+      - code: "TEMPLATE_VALIDATION_ERROR"
+        message: "Template repository validation failed"
+        exit_code: 1
+
+    examples:
+      - description: "Install team templates to current project"
+        command: "inskit template install https://github.com/myteam/templates"
+
+      - description: "Install global templates for all projects"
+        command: "inskit template install https://github.com/me/personal-templates --scope global"
+
+      - description: "Interactively select templates to install"
+        command: "inskit template install https://github.com/team/templates --select"
+
+      - description: "Install a specific bundle"
+        command: "inskit template install https://github.com/team/templates --bundle python-essentials"
+
+  - name: "update"
+    description: "Update installed templates to latest version"
+    usage: "inskit template update [repo-name] [OPTIONS]"
+
+    arguments:
+      - name: "repo-name"
+        type: "string"
+        required: false
+        description: "Specific repository to update (if omitted, updates all)"
+        examples:
+          - "team-coding-standards"
+          - "personal-templates"
+
+    options:
+      - name: "--all"
+        short: "-a"
+        type: "boolean"
+        default: false
+        description: "Update all installed template repositories"
+        behavior: |
+          If specified, update all repositories in current scope.
+          Ignored if repo-name is provided.
+
+      - name: "--scope"
+        short: "-s"
+        type: "choice"
+        choices: ["project", "global", "both"]
+        default: "project"
+        description: "Which installation scope to update"
+
+      - name: "--force"
+        short: "-f"
+        type: "boolean"
+        default: false
+        description: "Overwrite local changes without prompting"
+
+      - name: "--dry-run"
+        short: "-n"
+        type: "boolean"
+        default: false
+        description: "Show what would be updated without making changes"
+
+    behavior: |
+      1. Identify repositories to update:
+         - If repo-name provided: update that repository
+         - If --all: update all repositories in scope
+         - Else: error (must specify repo-name or --all)
+      2. For each repository:
+         a. Navigate to repository directory
+         b. Run git fetch to check for updates
+         c. Compare local HEAD with remote HEAD
+         d. If no changes: skip with message "Already up-to-date"
+      3. If --dry-run:
+         - Report what would change
+         - Exit without making modifications
+      4. For each repository with changes:
+         a. Pull latest changes (git pull)
+         b. Parse updated templatekit.yaml
+         c. Identify changed templates (version comparison)
+      5. For each changed template:
+         a. Load TemplateInstallationRecord
+         b. Read current installed file
+         c. Calculate checksums (original, current, new)
+         d. Detect conflict type:
+            - NONE: Safe to update
+            - LOCAL_MODIFIED: User changed local file
+            - BOTH_MODIFIED: Both local and remote changed
+         e. If conflict and not --force:
+            - Show conflict details
+            - Prompt: [K]eep / [O]verwrite / [R]ename
+            - Apply user's choice
+         f. If no conflict or --force:
+            - Update file with new content
+            - Update TemplateInstallationRecord
+         g. Show progress: "Updating <template-name>... ✓"
+      6. Save updated installation records
+      7. Display summary
+
+    output:
+      success: |
+        Checking for updates to team-coding-standards... ✓
+
+        Found updates for 2 templates:
+
+        Updating python-style-guide... ✓
+
+        ⚠️  Conflict detected for 'test-command'
+        Local file modified on 2025-11-05
+        Remote updated on 2025-11-08
+
+        Choose action:
+          [K]eep local version
+          [O]verwrite with remote
+          [R]ename local and install remote
+        Your choice [k]: o
+
+        Updating test-command... ✓
+
+        ✓ Updated 2 templates from team-coding-standards
+
+      no_updates: |
+        Checking for updates to team-coding-standards... ✓
+        ✓ Already up-to-date
+
+    errors:
+      - code: "TEMPLATE_NOT_INSTALLED"
+        message: "Repository not found in installations"
+        exit_code: 1
+
+      - code: "TEMPLATE_UPDATE_ERROR"
+        message: "Failed to update repository"
+        exit_code: 1
+
+    examples:
+      - description: "Update specific repository"
+        command: "inskit template update team-coding-standards"
+
+      - description: "Update all installed templates"
+        command: "inskit template update --all"
+
+      - description: "Preview updates without applying"
+        command: "inskit template update team-coding-standards --dry-run"
+
+      - description: "Force update, overwriting local changes"
+        command: "inskit template update --all --force"
+
+  - name: "list"
+    description: "List installed templates"
+    usage: "inskit template list [OPTIONS]"
+
+    options:
+      - name: "--scope"
+        short: "-s"
+        type: "choice"
+        choices: ["project", "global", "all"]
+        default: "all"
+        description: "Which installations to list"
+
+      - name: "--repo"
+        short: "-r"
+        type: "string"
+        required: false
+        description: "Filter by repository name"
+
+      - name: "--format"
+        short: "-f"
+        type: "choice"
+        choices: ["table", "json", "simple"]
+        default: "table"
+        description: "Output format"
+
+      - name: "--verbose"
+        short: "-v"
+        type: "boolean"
+        default: false
+        description: "Show detailed information (paths, checksums, versions)"
+
+    behavior: |
+      1. Load installation records based on scope:
+         - project: <project-root>/.instructionkit/template-installations.json
+         - global: ~/.instructionkit/global-template-installations.json
+         - all: both
+      2. If --repo specified:
+         - Filter to only installations from that repository
+      3. Group installations by repository
+      4. Format output according to --format:
+         - table: Rich formatted table (default)
+         - json: JSON array of installation records
+         - simple: Plain text, one per line
+      5. If --verbose:
+         - Include full paths, checksums, install dates
+      6. Display output
+
+    output:
+      table_format: |
+        Installed Templates (Project Scope)
+
+        Repository: team-coding-standards (v1.2.0)
+        ┌──────────────────────┬─────────┬──────────────┐
+        │ Template             │ IDE     │ Installed    │
+        ├──────────────────────┼─────────┼──────────────┤
+        │ python-style-guide   │ cursor  │ 2025-11-09   │
+        │ test-command         │ cursor  │ 2025-11-09   │
+        │ deploy-command       │ cursor  │ 2025-11-09   │
+        └──────────────────────┴─────────┴──────────────┘
+
+        Total: 3 templates from 1 repository
+
+      json_format: |
+        {
+          "installations": [
+            {
+              "id": "550e8400-...",
+              "template_name": "python-style-guide",
+              "source_repo": "team-coding-standards",
+              "source_version": "1.2.0",
+              "installed_path": "/project/.cursor/rules/python-style-guide.md",
+              "scope": "project",
+              "installed_at": "2025-11-09T10:45:00Z",
+              "ide_type": "cursor"
+            }
+          ],
+          "count": 3,
+          "repositories": 1
+        }
+
+      empty: |
+        No templates installed.
+
+        To install templates:
+          inskit template install <repo-url>
+
+    examples:
+      - description: "List all installed templates"
+        command: "inskit template list"
+
+      - description: "List only project-level templates"
+        command: "inskit template list --scope project"
+
+      - description: "List templates from specific repository"
+        command: "inskit template list --repo team-coding-standards"
+
+      - description: "Output as JSON for scripting"
+        command: "inskit template list --format json"
+
+  - name: "uninstall"
+    description: "Remove installed templates"
+    usage: "inskit template uninstall <repo-name> [OPTIONS]"
+
+    arguments:
+      - name: "repo-name"
+        type: "string"
+        required: true
+        description: "Repository name to uninstall"
+        examples:
+          - "team-coding-standards"
+          - "personal-templates"
+
+    options:
+      - name: "--scope"
+        short: "-s"
+        type: "choice"
+        choices: ["project", "global"]
+        default: "project"
+        description: "Which installation to remove"
+
+      - name: "--template"
+        short: "-t"
+        type: "string"
+        required: false
+        description: "Uninstall specific template (not entire repository)"
+
+      - name: "--force"
+        short: "-f"
+        type: "boolean"
+        default: false
+        description: "Skip confirmation prompt"
+
+      - name: "--keep-files"
+        short: "-k"
+        type: "boolean"
+        default: false
+        description: "Remove from tracking but keep files on disk"
+
+    behavior: |
+      1. Validate repository is installed in specified scope
+      2. If --template specified:
+         - Validate template exists in repository
+         - Remove only that template
+      3. Else:
+         - Remove all templates from repository
+      4. If not --force:
+         - Display list of templates to be removed
+         - Prompt for confirmation: "Remove N templates? [y/N]"
+         - If user declines: abort
+      5. For each template to remove:
+         a. Load TemplateInstallationRecord
+         b. If not --keep-files:
+            - Delete file from disk
+         c. Remove from installation tracking
+         d. Show progress: "Removing <template-name>... ✓"
+      6. Save updated installation records
+      7. If removing entire repository and no templates remain:
+         - Remove repository clone from ~/.instructionkit/templates/
+      8. Display summary
+
+    output:
+      success: |
+        The following templates will be removed:
+          - python-style-guide
+          - test-command
+          - deploy-command
+
+        Remove 3 templates from team-coding-standards? [y/N]: y
+
+        Removing python-style-guide... ✓
+        Removing test-command... ✓
+        Removing deploy-command... ✓
+
+        ✓ Uninstalled 3 templates
+
+    errors:
+      - code: "TEMPLATE_NOT_FOUND"
+        message: "Repository or template not installed"
+        exit_code: 1
+
+    examples:
+      - description: "Uninstall repository (with confirmation)"
+        command: "inskit template uninstall team-coding-standards"
+
+      - description: "Uninstall without confirmation"
+        command: "inskit template uninstall team-coding-standards --force"
+
+      - description: "Uninstall specific template only"
+        command: "inskit template uninstall team-coding-standards --template test-command"
+
+      - description: "Remove from tracking but keep files"
+        command: "inskit template uninstall team-coding-standards --keep-files"
+
+  - name: "validate"
+    description: "Validate installed templates for issues"
+    usage: "inskit template validate [OPTIONS]"
+
+    options:
+      - name: "--scope"
+        short: "-s"
+        type: "choice"
+        choices: ["project", "global", "both"]
+        default: "project"
+        description: "Which installations to validate"
+
+      - name: "--fix"
+        short: "-f"
+        type: "boolean"
+        default: false
+        description: "Automatically fix issues where possible"
+
+      - name: "--ai"
+        type: "boolean"
+        default: false
+        description: "Enable AI-powered semantic validation"
+        behavior: |
+          Use AI assistant to perform semantic analysis:
+          - Detect conflicting template guidance
+          - Analyze template clarity and effectiveness
+          - Check consistency across repository
+          - Suggest merge strategies for conflicts
+
+      - name: "--format"
+        type: "choice"
+        choices: ["table", "json", "verbose"]
+        default: "table"
+        description: "Output format"
+
+      - name: "--severity"
+        type: "choice"
+        choices: ["error", "warning", "info", "all"]
+        default: "all"
+        description: "Filter issues by severity"
+
+    behavior: |
+      1. Determine scope (project/global/both)
+      2. Load all installation records
+      3. Scan filesystem for template files
+      4. Run validation checks:
+         a. Tracking consistency (files vs. records)
+         b. Missing files (tracked but don't exist)
+         c. Orphaned files (exist but not tracked)
+         d. Outdated templates (newer versions available)
+         e. Broken dependencies (required templates missing)
+         f. Local modifications (checksum changes)
+      5. If --ai enabled:
+         a. Semantic conflict detection
+         b. Template clarity analysis
+         c. Cross-template consistency
+         d. Merge suggestions for conflicts
+      6. Collect all issues with severity
+      7. If --fix:
+         - Auto-resolve fixable issues
+         - Prompt for user input on non-fixable
+      8. Generate report in requested format
+      9. Exit with appropriate code
+
+    output:
+      success: |
+        Template Validation Report
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        Scope: Project (/Users/dev/my-project)
+        Checked: 15 templates from 3 repositories
+
+        ┌─────────────────────┬───────┬──────────┐
+        │ Check               │ Count │ Status   │
+        ├─────────────────────┼───────┼──────────┤
+        │ Tracking Issues     │   0   │ ✅ OK    │
+        │ Missing Files       │   0   │ ✅ OK    │
+        │ Outdated Templates  │   2   │ ℹ️  Info  │
+        │ Broken Dependencies │   0   │ ✅ OK    │
+        │ Local Modifications │   1   │ ⚠️  Warn  │
+        └─────────────────────┴───────┴──────────┘
+
+        Overall Status: ⚠️  Issues Found (1 warning, 2 info)
+
+        Run with --verbose for detailed issue list
+        Run with --fix to auto-resolve fixable issues
+
+      with_ai: |
+        Template Validation Report (AI-Enhanced)
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        🤖 AI Analysis Complete
+
+        ┌─────────────────────┬───────┬──────────┐
+        │ Check               │ Count │ Status   │
+        ├─────────────────────┼───────┼──────────┤
+        │ Tracking Issues     │   0   │ ✅ OK    │
+        │ Semantic Conflicts  │   1   │ ⚠️  Warn  │
+        │ Clarity Issues      │   2   │ ℹ️  Info  │
+        │ Consistency         │   0   │ ✅ OK    │
+        └─────────────────────┴───────┴──────────┘
+
+        AI Recommendations:
+
+        1. Semantic Conflict (Moderate severity)
+           Templates: python-style-guide, error-patterns
+           Issue: Contradictory exception handling guidance
+           Recommendation: Align error-patterns with style guide
+           Confidence: 85%
+
+        2. Clarity Issue (Low severity)
+           Template: test-command
+           Issue: Ambiguous test scope definition
+           Recommendation: Specify which tests to run
+           Confidence: 92%
+
+    examples:
+      - description: "Validate current project"
+        command: "inskit template validate"
+
+      - description: "Validate with AI analysis"
+        command: "inskit template validate --ai"
+
+      - description: "Auto-fix issues"
+        command: "inskit template validate --fix"
+
+      - description: "JSON output for CI/CD"
+        command: "inskit template validate --format json"
+
+# Global Command Behaviors
+
+global_behaviors:
+  - name: "Project Root Detection"
+    description: "All commands detect project root by looking for markers"
+    markers:
+      - ".git/"
+      - "pyproject.toml"
+      - "package.json"
+      - "Cargo.toml"
+    behavior: |
+      Commands can be run from any subdirectory.
+      System walks up directory tree to find project root.
+      If no root found: error for project-scope operations.
+
+  - name: "IDE Detection"
+    description: "System detects which IDEs are in use for template installation"
+    detection_patterns:
+      - cursor: ".cursor/" directory exists
+      - claude: ".claude/" directory exists
+      - windsurf: ".windsurf/" directory exists
+      - copilot: ".github/copilot/" or ".github/instructions/" exists
+    behavior: |
+      Install templates for all detected IDEs.
+      If no IDE detected: warn and skip installation.
+
+  - name: "Progress Indicators"
+    description: "All commands show progress feedback"
+    patterns:
+      - "Spinner during network operations (clone, fetch)"
+      - "Per-item messages during batch operations"
+      - "Summary table at completion"
+      - "Color coding: green=success, yellow=warning, red=error"
+
+  - name: "Error Handling"
+    description: "Consistent error handling across commands"
+    patterns:
+      - "Clear error messages with actionable guidance"
+      - "Non-zero exit codes for failures"
+      - "Partial success reporting (e.g., '2 of 3 templates installed')"
+      - "Graceful degradation when possible"
+
+# Exit Codes
+
+exit_codes:
+  0: "Success"
+  1: "General error"
+  2: "Invalid arguments"
+  3: "Authentication failure"
+  4: "Network error"
+  5: "Validation error"
+  130: "Interrupted by user (Ctrl+C)"

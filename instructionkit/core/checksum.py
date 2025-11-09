@@ -1,6 +1,7 @@
-"""Checksum verification for instruction files."""
+"""Checksum verification for instruction files and templates."""
 
 import hashlib
+from pathlib import Path
 from typing import Optional
 
 
@@ -164,3 +165,47 @@ class ChecksumValidator:
             )
 
         return matches
+
+
+# Template-specific helper functions (for Template Sync System)
+
+
+def sha256_file(file_path: Path) -> str:
+    """
+    Calculate SHA-256 checksum of a file.
+
+    Template-specific wrapper around calculate_file_checksum for Path objects.
+
+    Args:
+        file_path: Path to file
+
+    Returns:
+        64-character hexadecimal string (SHA-256 hash)
+
+    Example:
+        >>> from pathlib import Path
+        >>> checksum = sha256_file(Path("template.md"))
+        >>> len(checksum)
+        64
+    """
+    return calculate_file_checksum(str(file_path), "sha256")
+
+
+def sha256_string(content: str) -> str:
+    """
+    Calculate SHA-256 checksum of a string.
+
+    Template-specific wrapper around calculate_checksum.
+
+    Args:
+        content: String content to hash
+
+    Returns:
+        64-character hexadecimal string (SHA-256 hash)
+
+    Example:
+        >>> checksum = sha256_string("Hello, world!")
+        >>> len(checksum)
+        64
+    """
+    return calculate_checksum(content, "sha256")

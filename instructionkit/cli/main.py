@@ -8,6 +8,18 @@ from instructionkit.cli.delete import delete_from_library
 from instructionkit.cli.download import download_instructions
 from instructionkit.cli.install_new import install_instruction_unified
 from instructionkit.cli.list import list_available, list_installed, list_library
+from instructionkit.cli.template import template_app
+from instructionkit.cli.template_backup import (
+    backup_cleanup_command,
+    backup_list_command,
+    backup_restore_command,
+)
+from instructionkit.cli.template_init import init_command as template_init_command
+from instructionkit.cli.template_install import install_command as template_install_command
+from instructionkit.cli.template_list import list_command as template_list_command
+from instructionkit.cli.template_uninstall import uninstall_command as template_uninstall_command
+from instructionkit.cli.template_update import update_command as template_update_command
+from instructionkit.cli.template_validate import validate_command as template_validate_command
 from instructionkit.cli.tools import show_tools
 from instructionkit.cli.uninstall import uninstall_instruction
 from instructionkit.cli.update import update_repository
@@ -21,6 +33,26 @@ app = typer.Typer(
 # Create list subcommand group
 list_app = typer.Typer(help="List instructions")
 app.add_typer(list_app, name="list")
+
+# Create template subcommand group
+app.add_typer(template_app, name="template")
+
+# Create backup subcommand group under template
+backup_app = typer.Typer(help="Manage template backups")
+template_app.add_typer(backup_app, name="backup")
+
+# Register template commands
+template_app.command(name="init")(template_init_command)
+template_app.command(name="install")(template_install_command)
+template_app.command(name="list")(template_list_command)
+template_app.command(name="update")(template_update_command)
+template_app.command(name="uninstall")(template_uninstall_command)
+template_app.command(name="validate")(template_validate_command)
+
+# Register backup commands
+backup_app.command(name="list")(backup_list_command)
+backup_app.command(name="cleanup")(backup_cleanup_command)
+backup_app.command(name="restore")(backup_restore_command)
 
 
 @list_app.callback(invoke_without_command=True)
@@ -51,10 +83,10 @@ def install(
         help="AI tool(s) to install to (cursor, copilot, windsurf, claude). Can specify multiple times.",
     ),
     conflict: str = typer.Option(
-        "skip",
+        "prompt",
         "--conflict",
         "-c",
-        help="Conflict resolution strategy (skip, rename, overwrite)",
+        help="Conflict resolution strategy (prompt [default], skip, rename, overwrite)",
     ),
     bundle: bool = typer.Option(
         False,
