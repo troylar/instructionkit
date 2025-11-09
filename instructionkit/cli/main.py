@@ -14,6 +14,7 @@ from instructionkit.cli.template_backup import (
     backup_list_command,
     backup_restore_command,
 )
+from instructionkit.cli.template_init import init_command as template_init_command
 from instructionkit.cli.template_install import install_command as template_install_command
 from instructionkit.cli.template_list import list_command as template_list_command
 from instructionkit.cli.template_uninstall import uninstall_command as template_uninstall_command
@@ -41,6 +42,7 @@ backup_app = typer.Typer(help="Manage template backups")
 template_app.add_typer(backup_app, name="backup")
 
 # Register template commands
+template_app.command(name="init")(template_init_command)
 template_app.command(name="install")(template_install_command)
 template_app.command(name="list")(template_list_command)
 template_app.command(name="update")(template_update_command)

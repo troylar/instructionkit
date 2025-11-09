@@ -732,7 +732,262 @@ inskit template update company
 inskit template uninstall company
 ```
 
+### Working with Multiple Template Repositories
+
+InstructionKit is designed from the ground up for **multi-repository workflows**. You can install templates from unlimited sources, and they'll all coexist peacefully using namespace isolation.
+
+#### Why Multiple Repositories?
+
+**Layered Standards:**
+- 🏢 **Company-wide** - Organization-level standards everyone follows
+- 👥 **Team-specific** - Domain-specific practices (backend, frontend, mobile)
+- 👤 **Personal** - Individual preferences and productivity shortcuts
+- 🌐 **Community** - Open-source best practices and patterns
+
+**Different Update Cadences:**
+- Company standards change quarterly
+- Team practices evolve monthly
+- Personal tools update continuously
+- Community templates track ecosystem changes
+
+**Separation of Concerns:**
+- Security team maintains security templates
+- Platform team maintains infrastructure templates
+- Each team owns their domain expertise
+- No monolithic "everything" repository
+
+#### Multi-Repo Workflow Example
+
+```bash
+# 1. Install company-wide standards (required for all projects)
+inskit template install https://github.com/acme-corp/engineering-standards --as acme
+# Installs: acme.security-guidelines, acme.code-review-checklist, acme.python-standards
+
+# 2. Install team-specific templates (backend team)
+inskit template install https://github.com/acme-corp/backend-standards --as backend
+# Installs: backend.api-design, backend.database-patterns, backend.test-api
+
+# 3. Install personal productivity tools (your own repo)
+inskit template install https://github.com/yourname/my-tools --as personal
+# Installs: personal.quick-commit, personal.code-snippet, personal.daily-standup
+
+# 4. Install community best practices (optional)
+inskit template install https://github.com/python/best-practices --as python-community
+# Installs: python-community.typing-guide, python-community.async-patterns
+
+# 5. List all installed templates across all repos
+inskit template list
+```
+
+**Result in your IDE:**
+```
+.claude/
+├── rules/
+│   ├── acme.security-guidelines.md          # Company security policy
+│   ├── acme.code-review-checklist.md        # Company code review standards
+│   ├── acme.python-standards.md             # Company Python style guide
+│   ├── backend.api-design.md                # Team API patterns
+│   ├── backend.database-patterns.md         # Team database conventions
+│   ├── personal.quick-commit.md             # Your commit helpers
+│   └── python-community.typing-guide.md     # Community typing best practices
+├── commands/
+│   ├── backend.test-api.md                  # /backend.test-api command
+│   ├── personal.daily-standup.md            # /personal.daily-standup command
+│   └── personal.code-snippet.md             # /personal.code-snippet command
+```
+
+#### Managing Multiple Repositories
+
+**List templates by repository:**
+```bash
+# Show all templates from a specific repo
+inskit template list --repo acme
+inskit template list --repo backend
+inskit template list --repo personal
+
+# Show all templates from all repos
+inskit template list
+```
+
+**Update specific repositories:**
+```bash
+# Update company templates (quarterly)
+inskit template update acme
+
+# Update team templates (monthly)
+inskit template update backend
+
+# Update all repositories at once
+inskit template update --all
+```
+
+**Validate across repositories:**
+```bash
+# Validate all templates from all repos
+inskit template validate
+
+# Check for outdated templates across all repos
+inskit template validate --verbose
+```
+
+**Remove a repository:**
+```bash
+# Uninstall all templates from a repository
+inskit template uninstall acme
+
+# Remove repository from library (keeps installed files)
+# Note: Use standard library management commands
+```
+
+#### Namespace Conflicts (Prevented Automatically)
+
+Templates from different repos **never conflict** thanks to namespace isolation:
+
+```bash
+# Company repo has "python-standards" template
+inskit template install https://github.com/company/standards --as company
+# Creates: company.python-standards.md
+
+# Personal repo also has "python-standards" template
+inskit template install https://github.com/yourname/tools --as personal
+# Creates: personal.python-standards.md
+
+# Both coexist peacefully - no conflicts!
+# Your IDE sees both:
+# - .claude/rules/company.python-standards.md
+# - .claude/rules/personal.python-standards.md
+```
+
+**Commands are also namespaced:**
+- Multiple repos can define `/test` command
+- Installed as `/company.test`, `/backend.test`, `/personal.test`
+- No conflicts, all accessible
+
+#### Best Practices for Multi-Repo Setup
+
+1. **Use Meaningful Namespaces:**
+   ```bash
+   # Good: Clear, descriptive
+   --as acme-security
+   --as backend-team
+   --as personal
+
+   # Avoid: Generic, ambiguous
+   --as repo1
+   --as temp
+   --as test
+   ```
+
+2. **Layer by Scope:**
+   - **Company** (global scope) - Standards everyone must follow
+   - **Team** (project scope) - Team-specific practices
+   - **Personal** (global scope) - Your productivity tools
+
+3. **Update Strategically:**
+   ```bash
+   # Update company standards across all projects
+   inskit template update acme --scope global
+
+   # Update team standards for current project only
+   inskit template update backend --scope project
+   ```
+
+4. **Document Your Stack:**
+   ```bash
+   # Add to project README.md
+   ## Required Templates
+
+   ```bash
+   # Company standards (required)
+   inskit template install https://github.com/acme/standards --as acme
+
+   # Backend team standards (required for backend projects)
+   inskit template install https://github.com/acme/backend --as backend
+   ```
+   ```
+
+5. **Validate Regularly:**
+   ```bash
+   # Add to CI/CD pipeline or git hooks
+   inskit template validate
+   ```
+
 ### Command Reference
+
+#### `inskit template init <directory>`
+
+**NEW in v0.4.0:** Create a new template repository with scaffolded structure and example templates.
+
+```bash
+# Create basic template repository
+inskit template init my-templates
+
+# Create with custom namespace and description
+inskit template init company-standards \
+  --namespace acme \
+  --description "ACME Corp engineering standards" \
+  --author "ACME Engineering Team"
+
+# Overwrite existing directory
+inskit template init my-templates --force
+```
+
+**What it creates:**
+
+```
+my-templates/
+├── templatekit.yaml          # Pre-configured manifest with examples
+├── README.md                 # Complete usage documentation
+├── .gitignore               # Standard ignores for Python projects
+└── .claude/
+    ├── rules/
+    │   └── example-instruction.md     # Example coding standards
+    ├── commands/
+    │   └── example-command.md        # Example slash command
+    └── hooks/
+        └── example-hook.md           # Example automation hook
+```
+
+**Next steps after creation:**
+
+```bash
+cd my-templates
+
+# Customize templates
+vim .claude/rules/example-instruction.md
+vim .claude/commands/example-command.md
+
+# Update manifest
+vim templatekit.yaml
+
+# Initialize git and push
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin <your-repo-url>
+git push -u origin main
+
+# Test locally
+inskit template install . --as myteam
+
+# Share with team
+# Team members can now: inskit template install <repo-url> --as myteam
+```
+
+**Options:**
+
+- `--namespace`, `-n` - Custom namespace (default: directory name)
+- `--description`, `-d` - Repository description
+- `--author`, `-a` - Author name
+- `--force`, `-f` - Overwrite existing directory
+
+**Example templates include:**
+
+- **Instruction template** - Shows how to write coding standards and best practices
+- **Command template** - Demonstrates slash command creation with examples
+- **Hook template** - Explains pre/post-prompt hooks with use cases
+- **README** - Complete documentation for your team
+- **templatekit.yaml** - Fully commented manifest with all options
 
 #### `inskit template validate`
 

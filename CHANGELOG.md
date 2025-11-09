@@ -35,7 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Three strategies: Keep local, Overwrite (with backup), or Rename
   - Side-by-side conflict information display
   - Prevents accidental overwrites of modified templates
+- **Template Repository Scaffolding** - Create new template repositories with one command
+  - `inskit template init` - Generate scaffolded template repository
+  - Pre-configured `templatekit.yaml` with examples
+  - Example templates with comprehensive documentation
+  - Ready-to-use directory structure for all template types
+  - Automatic README and .gitignore generation
 - Template-specific CLI commands:
+  - `inskit template init` - Create new template repository
   - `inskit template install` - Install templates from library
   - `inskit template list` - List available templates
   - `inskit template update` - Update installed templates
