@@ -18,6 +18,7 @@ class AIToolType(Enum):
 class ConflictResolution(Enum):
     """Conflict resolution strategies."""
 
+    PROMPT = "prompt"  # Interactive prompting (default)
     SKIP = "skip"
     RENAME = "rename"
     OVERWRITE = "overwrite"

@@ -67,10 +67,10 @@ def install(
         help="AI tool(s) to install to (cursor, copilot, windsurf, claude). Can specify multiple times.",
     ),
     conflict: str = typer.Option(
-        "skip",
+        "prompt",
         "--conflict",
         "-c",
-        help="Conflict resolution strategy (skip, rename, overwrite)",
+        help="Conflict resolution strategy (prompt [default], skip, rename, overwrite)",
     ),
     bundle: bool = typer.Option(
         False,
