@@ -8,6 +8,7 @@ from instructionkit.cli.delete import delete_from_library
 from instructionkit.cli.download import download_instructions
 from instructionkit.cli.install_new import install_instruction_unified
 from instructionkit.cli.list import list_available, list_installed, list_library
+from instructionkit.cli.mcp_install import mcp_install_command
 from instructionkit.cli.template import template_app
 from instructionkit.cli.template_backup import (
     backup_cleanup_command,
@@ -44,6 +45,9 @@ template_app.add_typer(backup_app, name="backup")
 # Create mcp subcommand group
 mcp_app = typer.Typer(help="Manage MCP server configurations")
 app.add_typer(mcp_app, name="mcp")
+
+# Register mcp commands
+mcp_app.command(name="install")(mcp_install_command)
 
 # Register template commands
 template_app.command(name="init")(template_init_command)
