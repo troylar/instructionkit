@@ -4,7 +4,7 @@ from pathlib import Path
 
 from instructionkit.ai_tools.base import AITool
 from instructionkit.core.models import AIToolType
-from instructionkit.utils.paths import get_winsurf_config_dir
+from instructionkit.utils.paths import get_windsurf_mcp_config_path, get_winsurf_config_dir
 
 
 class WinsurfTool(AITool):
@@ -88,3 +88,15 @@ class WinsurfTool(AITool):
         instructions_dir = project_root / ".windsurf" / "rules"
         instructions_dir.mkdir(parents=True, exist_ok=True)
         return instructions_dir
+
+    def get_mcp_config_path(self) -> Path:
+        """
+        Get the path to the Windsurf MCP configuration file.
+
+        Note: Windsurf may add MCP support in the future.
+        We provide this for compatibility.
+
+        Returns:
+            Path to MCP configuration file
+        """
+        return get_windsurf_mcp_config_path()

@@ -64,6 +64,37 @@ def get_claude_config_dir() -> Path:
     return home / ".claude" / "rules"
 
 
+def get_claude_desktop_config_path() -> Path:
+    """Get Claude Desktop MCP configuration file path based on platform."""
+    home = get_home_directory()
+
+    if os.name == "nt":  # Windows
+        return home / "AppData" / "Roaming" / "Claude" / "claude_desktop_config.json"
+    elif os.name == "posix":
+        if "darwin" in os.uname().sysname.lower():  # macOS
+            return home / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json"
+        else:  # Linux
+            return home / ".config" / "Claude" / "claude_desktop_config.json"
+
+    raise OSError(f"Unsupported operating system: {os.name}")
+
+
+def get_cursor_mcp_config_path() -> Path:
+    """Get Cursor MCP configuration file path based on platform."""
+    # Cursor doesn't natively support MCP yet, but we'll prepare for it
+    # Expected location would be similar to their settings structure
+    config_dir = get_cursor_config_dir()
+    return config_dir / "mcp_config.json"
+
+
+def get_windsurf_mcp_config_path() -> Path:
+    """Get Windsurf MCP configuration file path based on platform."""
+    # Windsurf may have MCP support in future
+    # Expected location would be similar to their settings structure
+    config_dir = get_winsurf_config_dir()
+    return config_dir / "mcp_config.json"
+
+
 def get_instructionkit_data_dir() -> Path:
     """Get InstructionKit data directory for tracking installations."""
     home = get_home_directory()

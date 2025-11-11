@@ -4,7 +4,7 @@ from pathlib import Path
 
 from instructionkit.ai_tools.base import AITool
 from instructionkit.core.models import AIToolType
-from instructionkit.utils.paths import get_cursor_config_dir
+from instructionkit.utils.paths import get_cursor_config_dir, get_cursor_mcp_config_path
 
 
 class CursorTool(AITool):
@@ -95,3 +95,15 @@ class CursorTool(AITool):
         instructions_dir = project_root / ".cursor" / "rules"
         instructions_dir.mkdir(parents=True, exist_ok=True)
         return instructions_dir
+
+    def get_mcp_config_path(self) -> Path:
+        """
+        Get the path to the Cursor MCP configuration file.
+
+        Note: Cursor doesn't natively support MCP yet, but we provide this
+        for future compatibility.
+
+        Returns:
+            Path to MCP configuration file
+        """
+        return get_cursor_mcp_config_path()

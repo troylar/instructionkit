@@ -74,6 +74,23 @@ class AITool(ABC):
         """
         pass
 
+    def get_mcp_config_path(self) -> Path:
+        """
+        Get the path to the MCP configuration file for this AI tool.
+
+        This is an optional method - tools that support MCP server configuration
+        should override this method.
+
+        Returns:
+            Path to MCP configuration file
+
+        Raises:
+            NotImplementedError: If tool doesn't support MCP configuration
+        """
+        raise NotImplementedError(
+            f"{self.tool_name} does not support MCP server configuration"
+        )
+
     def get_instruction_path(
         self,
         instruction_name: str,
