@@ -64,9 +64,7 @@ class ClaudeDesktopTool(AITool):
         Raises:
             NotImplementedError: Claude Desktop uses MCP config, not instruction files
         """
-        raise NotImplementedError(
-            f"{self.tool_name} uses MCP configuration instead of instruction files."
-        )
+        raise NotImplementedError(f"{self.tool_name} uses MCP configuration instead of instruction files.")
 
     def get_project_instructions_directory(self, project_root: Path) -> Path:
         """
@@ -81,9 +79,7 @@ class ClaudeDesktopTool(AITool):
         Raises:
             NotImplementedError: Claude Desktop uses MCP config, not instruction files
         """
-        raise NotImplementedError(
-            f"{self.tool_name} uses MCP configuration instead of instruction files."
-        )
+        raise NotImplementedError(f"{self.tool_name} uses MCP configuration instead of instruction files.")
 
     def get_mcp_config_path(self) -> Path:
         """

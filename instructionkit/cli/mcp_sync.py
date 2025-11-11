@@ -107,15 +107,9 @@ def mcp_sync_command(
             output = {
                 "success": result.success,
                 "synced_tools": result.synced_tools,
-                "skipped_tools": [
-                    {"name": name, "reason": reason}
-                    for name, reason in result.skipped_tools
-                ],
+                "skipped_tools": [{"name": name, "reason": reason} for name, reason in result.skipped_tools],
                 "synced_servers": result.synced_servers,
-                "skipped_servers": [
-                    {"name": name, "reason": reason}
-                    for name, reason in result.skipped_servers
-                ],
+                "skipped_servers": [{"name": name, "reason": reason} for name, reason in result.skipped_servers],
             }
             console.print(json.dumps(output, indent=2))
         else:

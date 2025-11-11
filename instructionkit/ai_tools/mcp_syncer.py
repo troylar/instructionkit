@@ -195,9 +195,7 @@ class MCPSyncer:
 
         return templates
 
-    def _validate_server_credentials(
-        self, server: MCPServer, env_config: EnvironmentConfig
-    ) -> tuple[bool, list[str]]:
+    def _validate_server_credentials(self, server: MCPServer, env_config: EnvironmentConfig) -> tuple[bool, list[str]]:
         """
         Validate that server has all required credentials.
 
@@ -250,10 +248,12 @@ class MCPSyncer:
                     config["env"] = resolved_env
 
             # Add to resolved list with server name
-            resolved.append({
-                "name": server.get_fully_qualified_name(),
-                "config": config,
-            })
+            resolved.append(
+                {
+                    "name": server.get_fully_qualified_name(),
+                    "config": config,
+                }
+            )
 
         return resolved
 

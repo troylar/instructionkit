@@ -87,9 +87,7 @@ class AITool(ABC):
         Raises:
             NotImplementedError: If tool doesn't support MCP configuration
         """
-        raise NotImplementedError(
-            f"{self.tool_name} does not support MCP server configuration"
-        )
+        raise NotImplementedError(f"{self.tool_name} does not support MCP server configuration")
 
     def get_instruction_path(
         self,
