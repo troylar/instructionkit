@@ -125,15 +125,15 @@ class MCPManager:
         if not namespace:
             raise ValueError("Namespace cannot be empty")
 
+        # Check for path separators first (security)
+        if "/" in namespace or "\\" in namespace:
+            raise ValueError(f"Namespace cannot contain path separators: {namespace}")
+
         if not re.match(r"^[a-zA-Z0-9_-]+$", namespace):
             raise ValueError(
                 f"Invalid namespace: {namespace}. "
                 f"Must contain only alphanumeric characters, hyphens, and underscores."
             )
-
-        # Check for path separators (security)
-        if "/" in namespace or "\\" in namespace:
-            raise ValueError(f"Namespace cannot contain path separators: {namespace}")
 
     def _get_install_path(self, namespace: str, scope: InstallationScope) -> Path:
         """
