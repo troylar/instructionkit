@@ -7,8 +7,8 @@ from unittest.mock import Mock, patch
 import pytest
 import yaml
 
-from instructionkit.core.mcp.manager import MCPManager
-from instructionkit.core.models import InstallationScope
+from aiconfigkit.core.mcp.manager import MCPManager
+from aiconfigkit.core.models import InstallationScope
 
 
 class TestMCPInstallIntegration:
@@ -32,7 +32,7 @@ class TestMCPInstallIntegration:
         repo = tmp_path / "sample-repo"
         repo.mkdir()
 
-        # Create instructionkit.yaml
+        # Create templatekit.yaml
         metadata = {
             "name": "Backend Tools",
             "version": "1.0.0",
@@ -60,7 +60,7 @@ class TestMCPInstallIntegration:
             ],
         }
 
-        with open(repo / "instructionkit.yaml", "w") as f:
+        with open(repo / "templatekit.yaml", "w") as f:
             yaml.dump(metadata, f)
 
         return repo
@@ -99,7 +99,7 @@ class TestMCPInstallIntegration:
         # Verify files were copied
         install_path = manager.library_root / "backend-tools"
         assert install_path.exists()
-        assert (install_path / "instructionkit.yaml").exists()
+        assert (install_path / "templatekit.yaml").exists()
         assert (install_path / ".mcp_template.json").exists()
 
     def test_install_from_local_path_minimal_config(self, manager: MCPManager, tmp_path: Path) -> None:
@@ -107,14 +107,14 @@ class TestMCPInstallIntegration:
         repo = tmp_path / "minimal-repo"
         repo.mkdir()
 
-        # Create minimal instructionkit.yaml
+        # Create minimal templatekit.yaml
         metadata = {
             "name": "Minimal Template",
             "version": "0.1.0",
             "description": "Minimal template for testing",
         }
 
-        with open(repo / "instructionkit.yaml", "w") as f:
+        with open(repo / "templatekit.yaml", "w") as f:
             yaml.dump(metadata, f)
 
         # Install
@@ -162,7 +162,7 @@ class TestMCPInstallIntegration:
             ],
         }
 
-        with open(updated_repo / "instructionkit.yaml", "w") as f:
+        with open(updated_repo / "templatekit.yaml", "w") as f:
             yaml.dump(metadata, f)
 
         # Install with force
@@ -222,7 +222,7 @@ class TestMCPInstallIntegration:
             ],
         }
 
-        with open(frontend_repo / "instructionkit.yaml", "w") as f:
+        with open(frontend_repo / "templatekit.yaml", "w") as f:
             yaml.dump(metadata, f)
 
         # Install second template
@@ -253,7 +253,7 @@ class TestMCPInstallIntegration:
         assert len(loaded.servers) == len(original.servers)
         assert len(loaded.sets) == len(original.sets)
 
-    @patch("instructionkit.core.mcp.manager.GitOperations")
+    @patch("aiconfigkit.core.mcp.manager.GitOperations")
     def test_install_from_git_url(self, mock_git: Mock, manager: MCPManager, sample_template_repo: Path) -> None:
         """Test installing from Git URL (with mocked Git operations)."""
 
@@ -340,15 +340,15 @@ class TestMCPInstallIntegration:
             manager.install_template("/nonexistent/path", "backend-tools")
 
     def test_templatekit_yaml_fallback(self, manager: MCPManager, tmp_path: Path) -> None:
-        """Test that templatekit.yaml works (InstructionKit uses instructionkit.yaml as primary name)."""
+        """Test that templatekit.yaml works (InstructionKit uses templatekit.yaml as primary name)."""
         repo = tmp_path / "repo"
         repo.mkdir()
 
-        # Create instructionkit.yaml (standard name)
+        # Create templatekit.yaml (standard name)
         metadata = {
             "name": "Test Template",
             "version": "1.5.0",
-            "description": "Using instructionkit.yaml",
+            "description": "Using templatekit.yaml",
             "mcp_servers": [
                 {
                     "name": "test-server",
@@ -359,7 +359,7 @@ class TestMCPInstallIntegration:
             ],
         }
 
-        with open(repo / "instructionkit.yaml", "w") as f:
+        with open(repo / "templatekit.yaml", "w") as f:
             yaml.dump(metadata, f)
 
         # Install
@@ -367,5 +367,5 @@ class TestMCPInstallIntegration:
 
         # Verify
         assert template.version == "1.5.0"
-        assert template.description == "Using instructionkit.yaml"
+        assert template.description == "Using templatekit.yaml"
         assert len(template.servers) == 1

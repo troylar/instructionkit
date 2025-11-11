@@ -1,6 +1,6 @@
 # CLI Reference
 
-Complete command-line interface reference for InstructionKit.
+Complete command-line interface reference for AI Config Kit.
 
 ## Table of Contents
 
@@ -13,12 +13,12 @@ Complete command-line interface reference for InstructionKit.
 
 ## Template Commands
 
-### `inskit template install`
+### `aiconfig template install`
 
 Install a template repository.
 
 ```bash
-inskit template install <source> --as <namespace> [options]
+aiconfig template install <source> --as <namespace> [options]
 ```
 
 **Arguments:**
@@ -33,24 +33,24 @@ inskit template install <source> --as <namespace> [options]
 **Examples:**
 ```bash
 # Install from GitHub
-inskit template install https://github.com/company/standards --as company
+aiconfig template install https://github.com/company/standards --as company
 
 # Install from local directory
-inskit template install ./my-templates --as local
+aiconfig template install ./my-templates --as local
 
 # Install specific version
-inskit template install https://github.com/company/standards --as company --ref v1.2.0
+aiconfig template install https://github.com/company/standards --as company --ref v1.2.0
 
 # Install globally
-inskit template install https://github.com/personal/tools --as personal --scope global
+aiconfig template install https://github.com/personal/tools --as personal --scope global
 ```
 
-### `inskit template list`
+### `aiconfig template list`
 
 List installed templates.
 
 ```bash
-inskit template list [namespace] [options]
+aiconfig template list [namespace] [options]
 ```
 
 **Options:**
@@ -60,22 +60,22 @@ inskit template list [namespace] [options]
 **Examples:**
 ```bash
 # List all templates
-inskit template list
+aiconfig template list
 
 # List specific namespace
-inskit template list company
+aiconfig template list company
 
 # JSON output
-inskit template list --json
+aiconfig template list --json
 ```
 
-### `inskit template update`
+### `aiconfig template update`
 
 Update installed templates to latest version.
 
 ```bash
-inskit template update <namespace> [options]
-inskit template update --all [options]
+aiconfig template update <namespace> [options]
+aiconfig template update --all [options]
 ```
 
 **Options:**
@@ -85,18 +85,18 @@ inskit template update --all [options]
 **Examples:**
 ```bash
 # Update specific namespace
-inskit template update company
+aiconfig template update company
 
 # Update all templates
-inskit template update --all
+aiconfig template update --all
 ```
 
-### `inskit template uninstall`
+### `aiconfig template uninstall`
 
 Uninstall template repository.
 
 ```bash
-inskit template uninstall <namespace> [options]
+aiconfig template uninstall <namespace> [options]
 ```
 
 **Options:**
@@ -106,18 +106,18 @@ inskit template uninstall <namespace> [options]
 **Examples:**
 ```bash
 # Uninstall namespace
-inskit template uninstall company
+aiconfig template uninstall company
 
 # Uninstall global
-inskit template uninstall personal --scope global
+aiconfig template uninstall personal --scope global
 ```
 
-### `inskit template init`
+### `aiconfig template init`
 
 Create a new template repository.
 
 ```bash
-inskit template init <name> [options]
+aiconfig template init <name> [options]
 ```
 
 **Arguments:**
@@ -129,18 +129,18 @@ inskit template init <name> [options]
 **Examples:**
 ```bash
 # Create with examples
-inskit template init my-standards
+aiconfig template init my-standards
 
 # Create minimal structure
-inskit template init my-standards --minimal
+aiconfig template init my-standards --minimal
 ```
 
-### `inskit template validate`
+### `aiconfig template validate`
 
 Validate a template repository.
 
 ```bash
-inskit template validate <path>
+aiconfig template validate <path>
 ```
 
 **Arguments:**
@@ -149,22 +149,22 @@ inskit template validate <path>
 **Examples:**
 ```bash
 # Validate current directory
-inskit template validate .
+aiconfig template validate .
 
 # Validate specific path
-inskit template validate ./my-templates
+aiconfig template validate ./my-templates
 ```
 
 ---
 
 ## MCP Commands
 
-### `inskit mcp install`
+### `aiconfig mcp install`
 
 Install MCP server configurations.
 
 ```bash
-inskit mcp install <source> --as <namespace> [options]
+aiconfig mcp install <source> --as <namespace> [options]
 ```
 
 **Arguments:**
@@ -179,21 +179,21 @@ inskit mcp install <source> --as <namespace> [options]
 **Examples:**
 ```bash
 # Install from GitHub
-inskit mcp install https://github.com/company/mcp-servers --as backend
+aiconfig mcp install https://github.com/company/mcp-servers --as backend
 
 # Install from local directory
-inskit mcp install ./my-mcp-servers --as local
+aiconfig mcp install ./my-mcp-servers --as local
 
 # Install globally
-inskit mcp install https://github.com/personal/mcp --as personal --scope global
+aiconfig mcp install https://github.com/personal/mcp --as personal --scope global
 ```
 
-### `inskit mcp configure`
+### `aiconfig mcp configure`
 
 Configure credentials for MCP servers.
 
 ```bash
-inskit mcp configure <server-ref> [options]
+aiconfig mcp configure <server-ref> [options]
 ```
 
 **Arguments:**
@@ -208,25 +208,25 @@ inskit mcp configure <server-ref> [options]
 **Examples:**
 ```bash
 # Configure all servers in namespace (interactive)
-inskit mcp configure backend
+aiconfig mcp configure backend
 
 # Configure specific server
-inskit mcp configure backend.github
+aiconfig mcp configure backend.github
 
 # Non-interactive (from environment)
 export GITHUB_TOKEN=ghp_xxxxx
-inskit mcp configure backend --non-interactive
+aiconfig mcp configure backend --non-interactive
 
 # Show current credentials
-inskit mcp configure backend --show-current
+aiconfig mcp configure backend --show-current
 ```
 
-### `inskit mcp sync`
+### `aiconfig mcp sync`
 
 Sync MCP servers to AI tool configuration files.
 
 ```bash
-inskit mcp sync [options]
+aiconfig mcp sync [options]
 ```
 
 **Options:**
@@ -239,24 +239,24 @@ inskit mcp sync [options]
 **Examples:**
 ```bash
 # Sync to all detected tools
-inskit mcp sync --tool all
+aiconfig mcp sync --tool all
 
 # Sync to Claude Desktop only
-inskit mcp sync --tool claude
+aiconfig mcp sync --tool claude
 
 # Dry run (no changes)
-inskit mcp sync --tool all --dry-run
+aiconfig mcp sync --tool all --dry-run
 
 # Skip backups
-inskit mcp sync --tool claude --no-backup
+aiconfig mcp sync --tool claude --no-backup
 ```
 
-### `inskit mcp list`
+### `aiconfig mcp list`
 
 List installed MCP servers.
 
 ```bash
-inskit mcp list [namespace] [options]
+aiconfig mcp list [namespace] [options]
 ```
 
 **Options:**
@@ -267,22 +267,22 @@ inskit mcp list [namespace] [options]
 **Examples:**
 ```bash
 # List all servers
-inskit mcp list
+aiconfig mcp list
 
 # List specific namespace
-inskit mcp list backend
+aiconfig mcp list backend
 
 # Show sets
-inskit mcp list --sets
+aiconfig mcp list --sets
 ```
 
-### `inskit mcp update`
+### `aiconfig mcp update`
 
 Update MCP server configurations.
 
 ```bash
-inskit mcp update <namespace> [options]
-inskit mcp update --all [options]
+aiconfig mcp update <namespace> [options]
+aiconfig mcp update --all [options]
 ```
 
 **Options:**
@@ -292,18 +292,18 @@ inskit mcp update --all [options]
 **Examples:**
 ```bash
 # Update specific namespace
-inskit mcp update backend
+aiconfig mcp update backend
 
 # Update all MCP templates
-inskit mcp update --all
+aiconfig mcp update --all
 ```
 
-### `inskit mcp uninstall`
+### `aiconfig mcp uninstall`
 
 Uninstall MCP template.
 
 ```bash
-inskit mcp uninstall <namespace> [options]
+aiconfig mcp uninstall <namespace> [options]
 ```
 
 **Options:**
@@ -312,22 +312,22 @@ inskit mcp uninstall <namespace> [options]
 **Examples:**
 ```bash
 # Uninstall namespace
-inskit mcp uninstall backend
+aiconfig mcp uninstall backend
 
 # Uninstall global
-inskit mcp uninstall company --scope global
+aiconfig mcp uninstall company --scope global
 ```
 
 ---
 
 ## Utility Commands
 
-### `inskit tools`
+### `aiconfig tools`
 
 Show detected AI coding tools.
 
 ```bash
-inskit tools
+aiconfig tools
 ```
 
 Displays which AI tools are installed (Claude Code, Claude Desktop, Cursor, Copilot, Windsurf) and their configuration directories.
@@ -343,27 +343,27 @@ GitHub Copilot     ✗            Not found
 Windsurf           ✓            ~/Library/Application Support/Windsurf
 ```
 
-### `inskit --version`
+### `aiconfig --version`
 
-Show InstructionKit version.
+Show AI Config Kit version.
 
 ```bash
-inskit --version
+aiconfig --version
 ```
 
-### `inskit --help`
+### `aiconfig --help`
 
 Show help information.
 
 ```bash
 # General help
-inskit --help
+aiconfig --help
 
 # Command-specific help
-inskit template --help
-inskit template install --help
-inskit mcp --help
-inskit mcp configure --help
+aiconfig template --help
+aiconfig template install --help
+aiconfig mcp --help
+aiconfig mcp configure --help
 ```
 
 ---
@@ -386,11 +386,11 @@ Control logging verbosity:
 ```bash
 # Debug mode
 export LOGLEVEL=DEBUG
-inskit mcp sync --tool all
+aiconfig mcp sync --tool all
 
 # Quiet mode
 export LOGLEVEL=ERROR
-inskit template install <repo> --as demo
+aiconfig template install <repo> --as demo
 ```
 
 **Levels:** `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`
@@ -409,14 +409,14 @@ inskit template install <repo> --as demo
 
 ## Configuration Files
 
-InstructionKit uses these configuration files:
+AI Config Kit uses these configuration files:
 
 | File | Location | Purpose |
 |------|----------|---------|
-| `template-installations.json` | `.instructionkit/` | Tracks installed templates |
-| `mcp-installations.json` | `.instructionkit/` | Tracks installed MCP servers |
-| `.env` | `.instructionkit/` | Project-scoped credentials (gitignored) |
-| `.env` | `~/.instructionkit/global/` | Global-scoped credentials (gitignored) |
+| `template-installations.json` | `.ai-config-kit/` | Tracks installed templates |
+| `mcp-installations.json` | `.ai-config-kit/` | Tracks installed MCP servers |
+| `.env` | `.ai-config-kit/` | Project-scoped credentials (gitignored) |
+| `.env` | `~/.ai-config-kit/global/` | Global-scoped credentials (gitignored) |
 
 ---
 

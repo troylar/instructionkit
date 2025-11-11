@@ -2,7 +2,7 @@
 
 import pytest
 
-from instructionkit.core.checksum import ChecksumError, ChecksumValidator, calculate_file_checksum
+from aiconfigkit.core.checksum import ChecksumError, ChecksumValidator, calculate_file_checksum
 
 
 class TestChecksumValidator:

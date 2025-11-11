@@ -1,5 +1,5 @@
 """
-Invoke tasks for InstructionKit development.
+Invoke tasks for AI Config Kit development.
 
 Install invoke: pip install invoke
 Usage: invoke <task-name>
@@ -13,7 +13,7 @@ from invoke import task
 
 # Project paths
 ROOT = Path(__file__).parent
-SRC = ROOT / "instructionkit"
+SRC = ROOT / "aiconfigkit"
 TESTS = ROOT / "tests"
 
 # Check if pty is available (not available on Windows)
@@ -42,7 +42,7 @@ def test(c, verbose=False, coverage=False, marker=None):
         cmd += " -q"
 
     if coverage:
-        cmd += " --cov=instructionkit --cov-report=term-missing --cov-report=xml --cov-report=html"
+        cmd += " --cov=ai-config-kit --cov-report=term-missing --cov-report=xml --cov-report=html"
 
     if marker:
         cmd += f" -m {marker}"
@@ -86,7 +86,7 @@ def coverage(c, html=True):
     Options:
         --html: Generate HTML coverage report (default: True)
     """
-    cmd = "pytest tests/ --cov=instructionkit --cov-report=term-missing --cov-report=xml"
+    cmd = "pytest tests/ --cov=ai-config-kit --cov-report=term-missing --cov-report=xml"
 
     if html:
         cmd += " --cov-report=html"
@@ -109,7 +109,7 @@ def lint(c, fix=False):
     Options:
         -f, --fix: Automatically fix issues
     """
-    cmd = "ruff check instructionkit/ tests/"
+    cmd = "ruff check aiconfigkit/ tests/"
 
     if fix:
         cmd += " --fix"
@@ -125,7 +125,7 @@ def format(c, check=False):
     Options:
         -c, --check: Check formatting without making changes
     """
-    cmd = "black instructionkit/ tests/"
+    cmd = "black aiconfigkit/ tests/"
 
     if check:
         cmd += " --check"
@@ -136,7 +136,7 @@ def format(c, check=False):
 @task
 def typecheck(c):
     """Run mypy type checking."""
-    c.run("mypy instructionkit/", pty=PTY_SUPPORTED)
+    c.run("mypy aiconfigkit/", pty=PTY_SUPPORTED)
 
 
 @task
@@ -219,7 +219,7 @@ def install(c, dev=False, editable=True):
 @task
 def uninstall(c):
     """Uninstall the package."""
-    c.run("pip uninstall -y instructionkit", pty=PTY_SUPPORTED)
+    c.run("pip uninstall -y ai-config-kit", pty=PTY_SUPPORTED)
     print("✅ Package uninstalled successfully!")
 
 
@@ -245,8 +245,8 @@ def dev_setup(c):
 
 @task
 def repl(c):
-    """Start Python REPL with instructionkit imported."""
-    c.run("python -i -c 'import instructionkit; print(\"InstructionKit imported\")'", pty=PTY_SUPPORTED)
+    """Start Python REPL with aiconfigkit imported."""
+    c.run("python -i -c 'import aiconfigkit; print(\"AI Config Kit imported\")'", pty=PTY_SUPPORTED)
 
 
 # ============================================================================
@@ -256,23 +256,23 @@ def repl(c):
 @task
 def cli(c, args="--help"):
     """
-    Run the instructionkit CLI.
+    Run the aiconfigkit CLI.
 
     Usage: invoke cli --args="download --repo https://..."
     """
-    c.run(f"instructionkit {args}", pty=PTY_SUPPORTED)
+    c.run(f"ai-config-kit {args}", pty=PTY_SUPPORTED)
 
 
 @task
 def list_tools(c):
     """List detected AI tools."""
-    c.run("instructionkit tools", pty=PTY_SUPPORTED)
+    c.run("ai-config-kit tools", pty=PTY_SUPPORTED)
 
 
 @task
 def list_library(c):
     """List instructions in library."""
-    c.run("instructionkit list library", pty=PTY_SUPPORTED)
+    c.run("ai-config-kit list library", pty=PTY_SUPPORTED)
 
 
 # ============================================================================
@@ -354,7 +354,7 @@ def count(c):
     print("📊 Lines of Code:\n")
 
     # Source code
-    result = c.run("find instructionkit -name '*.py' | xargs wc -l | tail -1", hide=True)
+    result = c.run("find aiconfigkit -name '*.py' | xargs wc -l | tail -1", hide=True)
     src_lines = result.stdout.strip().split()[0]
     print(f"  Source:      {src_lines:>6} lines")
 
@@ -392,7 +392,7 @@ def security_check(c):
 
     print("\n2. Checking for security issues in code (bandit)...")
     c.run("pip install bandit", hide=True)
-    c.run("bandit -r instructionkit/ -ll", warn=True)
+    c.run("bandit -r aiconfigkit/ -ll", warn=True)
 
     print("\n✅ Security checks complete!")
 

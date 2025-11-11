@@ -1,12 +1,12 @@
 <div align="center">
 
-# 🎯 InstructionKit
+# 🎯 AI Config Kit
 
 **Distribute and sync coding standards, AI tool configurations, and MCP servers across your team**
 
-[![CI](https://github.com/troylar/instructionkit/actions/workflows/ci.yml/badge.svg)](https://github.com/troylar/instructionkit/actions/workflows/ci.yml)
-[![Coverage](https://codecov.io/gh/troylar/instructionkit/branch/main/graph/badge.svg)](https://codecov.io/gh/troylar/instructionkit)
-[![PyPI version](https://img.shields.io/pypi/v/instructionkit.svg)](https://pypi.org/project/instructionkit/)
+[![CI](https://github.com/troylar/ai-config-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/troylar/ai-config-kit/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/troylar/ai-config-kit/branch/main/graph/badge.svg)](https://codecov.io/gh/troylar/ai-config-kit)
+[![PyPI version](https://img.shields.io/pypi/v/ai-config-kit.svg)](https://pypi.org/project/ai-config-kit/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -16,16 +16,16 @@
 
 ---
 
-## What is InstructionKit?
+## What is AI Config Kit?
 
-InstructionKit is a CLI tool for distributing and managing AI coding assistant configurations across teams:
+AI Config Kit is a CLI tool for distributing and managing AI coding assistant configurations across teams:
 
 - **📋 Templates**: Share coding standards, slash commands, and IDE configurations from Git repositories
 - **🔌 MCP Servers**: Distribute and manage Model Context Protocol server configurations
 - **🔄 Sync**: Keep your team aligned with single-command updates
 - **✅ Safe**: Built-in validation, automatic backups, conflict resolution
 
-> **Note:** Commands use `inskit` (short for InstructionKit)
+> **Note:** Commands use `aiconfig` (short for AI Config Kit)
 
 ---
 
@@ -34,18 +34,18 @@ InstructionKit is a CLI tool for distributing and managing AI coding assistant c
 ### Install
 
 ```bash
-pip install instructionkit
+pip install ai-config-kit
 ```
 
 ### Templates: Share Coding Standards (30 seconds)
 
 ```bash
 # Create a template repository with examples
-inskit template init my-standards
+aiconfig template init my-standards
 
 # Install it locally
 cd my-standards
-inskit template install . --as demo
+aiconfig template install . --as demo
 
 # Your IDE now has coding standards in .claude/rules/demo.*
 ```
@@ -54,13 +54,13 @@ inskit template install . --as demo
 
 ```bash
 # Install MCP server configurations from a repository
-inskit mcp install https://github.com/company/mcp-servers --as backend
+aiconfig mcp install https://github.com/company/mcp-servers --as backend
 
 # Configure credentials securely (stored in gitignored .env)
-inskit mcp configure backend
+aiconfig mcp configure backend
 
 # Sync to AI tools (Claude Desktop, Cursor, Windsurf)
-inskit mcp sync --tool all
+aiconfig mcp sync --tool all
 ```
 
 ---
@@ -78,10 +78,10 @@ Distribute any IDE-specific content from Git repositories:
 
 **Key Commands:**
 ```bash
-inskit template install <repo> --as <namespace>  # Install templates
-inskit template list                             # Show installed templates
-inskit template update <namespace>               # Update to latest version
-inskit template uninstall <namespace>            # Remove templates
+aiconfig template install <repo> --as <namespace>  # Install templates
+aiconfig template list                             # Show installed templates
+aiconfig template update <namespace>               # Update to latest version
+aiconfig template uninstall <namespace>            # Remove templates
 ```
 
 [📖 Full Template Documentation →](docs/templates.md)
@@ -97,17 +97,17 @@ Manage Model Context Protocol servers across your team:
 
 **Key Commands:**
 ```bash
-inskit mcp install <repo> --as <namespace>       # Install MCP configs
-inskit mcp configure <namespace>                 # Set up credentials
-inskit mcp sync --tool all                       # Sync to AI tools
-inskit mcp list                                  # Show installed servers
+aiconfig mcp install <repo> --as <namespace>       # Install MCP configs
+aiconfig mcp configure <namespace>                 # Set up credentials
+aiconfig mcp sync --tool all                       # Sync to AI tools
+aiconfig mcp list                                  # Show installed servers
 ```
 
 [📖 Full MCP Documentation →](docs/mcp.md)
 
 ---
 
-## Why InstructionKit?
+## Why AI Config Kit?
 
 ### For Teams
 
@@ -127,23 +127,23 @@ inskit mcp list                                  # Show installed servers
 
 ## Real-World Example
 
-Here's how a team at ACME Corp uses InstructionKit:
+Here's how a team at ACME Corp uses AI Config Kit:
 
 ```bash
 # 1. Everyone installs company security policies (global, applies to all projects)
-inskit template install https://github.com/acme/security-policy --as acme-security --scope global
+aiconfig template install https://github.com/acme/security-policy --as acme-security --scope global
 
 # 2. Backend team members clone their project
 git clone https://github.com/acme/backend-api.git && cd backend-api
 
 # 3. Install team-specific templates (project scope)
-inskit template install https://github.com/acme/backend-standards --as backend
-inskit template install https://github.com/acme/python-patterns --as python
+aiconfig template install https://github.com/acme/backend-standards --as backend
+aiconfig template install https://github.com/acme/python-patterns --as python
 
 # 4. Install and configure MCP servers (for enhanced AI capabilities)
-inskit mcp install https://github.com/acme/mcp-servers --as backend-mcp
-inskit mcp configure backend-mcp
-inskit mcp sync --tool claude
+aiconfig mcp install https://github.com/acme/mcp-servers --as backend-mcp
+aiconfig mcp configure backend-mcp
+aiconfig mcp sync --tool claude
 
 # Done! IDE now has:
 # - Global security rules (all projects)
@@ -154,8 +154,8 @@ inskit mcp sync --tool claude
 
 Team members update everything with:
 ```bash
-inskit template update --all
-inskit mcp update --all
+aiconfig template update --all
+aiconfig mcp update --all
 ```
 
 ---
@@ -174,21 +174,21 @@ inskit mcp update --all
 
 ## Project vs Global Scope
 
-InstructionKit supports two installation scopes:
+AI Config Kit supports two installation scopes:
 
 | Scope | Where Files Go | When Active | Best For |
 |-------|---------------|-------------|----------|
-| **Project** (default) | `<project>/.claude/rules/`<br>`<project>/.instructionkit/` | Only in that project | Team practices, project standards |
-| **Global** | `~/.claude/rules/`<br>`~/.instructionkit/` | All projects | Personal tools, company policies |
+| **Project** (default) | `<project>/.claude/rules/`<br>`<project>/.ai-config-kit/` | Only in that project | Team practices, project standards |
+| **Global** | `~/.claude/rules/`<br>`~/.ai-config-kit/` | All projects | Personal tools, company policies |
 
 **Example:**
 ```bash
 # Global: Company-wide security policy (applies everywhere)
-inskit template install https://github.com/company/security --as security --scope global
+aiconfig template install https://github.com/company/security --as security --scope global
 
 # Project: Team-specific patterns (only this project)
 cd ~/projects/backend-api
-inskit template install https://github.com/team/backend-patterns --as backend
+aiconfig template install https://github.com/team/backend-patterns --as backend
 ```
 
 Your IDE gets **both**: global templates (always available) + project templates (context-specific).
@@ -229,31 +229,31 @@ Model Context Protocol server setups for enhanced AI capabilities:
 - Git (for cloning template repositories)
 - One of: Claude Code, Claude Desktop, Cursor, GitHub Copilot, or Windsurf
 
-### Install InstructionKit
+### Install AI Config Kit
 
 ```bash
 # Using pip
-pip install instructionkit
+pip install ai-config-kit
 
 # Verify installation
-inskit --version
+aiconfig --version
 ```
 
 ### Quick Configuration
 
 ```bash
 # Check which AI tools are installed
-inskit tools
+aiconfig tools
 
 # Create your first template repository
-inskit template init my-standards
+aiconfig template init my-standards
 
 # Install and test it
 cd my-standards
-inskit template install . --as demo
+aiconfig template install . --as demo
 
 # View installed templates
-inskit template list
+aiconfig template list
 ```
 
 ---
@@ -264,18 +264,18 @@ inskit template list
 
 ```bash
 # Install company standards (once per machine)
-inskit template install https://github.com/company/standards --as company --scope global
+aiconfig template install https://github.com/company/standards --as company --scope global
 
 # Clone team project
 git clone https://github.com/team/project.git && cd project
 
 # Install project-specific templates
-inskit template install https://github.com/team/backend-standards --as backend
+aiconfig template install https://github.com/team/backend-standards --as backend
 
 # Set up MCP servers
-inskit mcp install https://github.com/team/mcp-servers --as team-mcp
-inskit mcp configure team-mcp
-inskit mcp sync --tool all
+aiconfig mcp install https://github.com/team/mcp-servers --as team-mcp
+aiconfig mcp configure team-mcp
+aiconfig mcp sync --tool all
 ```
 
 ### Scenario 2: Applying Templates to Existing Project
@@ -285,7 +285,7 @@ inskit mcp sync --tool all
 cd ~/projects/my-api
 
 # Install templates immediately
-inskit template install https://github.com/owasp/security-templates --as owasp
+aiconfig template install https://github.com/owasp/security-templates --as owasp
 
 # Templates are now in .claude/rules/owasp.*
 # AI assistant immediately knows these security patterns
@@ -295,7 +295,7 @@ inskit template install https://github.com/owasp/security-templates --as owasp
 
 ```bash
 # Install your personal tools globally (applies to all projects)
-inskit template install https://github.com/yourname/my-tools --as personal --scope global
+aiconfig template install https://github.com/yourname/my-tools --as personal --scope global
 
 # Done! All your projects now have your preferred templates
 ```
@@ -323,7 +323,7 @@ invoke lint --fix
 ### Project Structure
 
 ```
-instructionkit/
+ai-config-kit/
 ├── ai_tools/          # AI tool integrations (Claude, Cursor, etc.)
 ├── cli/               # CLI commands
 ├── core/              # Core business logic
@@ -363,8 +363,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/troylar/instructionkit/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/troylar/instructionkit/discussions)
+- **Issues**: [GitHub Issues](https://github.com/troylar/ai-config-kit/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/troylar/ai-config-kit/discussions)
 - **Changelog**: [CHANGELOG.md](CHANGELOG.md)
 
 ---

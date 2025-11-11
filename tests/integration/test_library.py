@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from instructionkit.core.models import LibraryInstruction
-from instructionkit.storage.library import LibraryManager
+from aiconfigkit.core.models import LibraryInstruction
+from aiconfigkit.storage.library import LibraryManager
 
 
 class TestLibraryManager:

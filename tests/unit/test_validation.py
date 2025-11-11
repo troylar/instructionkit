@@ -1,6 +1,6 @@
 """Unit tests for input validation utilities."""
 
-from instructionkit.utils.validation import (
+from aiconfigkit.utils.validation import (
     is_valid_checksum,
     is_valid_git_url,
     is_valid_instruction_name,

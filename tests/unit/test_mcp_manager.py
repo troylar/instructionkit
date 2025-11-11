@@ -7,8 +7,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from instructionkit.core.mcp.manager import MCPManager
-from instructionkit.core.models import InstallationScope
+from aiconfigkit.core.mcp.manager import MCPManager
+from aiconfigkit.core.models import InstallationScope
 
 
 class TestMCPManager:
@@ -88,7 +88,7 @@ class TestMCPManager:
         source_dir.mkdir()
 
         # Create mock metadata
-        metadata_file = source_dir / "instructionkit.yaml"
+        metadata_file = source_dir / "templatekit.yaml"
         metadata_file.write_text("name: Test\nversion: 1.0.0\ndescription: Test template\n")
 
         # Install (no mocking - let it actually work)
@@ -103,9 +103,9 @@ class TestMCPManager:
         # Verify files were copied
         install_path = manager.library_root / "test-template"
         assert install_path.exists()
-        assert (install_path / "instructionkit.yaml").exists()
+        assert (install_path / "templatekit.yaml").exists()
 
-    @patch("instructionkit.core.mcp.manager.GitOperations")
+    @patch("aiconfigkit.core.mcp.manager.GitOperations")
     def test_install_from_git_success(self, mock_git: Mock, manager: MCPManager, tmp_path: Path) -> None:
         """Test installing template from Git URL."""
         # Setup
@@ -114,7 +114,7 @@ class TestMCPManager:
         # Create a source directory that git will "clone"
         source_dir = tmp_path / "git_source"
         source_dir.mkdir()
-        (source_dir / "instructionkit.yaml").write_text("name: Test\nversion: 1.0.0\ndescription: Test\n")
+        (source_dir / "templatekit.yaml").write_text("name: Test\nversion: 1.0.0\ndescription: Test\n")
 
         # Mock git operations to copy our source
         def mock_clone(url: str, dest: Path) -> None:
@@ -138,8 +138,8 @@ class TestMCPManager:
         install_path = manager.library_root / "test-template"
         assert install_path.exists()
 
-    @patch("instructionkit.core.mcp.manager.RepositoryParser")
-    @patch("instructionkit.core.mcp.manager.shutil.copytree")
+    @patch("aiconfigkit.core.mcp.manager.RepositoryParser")
+    @patch("aiconfigkit.core.mcp.manager.shutil.copytree")
     def test_install_template_already_exists_no_force(
         self, mock_copytree: Mock, mock_parser: Mock, manager: MCPManager, tmp_path: Path
     ) -> None:
@@ -156,9 +156,9 @@ class TestMCPManager:
         with pytest.raises(ValueError, match="already exists"):
             manager.install_template(str(source_dir), "test-template", force=False)
 
-    @patch("instructionkit.core.mcp.manager.RepositoryParser")
-    @patch("instructionkit.core.mcp.manager.shutil.copytree")
-    @patch("instructionkit.core.mcp.manager.shutil.rmtree")
+    @patch("aiconfigkit.core.mcp.manager.RepositoryParser")
+    @patch("aiconfigkit.core.mcp.manager.shutil.copytree")
+    @patch("aiconfigkit.core.mcp.manager.shutil.rmtree")
     def test_install_template_force_overwrite(
         self, mock_rmtree: Mock, mock_copytree: Mock, mock_parser: Mock, manager: MCPManager, tmp_path: Path
     ) -> None:
@@ -172,7 +172,7 @@ class TestMCPManager:
         source_dir.mkdir()
 
         # Create metadata
-        metadata_file = source_dir / "instructionkit.yaml"
+        metadata_file = source_dir / "templatekit.yaml"
         metadata_file.write_text("name: Test\nversion: 1.0.0\n")
 
         # Mock parser
@@ -289,7 +289,7 @@ class TestMCPManager:
         assert len(templates) == 1
         assert templates[0].namespace == "global-template"
 
-    @patch("instructionkit.core.mcp.manager.shutil.rmtree")
+    @patch("aiconfigkit.core.mcp.manager.shutil.rmtree")
     def test_uninstall_template_exists(self, mock_rmtree: Mock, manager: MCPManager) -> None:
         """Test uninstalling an existing template."""
         # Create template directory
@@ -310,11 +310,11 @@ class TestMCPManager:
         assert result is False
 
     def test_parse_metadata_instructionkit_yaml(self, manager: MCPManager, tmp_path: Path) -> None:
-        """Test parsing metadata from instructionkit.yaml."""
+        """Test parsing metadata from templatekit.yaml."""
         template_dir = tmp_path / "template"
         template_dir.mkdir()
 
-        metadata_file = template_dir / "instructionkit.yaml"
+        metadata_file = template_dir / "templatekit.yaml"
         metadata_file.write_text("name: Test\nversion: 1.0.0\ndescription: Test template\nauthor: Test Author\n")
 
         metadata = manager._parse_metadata(template_dir)
@@ -329,7 +329,7 @@ class TestMCPManager:
         template_dir = tmp_path / "template"
         template_dir.mkdir()
 
-        # No instructionkit.yaml, only templatekit.yaml
+        # No templatekit.yaml, only templatekit.yaml
         metadata_file = template_dir / "templatekit.yaml"
         metadata_file.write_text("name: Test\nversion: 2.0.0\n")
 

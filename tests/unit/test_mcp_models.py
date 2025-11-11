@@ -4,7 +4,7 @@ from datetime import datetime
 
 import pytest
 
-from instructionkit.core.models import (
+from aiconfigkit.core.models import (
     ActiveSetState,
     EnvironmentConfig,
     InstallationScope,

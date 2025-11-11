@@ -60,7 +60,7 @@ jobs:
           echo "## Code Complexity Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Cyclomatic Complexity (functions with CC > 10)" >> $GITHUB_STEP_SUMMARY
-          radon cc instructionkit -s -a --total-average >> complexity.txt || true
+          radon cc ai-config-kit -s -a --total-average >> complexity.txt || true
           if [ -s complexity.txt ]; then
             echo '```' >> $GITHUB_STEP_SUMMARY
             cat complexity.txt >> $GITHUB_STEP_SUMMARY
@@ -72,7 +72,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Maintainability Index" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          radon mi instructionkit -s >> $GITHUB_STEP_SUMMARY
+          radon mi ai-config-kit -s >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   diff-quality:

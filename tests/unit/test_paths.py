@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from instructionkit.utils.paths import (
+from aiconfigkit.utils.paths import (
     ensure_directory_exists,
     get_claude_config_dir,
     get_copilot_config_dir,
@@ -88,7 +88,7 @@ class TestCursorConfigDir:
         """Test Cursor config dir on macOS."""
         home = temp_dir / "home"
         home.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home)
         monkeypatch.setattr("os.name", "posix")
 
         with patch("os.uname") as mock_uname:
@@ -101,7 +101,7 @@ class TestCursorConfigDir:
         """Test Cursor config dir on Linux."""
         home = temp_dir / "home"
         home.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home)
         monkeypatch.setattr("os.name", "posix")
 
         with patch("os.uname") as mock_uname:
@@ -114,7 +114,7 @@ class TestCursorConfigDir:
         """Test Cursor config dir on Windows."""
         home = temp_dir / "home"
         home.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home)
         monkeypatch.setattr("os.name", "nt")
 
         config_dir = get_cursor_config_dir()
@@ -129,7 +129,7 @@ class TestCopilotConfigDir:
         """Test Copilot config dir on macOS."""
         home = temp_dir / "home"
         home.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home)
         monkeypatch.setattr("os.name", "posix")
 
         with patch("os.uname") as mock_uname:
@@ -143,7 +143,7 @@ class TestCopilotConfigDir:
         """Test Copilot config dir on Linux."""
         home = temp_dir / "home"
         home.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home)
         monkeypatch.setattr("os.name", "posix")
 
         with patch("os.uname") as mock_uname:
@@ -156,7 +156,7 @@ class TestCopilotConfigDir:
         """Test Copilot config dir on Windows."""
         home = temp_dir / "home"
         home.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home)
         monkeypatch.setattr("os.name", "nt")
 
         config_dir = get_copilot_config_dir()
@@ -171,7 +171,7 @@ class TestWinsurfConfigDir:
         """Test Windsurf config dir on macOS."""
         home = temp_dir / "home"
         home.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home)
         monkeypatch.setattr("os.name", "posix")
 
         with patch("os.uname") as mock_uname:
@@ -184,7 +184,7 @@ class TestWinsurfConfigDir:
         """Test Windsurf config dir on Linux."""
         home = temp_dir / "home"
         home.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home)
         monkeypatch.setattr("os.name", "posix")
 
         with patch("os.uname") as mock_uname:
@@ -197,7 +197,7 @@ class TestWinsurfConfigDir:
         """Test Windsurf config dir on Windows."""
         home = temp_dir / "home"
         home.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home)
         monkeypatch.setattr("os.name", "nt")
 
         config_dir = get_winsurf_config_dir()
@@ -211,7 +211,7 @@ class TestClaudeConfigDir:
         """Test Claude config dir (same across all platforms)."""
         home = temp_dir / "home"
         home.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home)
 
         config_dir = get_claude_config_dir()
         assert ".claude" in str(config_dir) and "rules" in str(config_dir)
@@ -224,7 +224,7 @@ class TestLibraryDir:
         """Test get_library_dir creates directory."""
         home = temp_dir / "home"
         home.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home)
 
         library_dir = get_library_dir()
         assert library_dir.exists()
@@ -238,7 +238,7 @@ class TestInstallationTrackerPath:
         """Test get_installation_tracker_path."""
         home = temp_dir / "home"
         home.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home)
 
         tracker_path = get_installation_tracker_path()
         assert "installations.json" in str(tracker_path)

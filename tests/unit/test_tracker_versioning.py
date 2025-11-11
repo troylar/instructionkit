@@ -2,8 +2,8 @@
 
 from datetime import datetime
 
-from instructionkit.core.models import AIToolType, InstallationRecord, InstallationScope, RefType
-from instructionkit.storage.tracker import InstallationTracker
+from aiconfigkit.core.models import AIToolType, InstallationRecord, InstallationScope, RefType
+from aiconfigkit.storage.tracker import InstallationTracker
 
 
 class TestGetUpdatableInstructions:

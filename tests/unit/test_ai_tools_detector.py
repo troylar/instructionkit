@@ -2,8 +2,8 @@
 
 import pytest
 
-from instructionkit.ai_tools.detector import AIToolDetector, get_detector
-from instructionkit.core.models import AIToolType
+from aiconfigkit.ai_tools.detector import AIToolDetector, get_detector
+from aiconfigkit.core.models import AIToolType
 
 
 @pytest.fixture
@@ -42,7 +42,7 @@ def mock_all_tools_installed(monkeypatch, temp_dir):
     # Claude Code is consistent across platforms
     (home_dir / ".claude" / "rules").mkdir(parents=True)
 
-    monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+    monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
 
 
 class TestAIToolDetector:
@@ -60,7 +60,7 @@ class TestAIToolDetector:
         """Test detect_installed_tools when no tools are installed."""
         home_dir = temp_dir / "empty_home"
         home_dir.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
 
         # Create fresh detector with mocked paths
         detector = AIToolDetector()
@@ -126,7 +126,7 @@ class TestAIToolDetector:
         cursor_dir.mkdir(parents=True)
         windsurf_dir.mkdir(parents=True)
 
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
 
         # Create fresh detector
         detector = AIToolDetector()
@@ -138,7 +138,7 @@ class TestAIToolDetector:
         """Test get_primary_tool returns None when no tools installed."""
         home_dir = temp_dir / "empty_home"
         home_dir.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
 
         detector = AIToolDetector()
         primary = detector.get_primary_tool()
@@ -153,7 +153,7 @@ class TestAIToolDetector:
         """Test is_any_tool_installed returns False when no tools installed."""
         home_dir = temp_dir / "empty_home"
         home_dir.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
 
         detector = AIToolDetector()
         assert detector.is_any_tool_installed() is False
@@ -193,9 +193,9 @@ class TestAIToolDetector:
     def test_get_detector_singleton(self):
         """Test get_detector returns singleton instance."""
         # Reset singleton
-        import instructionkit.ai_tools.detector
+        import aiconfigkit.ai_tools.detector
 
-        instructionkit.ai_tools.detector._detector_instance = None
+        aiconfigkit.ai_tools.detector._detector_instance = None
 
         detector1 = get_detector()
         detector2 = get_detector()

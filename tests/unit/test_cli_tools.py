@@ -2,7 +2,7 @@
 
 import pytest
 
-from instructionkit.cli.tools import show_tools
+from aiconfigkit.cli.tools import show_tools
 
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def mock_detector_with_tools(monkeypatch, temp_dir):
     cursor_dir.mkdir(parents=True)
     winsurf_dir.mkdir(parents=True)
 
-    monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+    monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ def mock_detector_no_tools(monkeypatch, temp_dir):
     """Mock detector with no installed tools."""
     home_dir = temp_dir / "empty_home"
     home_dir.mkdir()
-    monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+    monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
 
 
 class TestShowTools:
@@ -77,7 +77,7 @@ class TestShowTools:
         cursor_dir = cursor_dir / "User" / "globalStorage"
         cursor_dir.mkdir(parents=True)
 
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
 
         exit_code = show_tools()
 

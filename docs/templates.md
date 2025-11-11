@@ -1,6 +1,6 @@
 # Template System
 
-Comprehensive guide to InstructionKit's template system for distributing IDE configurations.
+Comprehensive guide to AI Config Kit's template system for distributing IDE configurations.
 
 > **Note:** This document is being reorganized. For now, see the main [README](../README.md) for template system documentation. Full documentation coming soon.
 
@@ -67,22 +67,22 @@ templates:
 
 ```bash
 # Install templates
-inskit template install <repo> --as <namespace>
+aiconfig template install <repo> --as <namespace>
 
 # List installed templates
-inskit template list
+aiconfig template list
 
 # Update templates
-inskit template update <namespace>
+aiconfig template update <namespace>
 
 # Uninstall templates
-inskit template uninstall <namespace>
+aiconfig template uninstall <namespace>
 
 # Create new template repository
-inskit template init <name>
+aiconfig template init <name>
 
 # Validate repository
-inskit template validate <path>
+aiconfig template validate <path>
 ```
 
 ## Installation Scopes
@@ -94,10 +94,10 @@ inskit template validate <path>
 
 ```bash
 # Project scope (default)
-inskit template install <repo> --as team
+aiconfig template install <repo> --as team
 
 # Global scope
-inskit template install <repo> --as personal --scope global
+aiconfig template install <repo> --as personal --scope global
 ```
 
 ## Namespaces
@@ -106,7 +106,7 @@ Namespaces prevent conflicts when installing multiple template repositories:
 
 ```bash
 # Install with namespace "acme"
-inskit template install https://github.com/acme/standards --as acme
+aiconfig template install https://github.com/acme/standards --as acme
 
 # Templates become:
 # .claude/rules/acme.python-standards.md
@@ -119,18 +119,18 @@ inskit template install https://github.com/acme/standards --as acme
 
 ```bash
 # Global: Company standards
-inskit template install https://github.com/company/standards --as company --scope global
+aiconfig template install https://github.com/company/standards --as company --scope global
 
 # Project: Team-specific
 cd ~/projects/backend-api
-inskit template install https://github.com/team/backend --as backend
+aiconfig template install https://github.com/team/backend --as backend
 ```
 
 ### Applying to Existing Project
 
 ```bash
 cd ~/projects/my-api
-inskit template install https://github.com/owasp/security --as owasp
+aiconfig template install https://github.com/owasp/security --as owasp
 
 # Templates immediately available in .claude/rules/owasp.*
 ```
@@ -139,14 +139,14 @@ inskit template install https://github.com/owasp/security --as owasp
 
 ```bash
 # Initialize new template repository
-inskit template init my-standards
+aiconfig template init my-standards
 
 # Edit templatekit.yaml and add your content
 cd my-standards
 # ... edit files ...
 
 # Test locally
-inskit template install . --as test
+aiconfig template install . --as test
 
 # Push to Git and share with team
 git remote add origin https://github.com/yourorg/templates

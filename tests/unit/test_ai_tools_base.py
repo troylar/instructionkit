@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from instructionkit.ai_tools.base import AITool
-from instructionkit.core.models import AIToolType, InstallationScope, Instruction
+from aiconfigkit.ai_tools.base import AITool
+from aiconfigkit.core.models import AIToolType, InstallationScope, Instruction
 
 
 class MockAITool(AITool):

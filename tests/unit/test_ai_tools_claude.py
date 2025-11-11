@@ -2,8 +2,8 @@
 
 import pytest
 
-from instructionkit.ai_tools.claude import ClaudeTool
-from instructionkit.core.models import AIToolType, InstallationScope, Instruction
+from aiconfigkit.ai_tools.claude import ClaudeTool
+from aiconfigkit.core.models import AIToolType, InstallationScope, Instruction
 
 
 @pytest.fixture
@@ -20,7 +20,7 @@ def mock_claude_installed(monkeypatch, temp_dir):
     claude_dir = home_dir / ".claude" / "rules"
     claude_dir.mkdir(parents=True)
 
-    monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+    monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
     return claude_dir
 
 
@@ -43,7 +43,7 @@ class TestClaudeTool:
         """Test is_installed returns False when Claude is not present."""
         home_dir = temp_dir / "empty_home"
         home_dir.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
         claude_tool = ClaudeTool()
         assert claude_tool.is_installed() is False
 
@@ -53,7 +53,7 @@ class TestClaudeTool:
         def raise_error():
             raise RuntimeError("Test error")
 
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", raise_error)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", raise_error)
         claude_tool = ClaudeTool()
         assert claude_tool.is_installed() is False
 

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from instructionkit.core.repository import RepositoryParser
+from aiconfigkit.core.repository import RepositoryParser
 
 
 class TestRepositoryParserUnit:
@@ -13,7 +13,7 @@ class TestRepositoryParserUnit:
     def test_calculate_checksum(self, temp_dir: Path):
         """Test checksum calculation."""
         # Create minimal repo structure
-        (temp_dir / "instructionkit.yaml").write_text("name: Test\nversion: 1.0.0")
+        (temp_dir / "templatekit.yaml").write_text("name: Test\nversion: 1.0.0")
 
         parser = RepositoryParser(temp_dir)
 
@@ -43,7 +43,7 @@ bundles:
     description: Test bundle
     instructions: []
 """
-        (temp_dir / "instructionkit.yaml").write_text(yaml_content)
+        (temp_dir / "templatekit.yaml").write_text(yaml_content)
 
         parser = RepositoryParser(temp_dir)
 
@@ -59,7 +59,7 @@ instructions:
   - name: test
     description: Test
 """
-        (temp_dir / "instructionkit.yaml").write_text(yaml_content)
+        (temp_dir / "templatekit.yaml").write_text(yaml_content)
 
         parser = RepositoryParser(temp_dir)
 
@@ -68,7 +68,7 @@ instructions:
 
     def test_parse_empty_metadata(self, temp_dir: Path):
         """Test parsing empty metadata file."""
-        (temp_dir / "instructionkit.yaml").write_text("")
+        (temp_dir / "templatekit.yaml").write_text("")
 
         parser = RepositoryParser(temp_dir)
 
@@ -84,7 +84,7 @@ instructions:
   - description: Test
     file: test.md
 """
-        (temp_dir / "instructionkit.yaml").write_text(yaml_content)
+        (temp_dir / "templatekit.yaml").write_text(yaml_content)
 
         parser = RepositoryParser(temp_dir)
 
@@ -101,7 +101,7 @@ bundles:
     instructions:
       - test
 """
-        (temp_dir / "instructionkit.yaml").write_text(yaml_content)
+        (temp_dir / "templatekit.yaml").write_text(yaml_content)
 
         parser = RepositoryParser(temp_dir)
 

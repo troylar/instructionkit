@@ -6,7 +6,7 @@ from io import StringIO
 from rich.console import Console
 from rich.table import Table
 
-from instructionkit.core.models import (
+from aiconfigkit.core.models import (
     AIToolType,
     InstallationRecord,
     InstallationScope,
@@ -14,7 +14,7 @@ from instructionkit.core.models import (
     InstructionBundle,
     RefType,
 )
-from instructionkit.utils.ui import (
+from aiconfigkit.utils.ui import (
     _shorten_url,
     format_bundle_details,
     format_installed_table,

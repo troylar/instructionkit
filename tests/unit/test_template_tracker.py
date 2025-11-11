@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from instructionkit.core.models import AIToolType, InstallationScope, TemplateInstallationRecord
-from instructionkit.storage.template_tracker import TemplateInstallationTracker
+from aiconfigkit.core.models import AIToolType, InstallationScope, TemplateInstallationRecord
+from aiconfigkit.storage.template_tracker import TemplateInstallationTracker
 
 
 @pytest.fixture

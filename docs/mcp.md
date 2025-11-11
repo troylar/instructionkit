@@ -1,6 +1,6 @@
 # MCP Server Management
 
-Complete guide to managing Model Context Protocol (MCP) servers with InstructionKit.
+Complete guide to managing Model Context Protocol (MCP) servers with AI Config Kit.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ Complete guide to managing Model Context Protocol (MCP) servers with Instruction
 
 ## Overview
 
-MCP (Model Context Protocol) servers extend AI coding assistants with additional capabilities like database access, API integrations, and file system operations. InstructionKit makes it easy to:
+MCP (Model Context Protocol) servers extend AI coding assistants with additional capabilities like database access, API integrations, and file system operations. AI Config Kit makes it easy to:
 
 - **Distribute** MCP server configurations across your team via Git
 - **Configure** credentials securely without committing secrets
@@ -28,22 +28,22 @@ MCP (Model Context Protocol) servers extend AI coding assistants with additional
 
 ### What Problem Does This Solve?
 
-**Without InstructionKit:**
+**Without AI Config Kit:**
 - Everyone manually edits `claude_desktop_config.json`
 - Credentials accidentally committed to Git
 - Configuration drift across team members
 - Difficult to update when servers change
 
-**With InstructionKit:**
+**With AI Config Kit:**
 ```bash
 # Install MCP servers (shared via Git)
-inskit mcp install https://github.com/company/mcp-servers --as backend
+aiconfig mcp install https://github.com/company/mcp-servers --as backend
 
 # Configure credentials (stored locally in gitignored .env)
-inskit mcp configure backend
+aiconfig mcp configure backend
 
 # Sync to AI tools (one command, all tools)
-inskit mcp sync --tool all
+aiconfig mcp sync --tool all
 ```
 
 ---
@@ -54,34 +54,34 @@ inskit mcp sync --tool all
 
 ```bash
 # Install from a Git repository
-inskit mcp install https://github.com/company/mcp-servers --as backend
+aiconfig mcp install https://github.com/company/mcp-servers --as backend
 
 # Or install from a local directory
-inskit mcp install ./my-mcp-servers --as backend
+aiconfig mcp install ./my-mcp-servers --as backend
 ```
 
-This downloads the MCP server definitions to your library (`~/.instructionkit/library/`).
+This downloads the MCP server definitions to your library (`~/.ai-config-kit/library/`).
 
 ### 2. Configure Credentials
 
 ```bash
 # Configure interactively (prompts for each credential)
-inskit mcp configure backend
+aiconfig mcp configure backend
 
 # Or configure specific server
-inskit mcp configure backend.github
+aiconfig mcp configure backend.github
 ```
 
-Credentials are stored in `.instructionkit/.env` (automatically gitignored).
+Credentials are stored in `.ai-config-kit/.env` (automatically gitignored).
 
 ### 3. Sync to AI Tools
 
 ```bash
 # Sync to all detected AI tools
-inskit mcp sync --tool all
+aiconfig mcp sync --tool all
 
 # Or sync to specific tool
-inskit mcp sync --tool claude
+aiconfig mcp sync --tool claude
 ```
 
 This writes the MCP configuration to your AI tool's config file (e.g., `claude_desktop_config.json`).
@@ -110,7 +110,7 @@ You should see your MCP servers with resolved environment variables.
 
 ### MCP Templates
 
-An **MCP template** is a Git repository containing `instructionkit.yaml` (or `templatekit.yaml`) with MCP server definitions:
+An **MCP template** is a Git repository containing `ai-config-kit.yaml` (or `templatekit.yaml`) with MCP server definitions:
 
 ```yaml
 name: Backend MCP Servers
@@ -142,7 +142,7 @@ Each MCP template gets a **namespace** to prevent conflicts:
 
 ```bash
 # Install with namespace "backend"
-inskit mcp install <repo> --as backend
+aiconfig mcp install <repo> --as backend
 
 # Servers become: backend.github, backend.postgres, backend.filesystem
 ```
@@ -155,22 +155,22 @@ MCP templates can be installed at two scopes:
 
 | Scope | Library Location | Credentials Location | Use Case |
 |-------|-----------------|---------------------|----------|
-| **Project** (default) | `~/.instructionkit/library/` | `.instructionkit/.env` | Project-specific servers |
-| **Global** | `~/.instructionkit/library/global/` | `~/.instructionkit/global/.env` | Personal or company-wide servers |
+| **Project** (default) | `~/.ai-config-kit/library/` | `.ai-config-kit/.env` | Project-specific servers |
+| **Global** | `~/.ai-config-kit/library/global/` | `~/.ai-config-kit/global/.env` | Personal or company-wide servers |
 
 **Example:**
 ```bash
 # Project scope (default)
 cd ~/projects/backend-api
-inskit mcp install <repo> --as backend
-# Credentials in: ~/projects/backend-api/.instructionkit/.env
+aiconfig mcp install <repo> --as backend
+# Credentials in: ~/projects/backend-api/.ai-config-kit/.env
 
 # Global scope
-inskit mcp install <repo> --as personal --scope global
-# Credentials in: ~/.instructionkit/global/.env
+aiconfig mcp install <repo> --as personal --scope global
+# Credentials in: ~/.ai-config-kit/global/.env
 ```
 
-When syncing, InstructionKit merges global and project credentials (project takes precedence).
+When syncing, AI Config Kit merges global and project credentials (project takes precedence).
 
 ---
 
@@ -180,50 +180,50 @@ When syncing, InstructionKit merges global and project credentials (project take
 
 ```bash
 # Install from GitHub
-inskit mcp install https://github.com/company/mcp-servers --as backend
+aiconfig mcp install https://github.com/company/mcp-servers --as backend
 
 # Install from specific branch
-inskit mcp install https://github.com/company/mcp-servers --as backend --ref develop
+aiconfig mcp install https://github.com/company/mcp-servers --as backend --ref develop
 
 # Install from specific tag/version
-inskit mcp install https://github.com/company/mcp-servers --as backend --ref v1.2.0
+aiconfig mcp install https://github.com/company/mcp-servers --as backend --ref v1.2.0
 ```
 
 ### Install from Local Directory
 
 ```bash
 # Install from local path (useful for testing)
-inskit mcp install ./my-mcp-servers --as backend
+aiconfig mcp install ./my-mcp-servers --as backend
 
 # Absolute path
-inskit mcp install /Users/troy/projects/mcp-servers --as backend
+aiconfig mcp install /Users/troy/projects/mcp-servers --as backend
 ```
 
 ### Install with Scope
 
 ```bash
 # Project scope (default)
-inskit mcp install <repo> --as backend
+aiconfig mcp install <repo> --as backend
 
 # Global scope (available in all projects)
-inskit mcp install <repo> --as company --scope global
+aiconfig mcp install <repo> --as company --scope global
 ```
 
 ### Force Reinstall
 
 ```bash
 # Overwrite existing installation
-inskit mcp install <repo> --as backend --force
+aiconfig mcp install <repo> --as backend --force
 ```
 
 ### List Installed Templates
 
 ```bash
 # List all installed MCP templates
-inskit mcp list
+aiconfig mcp list
 
 # List with JSON output
-inskit mcp list --json
+aiconfig mcp list --json
 ```
 
 ---
@@ -236,13 +236,13 @@ The recommended way to configure credentials:
 
 ```bash
 # Configure all servers in a namespace
-inskit mcp configure backend
+aiconfig mcp configure backend
 
 # Configure specific server
-inskit mcp configure backend.github
+aiconfig mcp configure backend.github
 
 # Show current credentials (masked)
-inskit mcp configure backend.github --show-current
+aiconfig mcp configure backend.github --show-current
 ```
 
 **Interactive prompts:**
@@ -257,11 +257,11 @@ Enter value for GITHUB_PERSONAL_ACCESS_TOKEN:
 ✓ Credential configuration complete!
   Configured: 1 server(s)
 
-Credentials saved to: /Users/troy/projects/backend-api/.instructionkit/.env
+Credentials saved to: /Users/troy/projects/backend-api/.ai-config-kit/.env
 (This file is automatically gitignored)
 
 Next step:
-  Sync to AI tools: inskit mcp sync --tool all
+  Sync to AI tools: aiconfig mcp sync --tool all
 ```
 
 ### Non-Interactive Configuration
@@ -274,14 +274,14 @@ export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxx
 export DATABASE_URL=postgresql://localhost/mydb
 
 # Configure from environment
-inskit mcp configure backend --non-interactive
+aiconfig mcp configure backend --non-interactive
 ```
 
 ### Show Current Credentials
 
 ```bash
 # Show current credentials (masked)
-inskit mcp configure backend.github --show-current
+aiconfig mcp configure backend.github --show-current
 
 # Output:
 # Current Credentials (project scope)
@@ -293,17 +293,17 @@ inskit mcp configure backend.github --show-current
 
 ```bash
 # Configure for project scope (default)
-inskit mcp configure backend
+aiconfig mcp configure backend
 
 # Configure for global scope
-inskit mcp configure company --scope global
+aiconfig mcp configure company --scope global
 ```
 
 ### JSON Output
 
 ```bash
 # Machine-readable output
-inskit mcp configure backend --json
+aiconfig mcp configure backend --json
 
 # Output:
 # {
@@ -324,12 +324,12 @@ inskit mcp configure backend --json
 
 ```bash
 # Sync to all detected AI tools
-inskit mcp sync --tool all
+aiconfig mcp sync --tool all
 
 # Sync to specific tool
-inskit mcp sync --tool claude
-inskit mcp sync --tool cursor
-inskit mcp sync --tool windsurf
+aiconfig mcp sync --tool claude
+aiconfig mcp sync --tool cursor
+aiconfig mcp sync --tool windsurf
 ```
 
 **Output:**
@@ -350,7 +350,7 @@ Skipped Servers:
 Server              Reason
 backend.postgres    Missing credentials: DATABASE_URL
 
-Tip: Run 'inskit mcp configure backend' to configure missing credentials
+Tip: Run 'aiconfig mcp configure backend' to configure missing credentials
 ```
 
 ### Dry Run
@@ -358,29 +358,29 @@ Tip: Run 'inskit mcp configure backend' to configure missing credentials
 Preview what would be synced without making changes:
 
 ```bash
-inskit mcp sync --tool all --dry-run
+aiconfig mcp sync --tool all --dry-run
 ```
 
 ### Scope Control
 
 ```bash
 # Sync project-scoped servers only (default)
-inskit mcp sync --tool all --scope project
+aiconfig mcp sync --tool all --scope project
 
 # Sync global-scoped servers only
-inskit mcp sync --tool all --scope global
+aiconfig mcp sync --tool all --scope global
 ```
 
 ### Backup Control
 
-By default, InstructionKit creates backups before modifying config files:
+By default, AI Config Kit creates backups before modifying config files:
 
 ```bash
 # Create backup (default)
-inskit mcp sync --tool all
+aiconfig mcp sync --tool all
 
 # Skip backup creation
-inskit mcp sync --tool all --no-backup
+aiconfig mcp sync --tool all --no-backup
 ```
 
 Backup files are saved as:
@@ -391,7 +391,7 @@ Backup files are saved as:
 
 ```bash
 # Machine-readable output
-inskit mcp sync --tool all --json
+aiconfig mcp sync --tool all --json
 
 # Output:
 # {
@@ -413,26 +413,26 @@ inskit mcp sync --tool all --json
 
 ```bash
 # List all installed MCP servers
-inskit mcp list
+aiconfig mcp list
 
 # Filter by namespace
-inskit mcp list backend
+aiconfig mcp list backend
 
 # Show only sets
-inskit mcp list --sets
+aiconfig mcp list --sets
 
 # JSON output
-inskit mcp list --json
+aiconfig mcp list --json
 ```
 
 ### Update Servers
 
 ```bash
 # Update specific namespace
-inskit mcp update backend
+aiconfig mcp update backend
 
 # Update all MCP templates
-inskit mcp update --all
+aiconfig mcp update --all
 ```
 
 Updates pull the latest changes from the source repository while preserving your credentials.
@@ -441,10 +441,10 @@ Updates pull the latest changes from the source repository while preserving your
 
 ```bash
 # Uninstall MCP template
-inskit mcp uninstall backend
+aiconfig mcp uninstall backend
 
 # Uninstall with scope
-inskit mcp uninstall company --scope global
+aiconfig mcp uninstall company --scope global
 ```
 
 This removes the template from your library but **does not** remove credentials or synced configurations from AI tools.
@@ -453,17 +453,17 @@ This removes the template from your library but **does not** remove credentials 
 
 ```bash
 # Check if all credentials are configured
-inskit mcp validate
+aiconfig mcp validate
 
 # Check specific namespace
-inskit mcp validate backend
+aiconfig mcp validate backend
 ```
 
 ---
 
 ## Template Repository Format
 
-### Minimal instructionkit.yaml
+### Minimal ai-config-kit.yaml
 
 ```yaml
 name: My MCP Servers
@@ -582,14 +582,14 @@ env: {}
 
 ### Credential Storage
 
-Credentials are stored in `.instructionkit/.env` files which are **automatically gitignored**:
+Credentials are stored in `.ai-config-kit/.env` files which are **automatically gitignored**:
 
 ```bash
 # Project credentials
-<project>/.instructionkit/.env
+<project>/.ai-config-kit/.env
 
 # Global credentials
-~/.instructionkit/global/.env
+~/.ai-config-kit/global/.env
 ```
 
 **File format:**
@@ -601,29 +601,29 @@ SLACK_BOT_TOKEN=xoxb-xxxxx
 
 ### Automatic Gitignore
 
-InstructionKit automatically creates `.gitignore` files to prevent committing secrets:
+AI Config Kit automatically creates `.gitignore` files to prevent committing secrets:
 
 ```
-.instructionkit/.env
+.ai-config-kit/.env
 ```
 
 **Verify it's gitignored:**
 ```bash
 git status
-# Should NOT show .instructionkit/.env
+# Should NOT show .ai-config-kit/.env
 ```
 
 ### Best Practices
 
 ✅ **DO:**
-- Store credentials in `.instructionkit/.env`
+- Store credentials in `.ai-config-kit/.env`
 - Use different credentials for development/production
 - Rotate credentials regularly
 - Use environment-specific namespaces (dev, staging, prod)
 
 ❌ **DON'T:**
-- Commit `.instructionkit/.env` to Git
-- Put credentials in `instructionkit.yaml`
+- Commit `.ai-config-kit/.env` to Git
+- Put credentials in `ai-config-kit.yaml`
 - Share credentials in chat/email
 - Use production credentials for development
 
@@ -631,8 +631,8 @@ git status
 
 When syncing, credentials are merged with this precedence:
 
-1. **Project credentials** (`.instructionkit/.env`)
-2. **Global credentials** (`~/.instructionkit/global/.env`)
+1. **Project credentials** (`.ai-config-kit/.env`)
+2. **Global credentials** (`~/.ai-config-kit/global/.env`)
 
 Project credentials override global credentials for the same variable name.
 
@@ -645,38 +645,38 @@ Project credentials override global credentials for the same variable name.
 #### "Template not found"
 
 ```bash
-inskit mcp configure backend
+aiconfig mcp configure backend
 # Error: Template 'backend' not found in project scope
 ```
 
 **Solution:** Install the template first:
 ```bash
-inskit mcp install <repo> --as backend
+aiconfig mcp install <repo> --as backend
 ```
 
 #### "Missing credentials"
 
 ```bash
-inskit mcp sync --tool all
+aiconfig mcp sync --tool all
 # Skipped Servers:
 # backend.github    Missing credentials: GITHUB_PERSONAL_ACCESS_TOKEN
 ```
 
 **Solution:** Configure the missing credentials:
 ```bash
-inskit mcp configure backend.github
+aiconfig mcp configure backend.github
 ```
 
 #### "No AI tools detected"
 
 ```bash
-inskit mcp sync --tool all
+aiconfig mcp sync --tool all
 # Warning: No AI tools detected
 ```
 
 **Solution:** Check which tools are installed:
 ```bash
-inskit tools
+aiconfig tools
 ```
 
 Install a supported AI tool (Claude Desktop, Cursor, or Windsurf).
@@ -714,7 +714,7 @@ chmod 644 ~/.config/Claude/claude_desktop_config.json
 
 ```bash
 export LOGLEVEL=DEBUG
-inskit mcp sync --tool all
+aiconfig mcp sync --tool all
 ```
 
 #### Check Config Files
@@ -731,7 +731,7 @@ cat ~/Library/Application\ Support/Cursor/User/globalStorage/mcp_config.json | j
 
 ```bash
 # Check your .env file
-cat .instructionkit/.env
+cat .ai-config-kit/.env
 
 # Verify variables are set (after sync)
 # Check Claude Desktop logs for environment variable resolution
@@ -749,8 +749,8 @@ GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxx uvx mcp-server-github
 
 ### Getting Help
 
-- **GitHub Issues**: [Report bugs](https://github.com/troylar/instructionkit/issues)
-- **Discussions**: [Ask questions](https://github.com/troylar/instructionkit/discussions)
+- **GitHub Issues**: [Report bugs](https://github.com/troylar/ai-config-kit/issues)
+- **Discussions**: [Ask questions](https://github.com/troylar/ai-config-kit/discussions)
 - **Documentation**: Check other guides in `docs/`
 
 ---
@@ -760,8 +760,8 @@ GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxx uvx mcp-server-github
 ### Example 1: GitHub + PostgreSQL Setup
 
 ```bash
-# 1. Create instructionkit.yaml
-cat > instructionkit.yaml <<EOF
+# 1. Create ai-config-kit.yaml
+cat > ai-config-kit.yaml <<EOF
 name: Backend Servers
 version: 1.0.0
 
@@ -780,15 +780,15 @@ mcp_servers:
 EOF
 
 # 2. Install
-inskit mcp install . --as backend
+aiconfig mcp install . --as backend
 
 # 3. Configure
 export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxx
 export DATABASE_URL=postgresql://localhost/mydb
-inskit mcp configure backend --non-interactive
+aiconfig mcp configure backend --non-interactive
 
 # 4. Sync
-inskit mcp sync --tool claude
+aiconfig mcp sync --tool claude
 ```
 
 ### Example 2: Team Onboarding
@@ -800,14 +800,14 @@ inskit mcp sync --tool claude
 echo "Setting up MCP servers..."
 
 # Install company MCP servers
-inskit mcp install https://github.com/company/mcp-servers --as company
+aiconfig mcp install https://github.com/company/mcp-servers --as company
 
 # Configure credentials
 echo "Please configure your credentials:"
-inskit mcp configure company
+aiconfig mcp configure company
 
 # Sync to AI tools
-inskit mcp sync --tool all
+aiconfig mcp sync --tool all
 
 echo "✓ MCP servers configured!"
 ```
@@ -817,17 +817,17 @@ echo "✓ MCP servers configured!"
 ```bash
 # Development environment
 cd ~/projects/my-app-dev
-inskit mcp install https://github.com/company/mcp-dev --as dev
+aiconfig mcp install https://github.com/company/mcp-dev --as dev
 export DATABASE_URL=postgresql://localhost/dev_db
-inskit mcp configure dev --non-interactive
-inskit mcp sync --tool all
+aiconfig mcp configure dev --non-interactive
+aiconfig mcp sync --tool all
 
 # Production environment
 cd ~/projects/my-app-prod
-inskit mcp install https://github.com/company/mcp-prod --as prod
+aiconfig mcp install https://github.com/company/mcp-prod --as prod
 export DATABASE_URL=postgresql://prod-host/prod_db
-inskit mcp configure prod --non-interactive
-inskit mcp sync --tool all
+aiconfig mcp configure prod --non-interactive
+aiconfig mcp sync --tool all
 ```
 
 ---

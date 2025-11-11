@@ -1,4 +1,4 @@
-# InstructionKit Roadmap (Personal - DO NOT COMMIT)
+# AI Config Kit Roadmap (Personal - DO NOT COMMIT)
 
 **Current Status:** 3 GitHub stars, v0.2.0, early adoption phase
 **Last Updated:** 2025-10-24
@@ -25,7 +25,7 @@ At 3 stars, we're in discovery phase. Priority should be:
 **Impact:** Critical - empty library = abandoned tool
 
 **Tasks:**
-- Create `instructionkit/examples` repo on GitHub
+- Create `ai-config-kit/examples` repo on GitHub
 - Build 10-15 high-quality, battle-tested instructions:
   - Python style & best practices
   - JavaScript/TypeScript patterns
@@ -48,7 +48,7 @@ At 3 stars, we're in discovery phase. Priority should be:
 
 **Implementation:**
 ```bash
-inskit quickstart
+aiconfig quickstart
 # Does:
 # 1. Downloads example repository automatically
 # 2. Opens TUI to browse examples
@@ -67,8 +67,8 @@ inskit quickstart
 
 **Tasks:**
 - Record 60-second demo showing:
-  1. `pip install instructionkit`
-  2. `inskit quickstart`
+  1. `pip install ai-config-kit`
+  2. `aiconfig quickstart`
   3. Browse TUI, select instructions
   4. Install to project
   5. Open Cursor/Claude, show AI using the instruction
@@ -86,7 +86,7 @@ inskit quickstart
 
 **Implementation:**
 ```bash
-inskit create my-python-rules
+aiconfig create my-python-rules
 
 # Opens editor with template:
 # Name: my-python-rules
@@ -160,14 +160,14 @@ inskit create my-python-rules
 **Implementation:**
 ```bash
 # Export to GitHub Gist
-inskit export python-style --format gist
+aiconfig export python-style --format gist
 # Creates gist, returns URL
 
 # Import from shared link
-inskit import https://gist.github.com/troylar/abc123
+aiconfig import https://gist.github.com/troylar/abc123
 
 # Export to file for copying
-inskit export python-style --format standalone
+aiconfig export python-style --format standalone
 # Creates single .md file with metadata
 ```
 
@@ -181,7 +181,7 @@ inskit export python-style --format standalone
 
 **Implementation:**
 ```bash
-inskit template list
+aiconfig template list
 # Available templates:
 # - python-style-guide
 # - react-best-practices
@@ -189,7 +189,7 @@ inskit template list
 # - testing-guidelines
 # - code-review-checklist
 
-inskit template use python-style-guide
+aiconfig template use python-style-guide
 # Opens interactive form:
 # - Max line length? [88]
 # - Import style? [absolute/relative/both]
@@ -208,14 +208,14 @@ inskit template use python-style-guide
 **Impact:** Medium - builds social proof
 
 **Implementation:**
-- Add opt-in telemetry: `inskit stats --anonymous`
-- Public stats page at instructionkit.dev/stats (static page)
-  - "X projects using InstructionKit"
+- Add opt-in telemetry: `aiconfig stats --anonymous`
+- Public stats page at ai-config-kit.dev/stats (static page)
+  - "X projects using AI Config Kit"
   - "Y instructions shared"
   - "Z downloads this month"
 - Add `--anonymous-usage` flag on first run (ask permission)
 
-**Why:** Social proof. People trust tools others use. "1,247 developers use InstructionKit"
+**Why:** Social proof. People trust tools others use. "1,247 developers use AI Config Kit"
 
 ---
 
@@ -230,7 +230,7 @@ inskit template use python-style-guide
 **Improved:** Side-by-side diff showing changes
 
 ```bash
-inskit install python-style
+aiconfig install python-style
 
 ⚠️  Conflict detected: python-style already installed
 
@@ -259,7 +259,7 @@ What would you like to do?
 
 **Implementation:**
 ```bash
-inskit lint my-instruction.md
+aiconfig lint my-instruction.md
 
 Checking: my-instruction.md
 ❌ Too long (3,450 words) - AI may ignore parts
@@ -289,7 +289,7 @@ Score: 6/10 - Needs improvement
 **Implementation:**
 ```bash
 cd my-fastapi-project
-inskit install
+aiconfig install
 
 🔍 Project detected: Python FastAPI application
 
@@ -319,8 +319,8 @@ Select all? [Y/n]
 **Impact:** Medium - creates ecosystem without infrastructure
 
 **Implementation:**
-- Create `instructionkit/awesome-instructions` GitHub repo
-- Static website (GitHub Pages): instructionkit.dev/browse
+- Create `ai-config-kit/awesome-instructions` GitHub repo
+- Static website (GitHub Pages): ai-config-kit.dev/browse
 - Users submit PR to add their instructions
 - Categories: Python, JavaScript, DevOps, Security, etc.
 - Each listing:
@@ -332,7 +332,7 @@ Select all? [Y/n]
     tags: [python, advanced, enterprise]
     installs: 234
   ```
-- `inskit search` can query this index
+- `aiconfig search` can query this index
 
 **Why:** Creates ecosystem before building complex cloud infrastructure.
 
@@ -344,7 +344,7 @@ Select all? [Y/n]
 
 **Implementation:**
 ```bash
-inskit test python-style
+aiconfig test python-style
 
 Running tests for: python-style
 
@@ -366,7 +366,7 @@ Test 3: Type hints
 Score: 2/3 tests passed
 
 # CI/CD integration
-inskit test --all --ci
+aiconfig test --all --ci
 ```
 
 **Why:** Prevents broken instructions from spreading.
@@ -379,7 +379,7 @@ inskit test --all --ci
 
 **Implementation:**
 ```yaml
-# .instructionkit/team-profile.yaml
+# .ai-config-kit/team-profile.yaml
 name: Backend Team Standards
 version: 1.0.0
 
@@ -401,7 +401,7 @@ repositories:
 # Team member joins project
 git clone project
 cd project
-inskit sync-team
+aiconfig sync-team
 
 📦 Installing team requirements:
   ✓ python-style (from company/instructions)
@@ -493,7 +493,7 @@ Install optional? [y/N]
 
 ### Week 1-2: Content Marketing
 - [ ] Write blog post: "We built 50 projects with AI. Here's what we learned about prompting"
-  - Introduce InstructionKit at end
+  - Introduce AI Config Kit at end
   - Concrete examples with before/after
 - [ ] Post to Hacker News
 - [ ] Post to Reddit: r/programming, r/ClaudeAI, r/cursor, r/LocalLLaMA
@@ -501,7 +501,7 @@ Install optional? [y/N]
 - [ ] Post in AI coding tool Discords (Cursor, Claude, Windsurf)
 
 ### Week 3-4: Social Proof
-- [ ] Use InstructionKit on 5 real open source projects
+- [ ] Use AI Config Kit on 5 real open source projects
 - [ ] Submit PRs adding `.cursor/rules/` or `.claude/rules/` to popular repos
 - [ ] Document results: "Before/After AI code quality in [Project Name]"
 - [ ] Create case studies
@@ -528,7 +528,7 @@ Install optional? [y/N]
 - [ ] Day 1-2: Create example instruction repo (20 quality instructions)
   - Python, JavaScript, React, API design, testing, git, docs, security
   - Test each instruction with real AI tools
-- [ ] Day 3-4: Add one-command onboarding (`inskit quickstart`)
+- [ ] Day 3-4: Add one-command onboarding (`aiconfig quickstart`)
   - Auto-download examples
   - Interactive TUI walkthrough
   - Show next steps
@@ -541,12 +541,12 @@ Install optional? [y/N]
 - [ ] Day 1: Update README with video + examples
   - Move video to top
   - Simplify language
-  - Add "Why InstructionKit?" section
-- [ ] Day 2-3: Add `inskit create` for generating instructions
+  - Add "Why AI Config Kit?" section
+- [ ] Day 2-3: Add `aiconfig create` for generating instructions
   - Template-based editor
   - Validation
   - Auto-add to library
-- [ ] Day 4: Add `inskit export --format gist` for sharing
+- [ ] Day 4: Add `aiconfig export --format gist` for sharing
   - GitHub Gist integration
   - Copy-paste format
 - [ ] Day 5: Write launch blog post
@@ -627,7 +627,7 @@ Install optional? [y/N]
 - Clear product-market fit
 - Organic growth without marketing
 - Inbound partnership requests
-- Job postings mentioning InstructionKit
+- Job postings mentioning AI Config Kit
 
 **Actions:**
 - NOW consider cloud server
@@ -653,7 +653,7 @@ Remember: **Distribution >> Features** at this stage.
 
 ## Long-Term Vision (12-24 months out)
 
-If InstructionKit succeeds, it becomes:
+If AI Config Kit succeeds, it becomes:
 - **The npm for AI instructions** - standard way to share/distribute
 - **Team collaboration platform** - how teams standardize AI workflows
 - **Quality benchmark** - instructions tested and validated by community
@@ -692,7 +692,7 @@ But to get there, we need users first. Focus on Tier 0 and Tier 1.
 **Random thoughts to explore:**
 - Could we scrape popular .cursorrules files from GitHub? Build initial corpus?
 - Partnership with Cursor/Claude? Pitch as "official instruction manager"?
-- "InstructionKit Certified" badge for quality instructions?
+- "AI Config Kit Certified" badge for quality instructions?
 - Instruction marketplace eventually (like Gumroad for prompts)?
 - Annual "State of AI Instructions" report?
 - YouTube channel with instruction writing tutorials?

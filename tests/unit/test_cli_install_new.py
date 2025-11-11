@@ -5,14 +5,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from instructionkit.cli.install_new import (
+from aiconfigkit.cli.install_new import (
     _check_for_upgrades,
     _detect_installed_collisions,
     _prompt_for_upgrade,
     install_from_library_direct_multi_tool,
     install_from_library_tui,
 )
-from instructionkit.core.models import AIToolType, InstallationRecord, LibraryInstruction, RefType
+from aiconfigkit.core.models import AIToolType, InstallationRecord, LibraryInstruction, RefType
 
 
 @pytest.fixture
@@ -65,9 +65,9 @@ def mock_project_with_git(temp_dir):
 class TestInstallFromLibraryTUI:
     """Tests for install_from_library_tui function."""
 
-    @patch("instructionkit.cli.install_new.install_from_library_direct_multi_tool")
-    @patch("instructionkit.cli.install_new.show_installer_tui")
-    @patch("instructionkit.cli.install_new.LibraryManager")
+    @patch("aiconfigkit.cli.install_new.install_from_library_direct_multi_tool")
+    @patch("aiconfigkit.cli.install_new.show_installer_tui")
+    @patch("aiconfigkit.cli.install_new.LibraryManager")
     def test_install_from_tui_no_duplicate_confirmation(
         self,
         mock_library_manager,
@@ -111,8 +111,8 @@ class TestInstallFromLibraryTUI:
         # Verify success
         assert result == 0
 
-    @patch("instructionkit.cli.install_new.show_installer_tui")
-    @patch("instructionkit.cli.install_new.LibraryManager")
+    @patch("aiconfigkit.cli.install_new.show_installer_tui")
+    @patch("aiconfigkit.cli.install_new.LibraryManager")
     def test_install_from_tui_cancelled(self, mock_library_manager, mock_tui, mock_library_instructions):
         """Test that cancelling from TUI returns gracefully."""
         mock_library_manager.return_value.list_instructions.return_value = mock_library_instructions
@@ -125,7 +125,7 @@ class TestInstallFromLibraryTUI:
         # Should return 0 (success, just cancelled)
         assert result == 0
 
-    @patch("instructionkit.cli.install_new.LibraryManager")
+    @patch("aiconfigkit.cli.install_new.LibraryManager")
     def test_install_from_tui_empty_library(self, mock_library_manager):
         """Test that empty library shows info message."""
         mock_library_manager.return_value.list_instructions.return_value = []
@@ -135,9 +135,9 @@ class TestInstallFromLibraryTUI:
         # Should return 1 (error - no instructions)
         assert result == 1
 
-    @patch("instructionkit.cli.install_new.install_from_library_direct_multi_tool")
-    @patch("instructionkit.cli.install_new.show_installer_tui")
-    @patch("instructionkit.cli.install_new.LibraryManager")
+    @patch("aiconfigkit.cli.install_new.install_from_library_direct_multi_tool")
+    @patch("aiconfigkit.cli.install_new.show_installer_tui")
+    @patch("aiconfigkit.cli.install_new.LibraryManager")
     def test_install_from_tui_delegates_to_direct_install(
         self, mock_library_manager, mock_tui, mock_install_direct, mock_library_instructions
     ):
@@ -163,14 +163,14 @@ class TestInstallFromLibraryTUI:
 class TestInstallFromLibraryDirectMultiTool:
     """Tests for install_from_library_direct_multi_tool function."""
 
-    @patch("instructionkit.cli.install_new._show_installation_preview")
-    @patch("instructionkit.cli.install_new._perform_installation")
-    @patch("instructionkit.cli.install_new._get_ai_tools_from_names")
-    @patch("instructionkit.cli.install_new._resolve_name_conflicts")
-    @patch("instructionkit.cli.install_new._load_instructions_from_library")
-    @patch("instructionkit.cli.install_new._get_project_root_for_installation")
-    @patch("instructionkit.cli.install_new.get_detector")
-    @patch("instructionkit.cli.install_new.LibraryManager")
+    @patch("aiconfigkit.cli.install_new._show_installation_preview")
+    @patch("aiconfigkit.cli.install_new._perform_installation")
+    @patch("aiconfigkit.cli.install_new._get_ai_tools_from_names")
+    @patch("aiconfigkit.cli.install_new._resolve_name_conflicts")
+    @patch("aiconfigkit.cli.install_new._load_instructions_from_library")
+    @patch("aiconfigkit.cli.install_new._get_project_root_for_installation")
+    @patch("aiconfigkit.cli.install_new.get_detector")
+    @patch("aiconfigkit.cli.install_new.LibraryManager")
     def test_confirmation_prompt_called_once(
         self,
         mock_library_manager,
@@ -218,13 +218,13 @@ class TestInstallFromLibraryDirectMultiTool:
         # Verify success
         assert result == 0
 
-    @patch("instructionkit.cli.install_new._show_installation_preview")
-    @patch("instructionkit.cli.install_new._get_ai_tools_from_names")
-    @patch("instructionkit.cli.install_new._resolve_name_conflicts")
-    @patch("instructionkit.cli.install_new._load_instructions_from_library")
-    @patch("instructionkit.cli.install_new._get_project_root_for_installation")
-    @patch("instructionkit.cli.install_new.get_detector")
-    @patch("instructionkit.cli.install_new.LibraryManager")
+    @patch("aiconfigkit.cli.install_new._show_installation_preview")
+    @patch("aiconfigkit.cli.install_new._get_ai_tools_from_names")
+    @patch("aiconfigkit.cli.install_new._resolve_name_conflicts")
+    @patch("aiconfigkit.cli.install_new._load_instructions_from_library")
+    @patch("aiconfigkit.cli.install_new._get_project_root_for_installation")
+    @patch("aiconfigkit.cli.install_new.get_detector")
+    @patch("aiconfigkit.cli.install_new.LibraryManager")
     def test_confirmation_denied_cancels_installation(
         self,
         mock_library_manager,
@@ -263,8 +263,8 @@ class TestInstallFromLibraryDirectMultiTool:
         # Should return 0 (cancelled, not error)
         assert result == 0
 
-    @patch("instructionkit.cli.install_new._get_project_root_for_installation")
-    @patch("instructionkit.cli.install_new.LibraryManager")
+    @patch("aiconfigkit.cli.install_new._get_project_root_for_installation")
+    @patch("aiconfigkit.cli.install_new.LibraryManager")
     def test_invalid_conflict_strategy(self, mock_library_manager, mock_get_root):
         """Test that invalid conflict strategy returns error."""
         result = install_from_library_direct_multi_tool(
@@ -276,9 +276,9 @@ class TestInstallFromLibraryDirectMultiTool:
         # Should return 1 (error)
         assert result == 1
 
-    @patch("instructionkit.cli.install_new._load_instructions_from_library")
-    @patch("instructionkit.cli.install_new._get_project_root_for_installation")
-    @patch("instructionkit.cli.install_new.LibraryManager")
+    @patch("aiconfigkit.cli.install_new._load_instructions_from_library")
+    @patch("aiconfigkit.cli.install_new._get_project_root_for_installation")
+    @patch("aiconfigkit.cli.install_new.LibraryManager")
     def test_instruction_not_found(self, mock_library_manager, mock_get_root, mock_load_instructions):
         """Test that missing instruction returns error."""
         mock_get_root.return_value = Path("/fake/project")
@@ -298,11 +298,11 @@ class TestInstallationFlow:
     """Integration tests for the full installation flow."""
 
     @patch("rich.prompt.Confirm.ask")
-    @patch("instructionkit.cli.install_new.show_installer_tui")
-    @patch("instructionkit.cli.install_new.find_project_root")
-    @patch("instructionkit.cli.install_new.get_detector")
-    @patch("instructionkit.cli.install_new.LibraryManager")
-    @patch("instructionkit.cli.install_new.InstallationTracker")
+    @patch("aiconfigkit.cli.install_new.show_installer_tui")
+    @patch("aiconfigkit.cli.install_new.find_project_root")
+    @patch("aiconfigkit.cli.install_new.get_detector")
+    @patch("aiconfigkit.cli.install_new.LibraryManager")
+    @patch("aiconfigkit.cli.install_new.InstallationTracker")
     def test_full_flow_single_confirmation(
         self,
         mock_tracker,
@@ -418,7 +418,7 @@ class TestUpgradeDetection:
         mock_tool = MagicMock()
         mock_tool.tool_type = AIToolType.COPILOT
 
-        with patch("instructionkit.cli.install_new.InstallationTracker") as mock_tracker_class:
+        with patch("aiconfigkit.cli.install_new.InstallationTracker") as mock_tracker_class:
             mock_tracker = MagicMock()
             mock_tracker.get_installation.return_value = existing_record
             mock_tracker_class.return_value = mock_tracker
@@ -442,7 +442,7 @@ class TestUpgradeDetection:
         mock_tool = MagicMock()
         mock_tool.tool_type = AIToolType.COPILOT
 
-        with patch("instructionkit.cli.install_new.InstallationTracker") as mock_tracker_class:
+        with patch("aiconfigkit.cli.install_new.InstallationTracker") as mock_tracker_class:
             mock_tracker = MagicMock()
             mock_tracker.get_installation.return_value = None  # Not installed
             mock_tracker_class.return_value = mock_tracker
@@ -490,7 +490,7 @@ class TestUpgradeDetection:
             author="Test Author",
         )
 
-        with patch("instructionkit.cli.install_new.InstallationTracker") as mock_tracker_class:
+        with patch("aiconfigkit.cli.install_new.InstallationTracker") as mock_tracker_class:
             mock_tracker = MagicMock()
             mock_tracker.get_installation.return_value = existing_record
             mock_tracker_class.return_value = mock_tracker
@@ -601,7 +601,7 @@ class TestCollisionDetection:
         mock_tool = MagicMock()
         mock_tool.tool_type = AIToolType.COPILOT
 
-        with patch("instructionkit.cli.install_new.InstallationTracker") as mock_tracker_class:
+        with patch("aiconfigkit.cli.install_new.InstallationTracker") as mock_tracker_class:
             mock_tracker = MagicMock()
             mock_tracker.find_instructions_by_name.return_value = [existing_record]
             mock_tracker_class.return_value = mock_tracker
@@ -637,7 +637,7 @@ class TestCollisionDetection:
         mock_tool = MagicMock()
         mock_tool.tool_type = AIToolType.COPILOT
 
-        with patch("instructionkit.cli.install_new.InstallationTracker") as mock_tracker_class:
+        with patch("aiconfigkit.cli.install_new.InstallationTracker") as mock_tracker_class:
             mock_tracker = MagicMock()
             mock_tracker.find_instructions_by_name.return_value = [existing_record]
             mock_tracker_class.return_value = mock_tracker
@@ -657,7 +657,7 @@ class TestCollisionDetection:
         mock_tool = MagicMock()
         mock_tool.tool_type = AIToolType.COPILOT
 
-        with patch("instructionkit.cli.install_new.InstallationTracker") as mock_tracker_class:
+        with patch("aiconfigkit.cli.install_new.InstallationTracker") as mock_tracker_class:
             mock_tracker = MagicMock()
             mock_tracker.find_instructions_by_name.return_value = []  # Not installed
             mock_tracker_class.return_value = mock_tracker

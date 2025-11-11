@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from instructionkit.core.conflict_resolution import ConflictResolver
-from instructionkit.core.models import ConflictResolution
+from aiconfigkit.core.conflict_resolution import ConflictResolver
+from aiconfigkit.core.models import ConflictResolution
 
 
 class TestConflictResolver:

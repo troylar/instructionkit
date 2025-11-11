@@ -5,14 +5,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 from git.exc import GitCommandError
 
-from instructionkit.core.git_operations import GitOperations, RepositoryOperationError
-from instructionkit.core.models import RefType
+from aiconfigkit.core.git_operations import GitOperations, RepositoryOperationError
+from aiconfigkit.core.models import RefType
 
 
 class TestDetectRefType:
     """Test detect_ref_type function."""
 
-    @patch("instructionkit.core.git_operations.git.cmd.Git")
+    @patch("aiconfigkit.core.git_operations.git.cmd.Git")
     def test_detect_ref_type_tag(self, mock_git_class):
         """Test detecting a tag reference."""
         mock_git = MagicMock()
@@ -26,7 +26,7 @@ class TestDetectRefType:
         assert ref == "v1.0.0"
         assert ref_type == RefType.TAG
 
-    @patch("instructionkit.core.git_operations.git.cmd.Git")
+    @patch("aiconfigkit.core.git_operations.git.cmd.Git")
     def test_detect_ref_type_branch(self, mock_git_class):
         """Test detecting a branch reference."""
         mock_git = MagicMock()
@@ -65,7 +65,7 @@ class TestDetectRefType:
         assert ref is None
         assert ref_type == RefType.BRANCH
 
-    @patch("instructionkit.core.git_operations.git.cmd.Git")
+    @patch("aiconfigkit.core.git_operations.git.cmd.Git")
     def test_detect_ref_type_tag_priority_over_branch(self, mock_git_class):
         """Test that tags take priority over branches with same name."""
         mock_git = MagicMock()
@@ -80,7 +80,7 @@ class TestDetectRefType:
         assert ref == "release"
         assert ref_type == RefType.TAG
 
-    @patch("instructionkit.core.git_operations.git.cmd.Git")
+    @patch("aiconfigkit.core.git_operations.git.cmd.Git")
     def test_detect_ref_type_invalid_ref(self, mock_git_class):
         """Test error handling for invalid reference."""
         mock_git = MagicMock()
@@ -90,7 +90,7 @@ class TestDetectRefType:
         with pytest.raises(RepositoryOperationError, match="Reference 'nonexistent' not found"):
             GitOperations.detect_ref_type("https://github.com/user/repo", "nonexistent")
 
-    @patch("instructionkit.core.git_operations.git.cmd.Git")
+    @patch("aiconfigkit.core.git_operations.git.cmd.Git")
     def test_detect_ref_type_network_error(self, mock_git_class):
         """Test error handling for network issues."""
         mock_git = MagicMock()
@@ -104,7 +104,7 @@ class TestDetectRefType:
 class TestValidateRemoteRef:
     """Test validate_remote_ref function."""
 
-    @patch("instructionkit.core.git_operations.git.cmd.Git")
+    @patch("aiconfigkit.core.git_operations.git.cmd.Git")
     def test_validate_branch_ref(self, mock_git_class):
         """Test validating a branch reference."""
         mock_git = MagicMock()
@@ -115,7 +115,7 @@ class TestValidateRemoteRef:
         assert result is True
         mock_git.ls_remote.assert_called_once_with("--exit-code", "--heads", "https://github.com/user/repo", "main")
 
-    @patch("instructionkit.core.git_operations.git.cmd.Git")
+    @patch("aiconfigkit.core.git_operations.git.cmd.Git")
     def test_validate_tag_ref(self, mock_git_class):
         """Test validating a tag reference."""
         mock_git = MagicMock()
@@ -126,7 +126,7 @@ class TestValidateRemoteRef:
         assert result is True
         mock_git.ls_remote.assert_called_once_with("--exit-code", "--tags", "https://github.com/user/repo", "v1.0.0")
 
-    @patch("instructionkit.core.git_operations.git.cmd.Git")
+    @patch("aiconfigkit.core.git_operations.git.cmd.Git")
     def test_validate_commit_ref(self, mock_git_class):
         """Test validating a commit reference (always returns True)."""
         mock_git = MagicMock()
@@ -138,7 +138,7 @@ class TestValidateRemoteRef:
         # ls-remote not called for commits
         mock_git.ls_remote.assert_not_called()
 
-    @patch("instructionkit.core.git_operations.git.cmd.Git")
+    @patch("aiconfigkit.core.git_operations.git.cmd.Git")
     def test_validate_ref_not_found(self, mock_git_class):
         """Test validation returns False for non-existent ref."""
         mock_git = MagicMock()
@@ -150,7 +150,7 @@ class TestValidateRemoteRef:
 
         assert result is False
 
-    @patch("instructionkit.core.git_operations.git.cmd.Git")
+    @patch("aiconfigkit.core.git_operations.git.cmd.Git")
     def test_validate_ref_network_error(self, mock_git_class):
         """Test validation raises error for network issues."""
         mock_git = MagicMock()

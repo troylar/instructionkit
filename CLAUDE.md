@@ -4,23 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**InstructionKit** is a CLI tool for managing AI coding assistant instructions. It allows users to download instruction repositories to a local library, browse them with an interactive TUI, and install them to AI tools (Cursor, Claude Code, Windsurf, GitHub Copilot) at the project level.
+**AI Config Kit** is a CLI tool for managing AI coding assistant instructions. It allows users to download instruction repositories to a local library, browse them with an interactive TUI, and install them to AI tools (Cursor, Claude Code, Windsurf, GitHub Copilot) at the project level.
 
-**CLI entry point:** `inskit` (installed via `pip install instructionkit`)
+**CLI entry point:** `aiconfig` (installed via `pip install ai-config-kit`)
 
 ## Architecture
 
 ### Core Concepts
 
-1. **Library System**: Instructions are downloaded from Git repos or local folders to `~/.instructionkit/library/` organized by namespace
+1. **Library System**: Instructions are downloaded from Git repos or local folders to `~/.ai-config-kit/library/` organized by namespace
 2. **Project-Level Installation**: All installations are project-specific, stored in tool-specific directories (`.cursor/rules/`, `.claude/rules/`, etc.)
-3. **Installation Tracking**: Tracked in `<project-root>/.instructionkit/installations.json` for each project
+3. **Installation Tracking**: Tracked in `<project-root>/.ai-config-kit/installations.json` for each project
 4. **Interactive TUI**: Terminal UI for browsing and selecting instructions from the library
 
 ### Package Structure
 
 ```
-instructionkit/
+ai-config-kit/
 ├── ai_tools/          # AI tool integrations and detection
 │   ├── base.py       # Abstract AITool base class
 │   ├── claude.py     # Claude Code (.claude/rules/*.md)
@@ -40,12 +40,12 @@ instructionkit/
 │   └── tools.py      # List detected AI tools
 ├── core/              # Core business logic
 │   ├── models.py     # Data models (Instruction, Repository, etc.)
-│   ├── repository.py # Parse instructionkit.yaml
+│   ├── repository.py # Parse ai-config-kit.yaml
 │   ├── git_operations.py # Git clone/pull operations
 │   ├── checksum.py   # File integrity checking
 │   └── conflict_resolution.py # Handle file conflicts
 ├── storage/           # Data persistence
-│   ├── library.py    # LibraryManager for ~/.instructionkit/library/
+│   ├── library.py    # LibraryManager for ~/.ai-config-kit/library/
 │   └── tracker.py    # InstallationTracker for installations.json
 ├── tui/               # Terminal UI
 │   └── installer.py  # Textual-based interactive browser
@@ -56,7 +56,7 @@ instructionkit/
 
 ### Key Data Models
 
-From `instructionkit/core/models.py`:
+From `ai-config-kit/core/models.py`:
 
 - **Instruction**: Single instruction file with name, description, content, file_path, tags, checksum
 - **InstructionBundle**: Group of related instructions
@@ -217,7 +217,7 @@ Always reference GitHub issues in commit messages to create automatic links and 
 
   Fixes #1
 
-  The inskit install command was prompting users twice...
+  The aiconfig install command was prompting users twice...
   ```
 
 - **Referencing issues**: Use `Refs #123` or `See #123` to reference related issues without closing them
@@ -257,13 +257,13 @@ Allows installing multiple instructions in one command..."
 ## Important Implementation Details
 
 ### Project Root Detection
-The `utils/project.py` module detects project root by looking for markers like `.git/`, `pyproject.toml`, `package.json`, etc. This enables running `inskit` from any subdirectory within a project.
+The `utils/project.py` module detects project root by looking for markers like `.git/`, `pyproject.toml`, `package.json`, etc. This enables running `aiconfig` from any subdirectory within a project.
 
 ### Installation Workflow
-1. **Download**: Clone/copy repo to `~/.instructionkit/library/<namespace>/`
+1. **Download**: Clone/copy repo to `~/.ai-config-kit/library/<namespace>/`
 2. **Browse**: TUI reads library, displays instructions
 3. **Install**: Copy instruction file to project's tool-specific directory
-4. **Track**: Record in `<project-root>/.instructionkit/installations.json`
+4. **Track**: Record in `<project-root>/.ai-config-kit/installations.json`
 
 ### Conflict Resolution
 When installing an instruction that already exists:
@@ -272,7 +272,7 @@ When installing an instruction that already exists:
 - **OVERWRITE**: Replace existing file
 
 ### Repository Format
-Instruction repositories must have `instructionkit.yaml`:
+Instruction repositories must have `ai-config-kit.yaml`:
 ```yaml
 name: My Instructions
 description: Description
@@ -309,14 +309,14 @@ chmod +x .githooks/pre-push
 ## Common Tasks
 
 ### Adding a New AI Tool
-1. Create `instructionkit/ai_tools/newtool.py` inheriting from `AITool`
+1. Create `ai-config-kit/ai_tools/newtool.py` inheriting from `AITool`
 2. Implement `detect()`, `get_install_path()`, and `install()` methods
 3. Add to `AIToolType` enum in `models.py`
 4. Register in `detector.py`
 5. Add tests in `tests/unit/test_ai_tools.py`
 
 ### Adding a New CLI Command
-1. Create command file in `instructionkit/cli/`
+1. Create command file in `ai-config-kit/cli/`
 2. Define Typer command with `@app.command()`
 3. Register in `cli/main.py`
 4. Add tests in `tests/unit/test_cli.py`
@@ -356,7 +356,7 @@ Follow the `.cursor/rules/documentation-practices.mdc` guide:
 
 ```bash
 # Enable debug logging
-LOGLEVEL=DEBUG inskit install
+LOGLEVEL=DEBUG aiconfig install
 
 # Run specific test with output
 pytest tests/unit/test_models.py -s -vv
@@ -379,9 +379,9 @@ This project uses **GitHub Actions with PyPI Trusted Publishing** for automated 
 
 1. Go to https://pypi.org/manage/account/publishing/
 2. Add a new publisher:
-   - **PyPI Project Name**: `instructionkit`
+   - **PyPI Project Name**: `ai-config-kit`
    - **Owner**: `troylar`
-   - **Repository**: `instructionkit`
+   - **Repository**: `ai-config-kit`
    - **Workflow name**: `publish.yml`
    - **Environment**: (leave empty)
 3. Save the trusted publisher
@@ -511,7 +511,7 @@ gh release create v0.2.0 \
 ```
 
 **Alternative:** Create release manually on GitHub:
-1. Go to https://github.com/troylar/instructionkit/releases/new
+1. Go to https://github.com/troylar/ai-config-kit/releases/new
 2. Click "Choose a tag" and select `v0.2.0`
 3. Title: `v0.2.0`
 4. Copy the relevant section from CHANGELOG.md into the description
@@ -532,7 +532,7 @@ gh run watch
 gh run list --workflow=publish.yml
 ```
 
-You can also monitor at: https://github.com/troylar/instructionkit/actions
+You can also monitor at: https://github.com/troylar/ai-config-kit/actions
 
 ### Post-Release Verification
 
@@ -540,16 +540,16 @@ Wait for the GitHub Actions workflow to complete (usually 2-5 minutes), then:
 
 ```bash
 # Verify package on PyPI
-pip install --upgrade instructionkit
+pip install --upgrade ai-config-kit
 
 # Check installed version
-inskit --version
+aiconfig --version
 
 # Verify GitHub release
 gh release view v0.2.0
 
 # Check PyPI page
-open https://pypi.org/project/instructionkit/
+open https://pypi.org/project/ai-config-kit/
 ```
 
 ### Testing on TestPyPI (Optional)
@@ -564,7 +564,7 @@ gh workflow run publish.yml -f repository=testpypi
 gh run watch
 ```
 
-Then verify on TestPyPI: https://test.pypi.org/project/instructionkit/
+Then verify on TestPyPI: https://test.pypi.org/project/ai-config-kit/
 
 ### Rollback (If Needed)
 
@@ -622,10 +622,10 @@ gh run watch
 The GitHub Actions workflow (`.github/workflows/publish.yml`) handles building and publishing automatically.
 
 ## Active Technologies
-- Markdown (instruction content) | Python 3.10+ (for InstructionKit CLI - no changes needed) + Git (for repository hosting), existing InstructionKit commands (no new dependencies) (001-example-instruction-repo)
-- GitHub repository at `troylar/instructionkit-examples` | Git-based versioning (001-example-instruction-repo)
+- Markdown (instruction content) | Python 3.10+ (for AI Config Kit CLI - no changes needed) + Git (for repository hosting), existing AI Config Kit commands (no new dependencies) (001-example-instruction-repo)
+- GitHub repository at `troylar/ai-config-kit-examples` | Git-based versioning (001-example-instruction-repo)
 - Python 3.10+ (targeting 3.10-3.13) (002-template-sync-system)
-- Filesystem-based (MCP definitions in `~/.instructionkit/library/<namespace>/`, credentials in `.instructionkit/.env`, AI tool configs at standard locations) (003-mcp-server-management)
+- Filesystem-based (MCP definitions in `~/.ai-config-kit/library/<namespace>/`, credentials in `.ai-config-kit/.env`, AI tool configs at standard locations) (003-mcp-server-management)
 
 ## Recent Changes
-- 001-example-instruction-repo: Added Markdown (instruction content) | Python 3.10+ (for InstructionKit CLI - no changes needed) + Git (for repository hosting), existing InstructionKit commands (no new dependencies)
+- 001-example-instruction-repo: Added Markdown (instruction content) | Python 3.10+ (for AI Config Kit CLI - no changes needed) + Git (for repository hosting), existing AI Config Kit commands (no new dependencies)

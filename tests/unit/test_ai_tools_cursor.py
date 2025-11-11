@@ -2,8 +2,8 @@
 
 import pytest
 
-from instructionkit.ai_tools.cursor import CursorTool
-from instructionkit.core.models import AIToolType, InstallationScope, Instruction
+from aiconfigkit.ai_tools.cursor import CursorTool
+from aiconfigkit.core.models import AIToolType, InstallationScope, Instruction
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def mock_cursor_installed(monkeypatch, temp_dir):
 
     cursor_dir.mkdir(parents=True)
 
-    monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+    monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
     return cursor_dir
 
 
@@ -56,7 +56,7 @@ class TestCursorTool:
         """Test is_installed returns False when Cursor is not present."""
         home_dir = temp_dir / "empty_home"
         home_dir.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
         cursor_tool = CursorTool()
         assert cursor_tool.is_installed() is False
 
@@ -66,7 +66,7 @@ class TestCursorTool:
         def raise_error():
             raise RuntimeError("Test error")
 
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", raise_error)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", raise_error)
         cursor_tool = CursorTool()
         assert cursor_tool.is_installed() is False
 

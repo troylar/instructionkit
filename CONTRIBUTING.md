@@ -1,6 +1,6 @@
-# Contributing to InstructionKit
+# Contributing to AI Config Kit
 
-Thanks for your interest in improving InstructionKit! This project thrives on community involvement. The guidelines below help you get started quickly and keep contributions consistent and high-quality.
+Thanks for your interest in improving AI Config Kit! This project thrives on community involvement. The guidelines below help you get started quickly and keep contributions consistent and high-quality.
 
 ## 🧭 Ways to Contribute
 
@@ -14,14 +14,14 @@ If you are unsure where to begin, check the **good first issue** label or ask in
 
 ## ⚙️ Development Environment
 
-InstructionKit uses [Invoke](https://www.pyinvoke.org/) to orchestrate common tasks. After cloning the repo:
+AI Config Kit uses [Invoke](https://www.pyinvoke.org/) to orchestrate common tasks. After cloning the repo:
 
 ```bash
 pip install invoke
 invoke dev-setup
 ```
 
-This installs InstructionKit in editable mode with all development dependencies.
+This installs AI Config Kit in editable mode with all development dependencies.
 
 ### Available Invoke Tasks
 

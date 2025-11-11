@@ -4,8 +4,8 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from instructionkit.core.models import AIToolType, InstallationRecord, InstallationScope
-from instructionkit.storage.tracker import InstallationTracker
+from aiconfigkit.core.models import AIToolType, InstallationRecord, InstallationScope
+from aiconfigkit.storage.tracker import InstallationTracker
 
 
 class TestRelativePathStorage:

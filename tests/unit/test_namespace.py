@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from instructionkit.utils.namespace import (
+from aiconfigkit.utils.namespace import (
     derive_namespace,
     extract_repo_name_from_url,
     get_install_path,
