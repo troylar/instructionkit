@@ -11,6 +11,8 @@ from instructionkit.core.models import (
     AIToolType,
     Instruction,
     InstructionBundle,
+    MCPServer,
+    MCPSet,
     Repository,
 )
 
@@ -206,6 +208,64 @@ class RepositoryParser:
             instructions.append(instruction)
 
         return instructions
+
+    def parse_mcp_servers(self, namespace: str) -> list[MCPServer]:
+        """
+        Parse MCP servers from templatekit.yaml (instructionkit.yaml).
+
+        Args:
+            namespace: Namespace for these servers
+
+        Returns:
+            List of MCPServer objects
+        """
+        if not self.metadata_file.exists():
+            return []
+
+        with open(self.metadata_file, "r", encoding="utf-8") as f:
+            metadata = yaml.safe_load(f)
+
+        if not metadata:
+            return []
+
+        servers = []
+        for server_data in metadata.get("mcp_servers", []):
+            try:
+                server = MCPServer.from_dict(server_data, namespace)
+                servers.append(server)
+            except Exception as e:
+                logger.warning(f"Failed to parse MCP server {server_data.get('name', 'unknown')}: {e}")
+
+        return servers
+
+    def parse_mcp_sets(self, namespace: str) -> list[MCPSet]:
+        """
+        Parse MCP sets from templatekit.yaml (instructionkit.yaml).
+
+        Args:
+            namespace: Namespace for these sets
+
+        Returns:
+            List of MCPSet objects
+        """
+        if not self.metadata_file.exists():
+            return []
+
+        with open(self.metadata_file, "r", encoding="utf-8") as f:
+            metadata = yaml.safe_load(f)
+
+        if not metadata:
+            return []
+
+        sets = []
+        for set_data in metadata.get("mcp_sets", []):
+            try:
+                mcp_set = MCPSet.from_dict(set_data, namespace)
+                sets.append(mcp_set)
+            except Exception as e:
+                logger.warning(f"Failed to parse MCP set {set_data.get('name', 'unknown')}: {e}")
+
+        return sets
 
 
 def validate_repository_structure(repo_path: Path) -> Optional[str]:

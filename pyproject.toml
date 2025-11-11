@@ -27,6 +27,7 @@ dependencies = [
     "pyyaml>=6.0",
     "textual>=0.41.0",
     "GitPython>=3.1.45",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.optional-dependencies]

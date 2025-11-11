@@ -41,6 +41,10 @@ app.add_typer(template_app, name="template")
 backup_app = typer.Typer(help="Manage template backups")
 template_app.add_typer(backup_app, name="backup")
 
+# Create mcp subcommand group
+mcp_app = typer.Typer(help="Manage MCP server configurations")
+app.add_typer(mcp_app, name="mcp")
+
 # Register template commands
 template_app.command(name="init")(template_init_command)
 template_app.command(name="install")(template_install_command)

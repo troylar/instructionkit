@@ -651,3 +651,322 @@ class ValidationIssue:
             raise ValueError("Issue must affect at least one item")
         if not self.recommendation:
             raise ValueError("Issue recommendation cannot be empty")
+
+
+# MCP Server Configuration Management Models
+
+
+@dataclass(frozen=True)
+class MCPServer:
+    """
+    Represents a single MCP server definition from a template repository.
+
+    Attributes:
+        name: Unique identifier within namespace (alphanumeric, hyphens, underscores)
+        command: Executable command to launch MCP server
+        args: Command-line arguments for the server
+        env: Environment variables (None = requires user configuration)
+        namespace: Source template namespace (for namespaced identification)
+    """
+
+    name: str
+    command: str
+    args: list[str]
+    env: dict[str, Optional[str]]
+    namespace: str
+
+    def __post_init__(self) -> None:
+        """Validate MCP server data."""
+        import re
+
+        if not re.match(r"^[a-zA-Z0-9_-]+$", self.name):
+            raise ValueError(f"Invalid server name: {self.name}. Must match ^[a-zA-Z0-9_-]+$")
+        if not self.command:
+            raise ValueError("Server command cannot be empty")
+        # Validate env var names
+        for key in self.env.keys():
+            if not re.match(r"^[A-Z][A-Z0-9_]*$", key):
+                raise ValueError(f"Invalid environment variable name: {key}. Must match ^[A-Z][A-Z0-9_]*$")
+
+    def get_fully_qualified_name(self) -> str:
+        """Returns {namespace}.{name}."""
+        return f"{self.namespace}.{self.name}"
+
+    def get_required_env_vars(self) -> list[str]:
+        """Returns env var names where value is None."""
+        return [key for key, value in self.env.items() if value is None]
+
+    def has_all_credentials(self, env_config: "EnvironmentConfig") -> bool:
+        """Check if all required env vars are configured."""
+        required = self.get_required_env_vars()
+        return all(env_config.has(var) for var in required)
+
+    def to_dict(self) -> dict:
+        """Serialize for JSON."""
+        return {
+            "name": self.name,
+            "command": self.command,
+            "args": self.args,
+            "env": self.env,
+            "namespace": self.namespace,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict, namespace: str) -> "MCPServer":
+        """Deserialize from templatekit.yaml."""
+        return cls(
+            name=data["name"],
+            command=data["command"],
+            args=data.get("args", []),
+            env=data.get("env", {}),
+            namespace=namespace,
+        )
+
+
+@dataclass(frozen=True)
+class MCPSet:
+    """
+    A named collection of MCP servers for a specific workflow or task context.
+
+    Attributes:
+        name: Set identifier (e.g., "backend-dev", "frontend-dev")
+        description: Human-readable description of set purpose
+        server_names: Names of MCP servers included in this set
+        namespace: Source template namespace
+    """
+
+    name: str
+    description: str
+    server_names: list[str]
+    namespace: str
+
+    def __post_init__(self) -> None:
+        """Validate MCP set data."""
+        import re
+
+        if not re.match(r"^[a-zA-Z0-9_-]+$", self.name):
+            raise ValueError(f"Invalid set name: {self.name}. Must match ^[a-zA-Z0-9_-]+$")
+        if not self.server_names:
+            raise ValueError("Set must contain at least one server")
+
+    def get_fully_qualified_name(self) -> str:
+        """Returns {namespace}.{name}."""
+        return f"{self.namespace}.{self.name}"
+
+    def resolve_servers(self, all_servers: list[MCPServer]) -> list[MCPServer]:
+        """Get actual server objects."""
+        server_map = {s.name: s for s in all_servers}
+        resolved = []
+        for server_name in self.server_names:
+            if server_name not in server_map:
+                raise ValueError(f"Set '{self.name}' references unknown server '{server_name}'")
+            resolved.append(server_map[server_name])
+        return resolved
+
+    def to_dict(self) -> dict:
+        """Serialize."""
+        return {
+            "name": self.name,
+            "description": self.description,
+            "servers": self.server_names,
+            "namespace": self.namespace,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict, namespace: str) -> "MCPSet":
+        """Deserialize."""
+        return cls(
+            name=data["name"],
+            description=data["description"],
+            server_names=data.get("servers", []),
+            namespace=namespace,
+        )
+
+
+@dataclass
+class MCPTemplate:
+    """
+    Represents an installed MCP template from a repository.
+
+    Attributes:
+        namespace: Unique identifier for this template
+        source_url: Git URL or None for local installs
+        source_path: Local directory path or None for Git installs
+        version: Template version from templatekit.yaml
+        description: Template description
+        installed_at: Installation timestamp
+        servers: MCP servers defined in template
+        sets: MCP sets defined in template
+    """
+
+    namespace: str
+    source_url: Optional[str]
+    source_path: Optional[str]
+    version: str
+    description: str
+    installed_at: datetime
+    servers: list[MCPServer] = field(default_factory=list)
+    sets: list[MCPSet] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        """Validate MCP template data."""
+        if not self.namespace:
+            raise ValueError("Template namespace cannot be empty")
+        if self.source_url and self.source_path:
+            raise ValueError("Template cannot have both source_url and source_path")
+        if not self.source_url and not self.source_path:
+            raise ValueError("Template must have either source_url or source_path")
+
+    def get_server_by_name(self, name: str) -> Optional[MCPServer]:
+        """Find server by name."""
+        for server in self.servers:
+            if server.name == name:
+                return server
+        return None
+
+    def get_set_by_name(self, name: str) -> Optional[MCPSet]:
+        """Find set by name."""
+        for mcp_set in self.sets:
+            if mcp_set.name == name:
+                return mcp_set
+        return None
+
+    def to_dict(self) -> dict:
+        """Serialize."""
+        return {
+            "namespace": self.namespace,
+            "source_url": self.source_url,
+            "source_path": self.source_path,
+            "version": self.version,
+            "description": self.description,
+            "installed_at": self.installed_at.isoformat(),
+            "servers": [s.to_dict() for s in self.servers],
+            "sets": [s.to_dict() for s in self.sets],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "MCPTemplate":
+        """Deserialize."""
+        namespace = data["namespace"]
+        return cls(
+            namespace=namespace,
+            source_url=data.get("source_url"),
+            source_path=data.get("source_path"),
+            version=data["version"],
+            description=data["description"],
+            installed_at=datetime.fromisoformat(data["installed_at"]),
+            servers=[MCPServer.from_dict(s, namespace) for s in data.get("servers", [])],
+            sets=[MCPSet.from_dict(s, namespace) for s in data.get("sets", [])],
+        )
+
+
+@dataclass
+class EnvironmentConfig:
+    """
+    Manages environment variables from `.instructionkit/.env` file.
+
+    Attributes:
+        variables: Environment variable name-value pairs
+        file_path: Path to .env file
+        scope: PROJECT or GLOBAL
+    """
+
+    variables: dict[str, str] = field(default_factory=dict)
+    file_path: Optional[str] = None
+    scope: InstallationScope = InstallationScope.PROJECT
+
+    def get(self, key: str, default: Optional[str] = None) -> Optional[str]:
+        """Get variable value."""
+        return self.variables.get(key, default)
+
+    def set(self, key: str, value: str) -> None:
+        """Set variable value (validates name)."""
+        import re
+
+        if not re.match(r"^[A-Z][A-Z0-9_]*$", key):
+            raise ValueError(f"Invalid environment variable name: {key}. Must match ^[A-Z][A-Z0-9_]*$")
+        self.variables[key] = value
+
+    def has(self, key: str) -> bool:
+        """Check if variable exists."""
+        return key in self.variables
+
+    def validate_for_server(self, server: MCPServer) -> list[str]:
+        """Return list of missing required vars."""
+        required = server.get_required_env_vars()
+        return [var for var in required if not self.has(var)]
+
+    def to_dict(self) -> dict[str, str]:
+        """Export as plain dictionary."""
+        return self.variables.copy()
+
+
+@dataclass
+class ActiveSetState:
+    """
+    Tracks which MCP set is currently active in a project.
+
+    Attributes:
+        namespace: Active set's namespace (None = no active set)
+        set_name: Active set's name (None = no active set)
+        activated_at: When set was activated
+        active_servers: Fully qualified server names currently active
+    """
+
+    namespace: Optional[str] = None
+    set_name: Optional[str] = None
+    activated_at: Optional[datetime] = None
+    active_servers: list[str] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        """Validate state data."""
+        if (self.namespace is None) != (self.set_name is None):
+            raise ValueError("namespace and set_name must both be set or both be None")
+        if not self.namespace and self.active_servers:
+            raise ValueError("active_servers must be empty if no active set")
+
+    def activate_set(self, mcp_set: MCPSet, servers: list[MCPServer]) -> None:
+        """Set active set."""
+        self.namespace = mcp_set.namespace
+        self.set_name = mcp_set.name
+        self.activated_at = datetime.now()
+        self.active_servers = [s.get_fully_qualified_name() for s in servers]
+
+    def deactivate(self) -> None:
+        """Clear active set."""
+        self.namespace = None
+        self.set_name = None
+        self.activated_at = None
+        self.active_servers = []
+
+    def is_active(self) -> bool:
+        """Check if any set is active."""
+        return self.namespace is not None and self.set_name is not None
+
+    def get_active_set_fqn(self) -> Optional[str]:
+        """Returns 'namespace.set_name' or None."""
+        if self.is_active():
+            return f"{self.namespace}.{self.set_name}"
+        return None
+
+    def to_dict(self) -> dict:
+        """Serialize."""
+        return {
+            "namespace": self.namespace,
+            "set_name": self.set_name,
+            "activated_at": self.activated_at.isoformat() if self.activated_at else None,
+            "active_servers": self.active_servers,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ActiveSetState":
+        """Deserialize."""
+        activated_at = None
+        if data.get("activated_at"):
+            activated_at = datetime.fromisoformat(data["activated_at"])
+        return cls(
+            namespace=data.get("namespace"),
+            set_name=data.get("set_name"),
+            activated_at=activated_at,
+            active_servers=data.get("active_servers", []),
+        )
