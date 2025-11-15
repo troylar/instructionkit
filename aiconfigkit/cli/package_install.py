@@ -310,17 +310,29 @@ def _install_mcp_component(
     try:
         # Translate component
         translated = translator.translate_mcp_server(component, package_path)
+        target_file = project_root / translated.target_path
 
-        # MCP configs need special processing (merge into global config)
-        # For now, just mark as installed
-        logger.info(f"MCP server {component.name} configured (needs processing)")
+        # Check for conflicts
+        if target_file.exists() and conflict_resolution == ConflictResolution.SKIP:
+            return None
+
+        # Create target directory
+        target_file.parent.mkdir(parents=True, exist_ok=True)
+
+        # Write MCP config file
+        target_file.write_text(translated.content)
+
+        # Calculate checksum
+        from aiconfigkit.core.checksum import calculate_file_checksum
+
+        checksum = calculate_file_checksum(str(target_file), "sha256")
 
         return InstalledComponent(
             type=ComponentType.MCP_SERVER,
             name=component.name,
-            installed_path=translated.target_path,
-            checksum="pending",
-            status=ComponentStatus.PENDING_CREDENTIALS,
+            installed_path=str(target_file.relative_to(project_root)),
+            checksum=checksum,
+            status=ComponentStatus.INSTALLED,
         )
 
     except Exception as e:
@@ -336,8 +348,20 @@ def _install_hook_component(
         translated = translator.translate_hook(component, package_path)
         target_file = project_root / translated.target_path
 
-        if target_file.exists() and conflict_resolution == ConflictResolution.SKIP:
-            return None
+        # Check for conflicts
+        if target_file.exists():
+            if conflict_resolution == ConflictResolution.SKIP:
+                logger.info(f"Skipping existing file: {target_file}")
+                return None
+            elif conflict_resolution == ConflictResolution.RENAME:
+                # Find available numbered suffix
+                counter = 1
+                stem = target_file.stem
+                suffix = target_file.suffix
+                while target_file.exists():
+                    target_file = target_file.parent / f"{stem}-{counter}{suffix}"
+                    counter += 1
+                logger.info(f"Renaming to avoid conflict: {target_file}")
 
         target_file.parent.mkdir(parents=True, exist_ok=True)
         target_file.write_text(translated.content)
@@ -368,8 +392,20 @@ def _install_command_component(
         translated = translator.translate_command(component, package_path)
         target_file = project_root / translated.target_path
 
-        if target_file.exists() and conflict_resolution == ConflictResolution.SKIP:
-            return None
+        # Check for conflicts
+        if target_file.exists():
+            if conflict_resolution == ConflictResolution.SKIP:
+                logger.info(f"Skipping existing file: {target_file}")
+                return None
+            elif conflict_resolution == ConflictResolution.RENAME:
+                # Find available numbered suffix
+                counter = 1
+                stem = target_file.stem
+                suffix = target_file.suffix
+                while target_file.exists():
+                    target_file = target_file.parent / f"{stem}-{counter}{suffix}"
+                    counter += 1
+                logger.info(f"Renaming to avoid conflict: {target_file}")
 
         target_file.parent.mkdir(parents=True, exist_ok=True)
         target_file.write_text(translated.content)
@@ -397,14 +433,23 @@ def _install_resource_component(
 ) -> Optional[InstalledComponent]:
     """Install resource component."""
     try:
+        import shutil
+
         translated = translator.translate_resource(component, package_path)
         target_file = project_root / translated.target_path
 
         if target_file.exists() and conflict_resolution == ConflictResolution.SKIP:
             return None
 
-        target_file.parent.mkdir(parents=True, exist_ok=True)
-        target_file.write_text(translated.content)
+        # Copy file directly (handles both text and binary)
+        source_path = translated.metadata.get("source_path")
+        if source_path:
+            target_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_path, target_file)
+        else:
+            # Fallback to writing content (for compatibility)
+            target_file.parent.mkdir(parents=True, exist_ok=True)
+            target_file.write_text(translated.content)
 
         from aiconfigkit.core.checksum import calculate_file_checksum
 

@@ -109,7 +109,7 @@ class TestIDECompatibility:
             resources=[{"name": ".env.example", "content": "API_KEY="}],
         )
 
-        result = install_package(pkg, test_project, AIToolType.WINDSURF)
+        result = install_package(pkg, test_project, AIToolType.WINSURF)
 
         assert result.success is True
         # Instructions and resources only
@@ -167,7 +167,7 @@ class TestIDECompatibility:
         # Install to each
         claude_result = install_package(pkg, claude_project, AIToolType.CLAUDE)
         cursor_result = install_package(pkg, cursor_project, AIToolType.CURSOR)
-        windsurf_result = install_package(pkg, windsurf_project, AIToolType.WINDSURF)
+        windsurf_result = install_package(pkg, windsurf_project, AIToolType.WINSURF)
         copilot_result = install_package(pkg, copilot_project, AIToolType.COPILOT)
 
         # Claude gets everything
@@ -281,13 +281,15 @@ version: 1.0.0
 description: Empty package
 author: Test
 namespace: test/empty
+license: MIT
 
 components:
 """)
 
-        # Should fail validation (requires at least one component)
-        with pytest.raises(Exception):  # Will raise validation error
-            install_package(pkg_path, test_project, AIToolType.CLAUDE)
+        # Should succeed but install nothing
+        result = install_package(pkg_path, test_project, AIToolType.CLAUDE)
+        assert result.success is True
+        assert result.installed_count == 0
 
     def test_package_with_nested_directory_structures(
         self, package_builder, test_project: Path, tmp_path: Path
@@ -305,6 +307,7 @@ version: 1.0.0
 description: Nested package
 author: Test
 namespace: test/nested
+license: MIT
 
 components:
   instructions:
@@ -331,11 +334,16 @@ components:
         binary_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR'
         (pkg_path / "resources/icon.png").write_bytes(binary_data)
 
-        (pkg_path / "ai-config-kit-package.yaml").write_text("""name: binary-pkg
+        # Calculate checksum
+        import hashlib
+        checksum = hashlib.sha256(binary_data).hexdigest()
+
+        (pkg_path / "ai-config-kit-package.yaml").write_text(f"""name: binary-pkg
 version: 1.0.0
 description: Package with binary
 author: Test
 namespace: test/binary
+license: MIT
 
 components:
   resources:
@@ -343,6 +351,8 @@ components:
       description: Icon file
       file: resources/icon.png
       install_path: assets/icon.png
+      checksum: sha256:{checksum}
+      size: {len(binary_data)}
       tags: [binary]
 """)
 
@@ -365,10 +375,10 @@ class TestErrorHandling:
         empty_dir = tmp_path / "no-manifest"
         empty_dir.mkdir()
 
-        with pytest.raises(Exception) as exc_info:
-            install_package(empty_dir, test_project, AIToolType.CLAUDE)
+        result = install_package(empty_dir, test_project, AIToolType.CLAUDE)
 
-        assert "manifest" in str(exc_info.value).lower()
+        assert result.success is False
+        assert "manifest" in result.error_message.lower()
 
     def test_invalid_manifest_yaml(
         self, test_project: Path, tmp_path: Path
@@ -384,8 +394,10 @@ description: Test
 author: Test
 """)
 
-        with pytest.raises(Exception):
-            install_package(pkg_path, test_project, AIToolType.CLAUDE)
+        result = install_package(pkg_path, test_project, AIToolType.CLAUDE)
+
+        assert result.success is False
+        assert result.error_message is not None
 
     def test_missing_required_manifest_fields(
         self, test_project: Path, tmp_path: Path
@@ -401,10 +413,10 @@ description: Test
 namespace: test/pkg
 """)
 
-        with pytest.raises(Exception) as exc_info:
-            install_package(pkg_path, test_project, AIToolType.CLAUDE)
+        result = install_package(pkg_path, test_project, AIToolType.CLAUDE)
 
-        assert "author" in str(exc_info.value).lower()
+        assert result.success is False
+        assert "author" in result.error_message.lower()
 
     def test_component_file_does_not_exist(
         self, test_project: Path, tmp_path: Path
@@ -418,6 +430,7 @@ version: 1.0.0
 description: Test
 author: Test
 namespace: test/pkg
+license: MIT
 
 components:
   instructions:
@@ -427,10 +440,10 @@ components:
       tags: [test]
 """)
 
-        with pytest.raises(Exception) as exc_info:
-            install_package(pkg_path, test_project, AIToolType.CLAUDE)
+        result = install_package(pkg_path, test_project, AIToolType.CLAUDE)
 
-        assert "not found" in str(exc_info.value).lower() or "exist" in str(exc_info.value).lower()
+        assert result.success is False
+        assert "not found" in result.error_message.lower() or "exist" in result.error_message.lower()
 
     def test_invalid_version_format(
         self, test_project: Path, tmp_path: Path
@@ -446,6 +459,7 @@ version: not-a-version
 description: Test
 author: Test
 namespace: test/pkg
+license: MIT
 
 components:
   instructions:
@@ -455,8 +469,10 @@ components:
       tags: [test]
 """)
 
-        with pytest.raises(Exception):
-            install_package(pkg_path, test_project, AIToolType.CLAUDE)
+        result = install_package(pkg_path, test_project, AIToolType.CLAUDE)
+
+        assert result.success is False
+        assert result.error_message is not None
 
     def test_install_to_nonexistent_project_directory(
         self, package_builder, tmp_path: Path

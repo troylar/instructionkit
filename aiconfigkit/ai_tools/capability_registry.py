@@ -90,26 +90,24 @@ CAPABILITY_REGISTRY: dict[AIToolType, IDECapability] = {
         tool_name="Windsurf",
         supported_components={
             ComponentType.INSTRUCTION,
-            ComponentType.MCP_SERVER,
             ComponentType.RESOURCE,
         },
         instructions_directory=".windsurf/rules/",
         instruction_file_extension=".md",
         supports_project_scope=True,
         supports_global_scope=False,
-        mcp_config_path="~/.config/windsurf/mcp.json",
+        mcp_config_path=None,  # MCP not supported for project-level packages
         hooks_directory=None,  # Hooks not supported
         commands_directory=None,  # Commands not supported
-        notes=("Windsurf uses .md files in .windsurf/rules/. " "Supports MCP servers. Project-level only."),
+        notes=("Windsurf uses .md files in .windsurf/rules/. " "Project-level only."),
     ),
     AIToolType.COPILOT: IDECapability(
         tool_type=AIToolType.COPILOT,
         tool_name="GitHub Copilot",
         supported_components={
             ComponentType.INSTRUCTION,
-            ComponentType.RESOURCE,
         },
-        instructions_directory=".github/copilot-instructions.md",
+        instructions_directory=".github/instructions/",
         instruction_file_extension=".md",
         supports_project_scope=True,
         supports_global_scope=False,
@@ -117,8 +115,8 @@ CAPABILITY_REGISTRY: dict[AIToolType, IDECapability] = {
         hooks_directory=None,  # Hooks not supported
         commands_directory=None,  # Commands not supported
         notes=(
-            "GitHub Copilot uses .github/copilot-instructions.md for project-level. "
-            "Single file approach, not multi-file. Limited component support."
+            "GitHub Copilot uses .github/instructions/ for project-level. "
+            "Multi-file approach. Instructions only."
         ),
     ),
 }

@@ -108,7 +108,8 @@ def package_builder(tmp_path: Path) -> Callable:
         Returns:
             Path to package directory
         """
-        pkg_path = tmp_path / f"packages/{name}"
+        # Include version in path to avoid conflicts when building multiple versions
+        pkg_path = tmp_path / f"packages/{name}-{version}"
         pkg_path.mkdir(parents=True, exist_ok=True)
 
         # Build manifest

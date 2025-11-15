@@ -166,6 +166,7 @@ class TestCursorTranslator:
             name="config",
             file="resources/config.json",
             description="Config file",
+            install_path=".editorconfig",  # Custom install path
             checksum="sha256:abc123",
             size=1024,
         )
@@ -174,9 +175,10 @@ class TestCursorTranslator:
 
         assert result.component_type == ComponentType.RESOURCE
         assert result.component_name == "config"
-        assert result.target_path == "resources/config.json"
-        assert '"setting": "value"' in result.content
+        assert result.target_path == ".editorconfig"  # Uses install_path
+        assert result.content == ""  # Content not read, file copied directly
         assert result.metadata["checksum"] == "sha256:abc123"
+        assert result.metadata["source_path"] == str(temp_package / "resources/config.json")
 
 
 class TestClaudeCodeTranslator:
@@ -224,8 +226,8 @@ class TestClaudeCodeTranslator:
 
         assert result.component_type == ComponentType.MCP_SERVER
         assert result.component_name == "test-server"
-        assert result.target_path == "~/.config/claude/config.json"
-        assert result.needs_processing is True
+        assert result.target_path == ".claude/mcp/test-server.json"  # Project-specific path
+        assert result.needs_processing is False  # No longer needs merging
         assert len(result.metadata["credentials"]) == 1
 
     def test_translate_hook(self, temp_package: Path) -> None:
@@ -302,8 +304,8 @@ class TestWindsurfTranslator:
 
         assert result.component_type == ComponentType.MCP_SERVER
         assert result.component_name == "test-server"
-        assert result.target_path == "~/.config/windsurf/mcp.json"
-        assert result.needs_processing is True
+        assert result.target_path == ".windsurf/mcp/test-server.json"  # Project-specific path
+        assert result.needs_processing is False  # No longer needs merging
 
     def test_translate_hook_raises_error(self, temp_package: Path) -> None:
         """Test that translating hook raises NotImplementedError."""
@@ -340,9 +342,9 @@ class TestCopilotTranslator:
 
         assert result.component_type == ComponentType.INSTRUCTION
         assert result.component_name == "test-instruction"
-        assert result.target_path == ".github/copilot-instructions.md"
+        assert result.target_path == ".github/instructions/test-instruction.md"  # Directory structure
         assert "Test Instruction" in result.content
-        assert result.needs_processing is True  # Single file approach
+        assert result.needs_processing is False  # Multi-file approach
 
     def test_translate_mcp_server_raises_error(self, temp_package: Path) -> None:
         """Test that translating MCP server raises NotImplementedError."""

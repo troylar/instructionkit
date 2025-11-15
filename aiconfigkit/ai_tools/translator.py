@@ -125,17 +125,20 @@ class ComponentTranslator(ABC):
         Returns:
             Translated component ready for installation
         """
-        # Read resource file
+        # For resources, we don't read the content here - it will be copied in installation
+        # Just provide the source path in metadata
         resource_path = package_root / component.file
-        with open(resource_path, "r") as f:
-            content = f.read()
 
         return TranslatedComponent(
             component_type=ComponentType.RESOURCE,
             component_name=component.name,
-            target_path=component.file,
-            content=content,
-            metadata={"checksum": component.checksum, "size": component.size},
+            target_path=component.install_path,  # Use install_path instead of file
+            content="",  # Content not used - file will be copied directly
+            metadata={
+                "checksum": component.checksum,
+                "size": component.size,
+                "source_path": str(resource_path),  # Source file path for copying
+            },
         )
 
 
@@ -209,15 +212,15 @@ class ClaudeCodeTranslator(ComponentTranslator):
         with open(mcp_path, "r") as f:
             content = f.read()
 
-        # Claude Code MCP config goes in ~/.config/claude/config.json
-        # This is a global config, so we mark it for special processing
+        # Store MCP config in project-specific location
+        target_path = f".claude/mcp/{component.name}.json"
+
         return TranslatedComponent(
             component_type=ComponentType.MCP_SERVER,
             component_name=component.name,
-            target_path="~/.config/claude/config.json",
+            target_path=target_path,
             content=content,
             metadata={"credentials": [c.to_dict() for c in component.credentials]},
-            needs_processing=True,  # Needs to be merged into existing config
         )
 
     def translate_hook(self, component: HookComponent, package_root: Path) -> TranslatedComponent:
@@ -290,19 +293,20 @@ class WindsurfTranslator(ComponentTranslator):
         with open(mcp_path, "r") as f:
             content = f.read()
 
-        # Windsurf MCP config goes in ~/.config/windsurf/mcp.json
+        # Store MCP config in project-specific location
+        target_path = f".windsurf/mcp/{component.name}.json"
+
         return TranslatedComponent(
             component_type=ComponentType.MCP_SERVER,
             component_name=component.name,
-            target_path="~/.config/windsurf/mcp.json",
+            target_path=target_path,
             content=content,
             metadata={"credentials": [c.to_dict() for c in component.credentials]},
-            needs_processing=True,  # Needs to be merged into existing config
         )
 
 
 class CopilotTranslator(ComponentTranslator):
-    """Translator for GitHub Copilot (.github/copilot-instructions.md)."""
+    """Translator for GitHub Copilot (.github/instructions/)."""
 
     @property
     def tool_type(self) -> AIToolType:
@@ -315,16 +319,15 @@ class CopilotTranslator(ComponentTranslator):
         with open(instruction_path, "r") as f:
             content = f.read()
 
-        # GitHub Copilot uses single file approach
-        # Target path: .github/copilot-instructions.md
-        target_path = ".github/copilot-instructions.md"
+        # GitHub Copilot uses directory approach
+        # Target path: .github/instructions/name.md
+        target_path = f".github/instructions/{component.name}.md"
 
         return TranslatedComponent(
             component_type=ComponentType.INSTRUCTION,
             component_name=component.name,
             target_path=target_path,
             content=content,
-            needs_processing=True,  # Needs to be appended to existing file
         )
 
     def translate_mcp_server(self, component: MCPServerComponent, package_root: Path) -> TranslatedComponent:

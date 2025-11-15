@@ -518,6 +518,7 @@ version: 1.0.0
 description: Package with no commits
 author: Test
 namespace: test/pkg
+license: MIT
 
 components:
   instructions:

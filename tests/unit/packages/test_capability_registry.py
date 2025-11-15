@@ -119,11 +119,11 @@ class TestCapabilityRegistry:
         assert windsurf.instruction_file_extension == ".md"
         assert windsurf.supports_project_scope
         assert not windsurf.supports_global_scope
-        assert windsurf.mcp_config_path == "~/.config/windsurf/mcp.json"
+        assert windsurf.mcp_config_path is None  # MCP not supported for project-level packages
 
-        # Windsurf supports instructions, MCP, and resources
+        # Windsurf supports instructions and resources only
         assert windsurf.supports_component(ComponentType.INSTRUCTION)
-        assert windsurf.supports_component(ComponentType.MCP_SERVER)
+        assert not windsurf.supports_component(ComponentType.MCP_SERVER)  # Not supported
         assert windsurf.supports_component(ComponentType.RESOURCE)
 
         # Windsurf does not support hooks or commands
@@ -136,14 +136,14 @@ class TestCapabilityRegistry:
 
         assert copilot.tool_type == AIToolType.COPILOT
         assert copilot.tool_name == "GitHub Copilot"
-        assert copilot.instructions_directory == ".github/copilot-instructions.md"
+        assert copilot.instructions_directory == ".github/instructions/"  # Updated to directory structure
         assert copilot.instruction_file_extension == ".md"
         assert copilot.supports_project_scope
         assert not copilot.supports_global_scope
 
-        # Copilot supports instructions and resources only
+        # Copilot supports instructions only
         assert copilot.supports_component(ComponentType.INSTRUCTION)
-        assert copilot.supports_component(ComponentType.RESOURCE)
+        assert not copilot.supports_component(ComponentType.RESOURCE)  # Not supported
 
         # Copilot does not support MCP, hooks, or commands
         assert not copilot.supports_component(ComponentType.MCP_SERVER)
@@ -178,10 +178,10 @@ class TestCapabilityRegistry:
         """Test getting tools that support MCP servers."""
         tools = get_supported_tools_for_component(ComponentType.MCP_SERVER)
 
-        # Only Claude Code and Windsurf support MCP
-        assert len(tools) == 2
+        # Only Claude Code supports MCP for project-level packages
+        assert len(tools) == 1
         assert AIToolType.CLAUDE in tools
-        assert AIToolType.WINSURF in tools
+        assert AIToolType.WINSURF not in tools  # Not supported for project-level
         assert AIToolType.CURSOR not in tools
         assert AIToolType.COPILOT not in tools
 
@@ -205,12 +205,12 @@ class TestCapabilityRegistry:
         """Test getting tools that support resources."""
         tools = get_supported_tools_for_component(ComponentType.RESOURCE)
 
-        # All tools support resources
-        assert len(tools) == 4
+        # Cursor, Claude, and Windsurf support resources (not Copilot)
+        assert len(tools) == 3
         assert AIToolType.CURSOR in tools
         assert AIToolType.CLAUDE in tools
         assert AIToolType.WINSURF in tools
-        assert AIToolType.COPILOT in tools
+        assert AIToolType.COPILOT not in tools  # Instructions only
 
     def test_validate_component_support_true(self) -> None:
         """Test validating supported component."""

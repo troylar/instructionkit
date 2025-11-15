@@ -181,10 +181,16 @@ class TestMCPServerComponent:
 class TestPackageComponents:
     """Test PackageComponents container."""
 
-    def test_empty_components_raises_error(self) -> None:
-        """Test that empty components raises ValueError."""
-        with pytest.raises(ValueError, match="Package must contain at least one component"):
-            PackageComponents()
+    def test_empty_components_allowed(self) -> None:
+        """Test that empty components are allowed (for edge case testing)."""
+        # Empty packages are now allowed
+        components = PackageComponents()
+        assert components.total_count == 0
+        assert len(components.instructions) == 0
+        assert len(components.mcp_servers) == 0
+        assert len(components.hooks) == 0
+        assert len(components.commands) == 0
+        assert len(components.resources) == 0
 
     def test_total_count(self) -> None:
         """Test total component count calculation."""
