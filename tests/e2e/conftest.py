@@ -1,5 +1,6 @@
 """Fixtures for end-to-end package tests."""
 
+import hashlib
 import shutil
 import subprocess
 from pathlib import Path
@@ -116,6 +117,7 @@ version: {version}
 description: Test package {name}
 author: Test Author
 namespace: test/{name}
+license: MIT
 
 components:
 """
@@ -177,6 +179,7 @@ components:
             for hook in hooks:
                 hook_name = hook["name"]
                 hook_desc = hook.get("description", f"{hook_name} hook")
+                hook_type = hook.get("hook_type", hook_name)  # Default to hook name
                 hook_content = hook.get("content", f"""#!/usr/bin/env bash
 # {hook_name} hook
 echo "Running {hook_name}"
@@ -186,6 +189,7 @@ exit 0
                 manifest += f"""    - name: {hook_name}
       description: {hook_desc}
       file: hooks/{hook_name}.sh
+      hook_type: {hook_type}
       tags: [git, test]
 """
                 hook_file = pkg_path / "hooks" / f"{hook_name}.sh"
@@ -199,6 +203,7 @@ exit 0
             for cmd in commands:
                 cmd_name = cmd["name"]
                 cmd_desc = cmd.get("description", f"{cmd_name} command")
+                cmd_type = cmd.get("command_type", "shell")  # Default to shell
                 cmd_content = cmd.get("content", f"""#!/usr/bin/env bash
 # {cmd_name} command
 echo "Running {cmd_name}"
@@ -208,6 +213,7 @@ exit 0
                 manifest += f"""    - name: {cmd_name}
       description: {cmd_desc}
       file: commands/{cmd_name}.sh
+      command_type: {cmd_type}
       tags: [automation, test]
 """
                 cmd_file = pkg_path / "commands" / f"{cmd_name}.sh"
@@ -224,13 +230,21 @@ exit 0
                 res_content = res.get("content", f"# {res_name} resource\nTest content")
                 res_install_path = res.get("install_path", res_name)
 
+                # Write the file first so we can calculate its checksum
+                resource_file = pkg_path / "resources" / res_name
+                resource_file.write_text(res_content)
+
+                # Calculate checksum
+                checksum = hashlib.sha256(res_content.encode()).hexdigest()
+
                 manifest += f"""    - name: {res_name}
       description: {res_desc}
       file: resources/{res_name}
       install_path: {res_install_path}
+      checksum: sha256:{checksum}
+      size: {len(res_content)}
       tags: [config, test]
 """
-                (pkg_path / "resources" / res_name).write_text(res_content)
 
         # Write manifest
         (pkg_path / "ai-config-kit-package.yaml").write_text(manifest)
