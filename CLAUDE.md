@@ -14,8 +14,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. **Library System**: Instructions are downloaded from Git repos or local folders to `~/.ai-config-kit/library/` organized by namespace
 2. **Project-Level Installation**: All installations are project-specific, stored in tool-specific directories (`.cursor/rules/`, `.claude/rules/`, etc.)
-3. **Installation Tracking**: Tracked in `<project-root>/.ai-config-kit/installations.json` for each project
+3. **Installation Tracking**: Tracked in `<project-root>/.ai-config-kit/installations.json` for each project (instructions) and `<project-root>/.ai-config-kit/packages.json` for packages
 4. **Interactive TUI**: Terminal UI for browsing and selecting instructions from the library
+5. **Configuration Packages**: Multi-component packages containing instructions, MCP servers, hooks, commands, and resources that can be installed as a unit
 
 ### Package Structure
 
@@ -37,7 +38,9 @@ ai-config-kit/
 │   ├── update.py     # Update library repos
 │   ├── delete.py     # Delete from library
 │   ├── uninstall.py  # Uninstall from projects
-│   └── tools.py      # List detected AI tools
+│   ├── tools.py      # List detected AI tools
+│   ├── package.py    # Package management commands (list, uninstall)
+│   └── package_install.py # Package installation logic
 ├── core/              # Core business logic
 │   ├── models.py     # Data models (Instruction, Repository, etc.)
 │   ├── repository.py # Parse ai-config-kit.yaml
@@ -46,7 +49,8 @@ ai-config-kit/
 │   └── conflict_resolution.py # Handle file conflicts
 ├── storage/           # Data persistence
 │   ├── library.py    # LibraryManager for ~/.ai-config-kit/library/
-│   └── tracker.py    # InstallationTracker for installations.json
+│   ├── tracker.py    # InstallationTracker for installations.json
+│   └── package_tracker.py # PackageTracker for packages.json
 ├── tui/               # Terminal UI
 │   └── installer.py  # Textual-based interactive browser
 └── utils/             # Utilities
@@ -58,12 +62,22 @@ ai-config-kit/
 
 From `ai-config-kit/core/models.py`:
 
+#### Instructions
 - **Instruction**: Single instruction file with name, description, content, file_path, tags, checksum
 - **InstructionBundle**: Group of related instructions
 - **Repository**: Instruction repository with instructions and bundles
 - **InstallationRecord**: Tracks installed instruction with ai_tool, source_repo, installed_path, scope
 - **LibraryInstruction**: Instruction in library (downloaded but not installed)
 - **LibraryRepository**: Downloaded repository in library
+
+#### Packages
+- **Package**: Configuration package containing multiple components (instructions, MCP servers, hooks, commands, resources)
+- **PackageComponents**: Container for all components in a package with methods to count and manage them
+- **ComponentType**: Enum for component types (INSTRUCTION, MCP_SERVER, HOOK, COMMAND, RESOURCE)
+- **InstalledComponent**: Tracks installed component with type, name, path, checksum, and status
+- **PackageInstallationRecord**: Tracks installed package with name, version, components, timestamps, scope, and status
+- **InstallationStatus**: Enum for installation status (COMPLETE, PARTIAL, FAILED, PENDING_CREDENTIALS)
+- **ConflictResolution**: Enum for conflict handling strategies (SKIP, OVERWRITE, RENAME)
 
 ### AI Tool Integration
 
@@ -290,6 +304,108 @@ bundles:
     instructions: [instruction1, instruction2]
     tags: [tag]
 ```
+
+### Package Management System
+
+The package management system allows installing multi-component bundles that include instructions, MCP servers, hooks, commands, and resources.
+
+#### Package Structure
+Packages must contain an `ai-config-kit-package.yaml` manifest:
+```yaml
+name: package-name
+version: 1.0.0
+description: Package description
+author: Author Name
+license: MIT
+namespace: org/repo
+
+components:
+  instructions:
+    - name: instruction-name
+      file: instructions/file.md
+      description: Instruction description
+      tags: [tag1, tag2]
+
+  mcp_servers:
+    - name: server-name
+      file: mcp/config.json
+      description: MCP server configuration
+      credentials:
+        - name: ENV_VAR
+          description: Environment variable description
+          required: true
+          default: "default-value"
+
+  hooks:
+    - name: hook-name
+      file: hooks/script.sh
+      description: Hook description
+      hook_type: pre-commit
+
+  commands:
+    - name: command-name
+      file: commands/script.sh
+      description: Command description
+      command_type: shell
+
+  resources:
+    - name: resource-name
+      file: resources/file.txt
+      description: Resource file
+      checksum: sha256:...
+      size: 1234
+```
+
+#### Package Commands
+```bash
+# Install a package
+aiconfig package install ./path/to/package --ide claude
+
+# Install with conflict resolution
+aiconfig package install ./package --ide cursor --conflict overwrite
+
+# Force reinstall
+aiconfig package install ./package --force
+
+# List installed packages
+aiconfig package list
+
+# List with JSON output
+aiconfig package list --json
+
+# Uninstall a package
+aiconfig package uninstall package-name
+
+# Uninstall without confirmation
+aiconfig package uninstall package-name --yes
+```
+
+#### Package Installation Workflow
+1. **Parse Manifest**: Read and validate `ai-config-kit-package.yaml`
+2. **Check Existing**: Detect if package already installed
+3. **Filter Components**: Only install components supported by target IDE
+4. **Translate Components**: Convert to IDE-specific formats
+5. **Install Files**: Copy files with conflict resolution
+6. **Track Installation**: Record in `.ai-config-kit/packages.json`
+
+#### IDE Capability Filtering
+Different IDEs support different component types:
+- **Claude Code**: All components (instructions, MCP, hooks, commands, resources)
+- **Cursor**: Instructions and resources only
+- **Windsurf**: Instructions and resources only
+- **GitHub Copilot**: Instructions only
+
+Unsupported components are automatically skipped and counted separately.
+
+#### Component Translation
+Components are translated to IDE-specific formats:
+- **Claude Code**: `.md` files in `.claude/rules/`, `.claude/hooks/`, `.claude/commands/`
+- **Cursor**: `.mdc` files in `.cursor/rules/`
+- **Windsurf**: `.md` files in `.windsurf/rules/`
+- **GitHub Copilot**: `.md` files in `.github/instructions/`
+
+#### Example Package
+See `example-package/` directory for a complete example with all component types.
 
 ## CI/CD
 
@@ -626,6 +742,8 @@ The GitHub Actions workflow (`.github/workflows/publish.yml`) handles building a
 - GitHub repository at `troylar/ai-config-kit-examples` | Git-based versioning (001-example-instruction-repo)
 - Python 3.10+ (targeting 3.10-3.13) (002-template-sync-system)
 - Filesystem-based (MCP definitions in `~/.ai-config-kit/library/<namespace>/`, credentials in `.ai-config-kit/.env`, AI tool configs at standard locations) (003-mcp-server-management)
+- Python 3.10+ (minimum 3.10, support 3.10-3.13) + PyYAML (manifest parsing), Rich/Textual (TUI), Typer (CLI), existing ai-config-kit modules (004-config-package)
+- JSON files (registry, package tracker) + YAML (manifests) + filesystem (.instructionkit/ structure) (004-config-package)
 
 ## Recent Changes
 - 001-example-instruction-repo: Added Markdown (instruction content) | Python 3.10+ (for AI Config Kit CLI - no changes needed) + Git (for repository hosting), existing AI Config Kit commands (no new dependencies)

@@ -63,6 +63,18 @@ aiconfig mcp configure backend
 aiconfig mcp sync --tool all
 ```
 
+### Packages: Install Complete Development Setups (1 minute)
+
+```bash
+# Install a complete package with instructions, hooks, and commands
+aiconfig package install ./example-package --ide claude
+
+# List installed packages
+aiconfig package list
+
+# Your IDE now has everything: instructions, MCP servers, hooks, commands
+```
+
 ---
 
 ## Core Features
@@ -104,6 +116,24 @@ aiconfig mcp list                                  # Show installed servers
 ```
 
 [📖 Full MCP Documentation →](docs/mcp.md)
+
+### 📦 Configuration Packages
+
+Bundle and distribute complete AI assistant configurations:
+
+- **Multi-Component Packages** → Combine instructions, MCP servers, hooks, and commands
+- **IDE-Aware Installation** → Automatically adapts to target IDE capabilities
+- **Conflict Resolution** → Handle existing files with skip, overwrite, or rename strategies
+- **Installation Tracking** → Know what's installed and manage package lifecycle
+
+**Key Commands:**
+```bash
+aiconfig package install <package-path> --ide <ide>  # Install package
+aiconfig package list                                 # Show installed packages
+aiconfig package uninstall <package-name>            # Remove package
+```
+
+[📖 Full Package Documentation →](docs/packages/)
 
 ---
 
@@ -166,6 +196,7 @@ aiconfig mcp update --all
 |-------|-------------|
 | [**Templates**](docs/templates.md) | Comprehensive guide to the template system |
 | [**MCP Servers**](docs/mcp.md) | Managing Model Context Protocol servers |
+| [**Packages**](docs/packages/) | Complete package management guide (install, create, manage) |
 | [**CLI Reference**](docs/cli-reference.md) | Complete command reference |
 | [**Advanced Usage**](docs/advanced.md) | Scopes, namespaces, conflict resolution |
 | [**Creating Templates**](docs/creating-templates.md) | How to build your own template repositories |

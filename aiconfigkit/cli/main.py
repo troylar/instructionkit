@@ -11,6 +11,7 @@ from aiconfigkit.cli.list import list_available, list_installed, list_library
 from aiconfigkit.cli.mcp_configure import mcp_configure_command
 from aiconfigkit.cli.mcp_install import mcp_install_command
 from aiconfigkit.cli.mcp_sync import mcp_sync_command
+from aiconfigkit.cli.package import package_app
 from aiconfigkit.cli.template import template_app
 from aiconfigkit.cli.template_backup import (
     backup_cleanup_command,
@@ -36,6 +37,9 @@ app = typer.Typer(
 # Create list subcommand group
 list_app = typer.Typer(help="List instructions")
 app.add_typer(list_app, name="list")
+
+# Create package subcommand group
+app.add_typer(package_app, name="package")
 
 # Create template subcommand group
 app.add_typer(template_app, name="template")

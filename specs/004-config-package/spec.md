@@ -5,6 +5,16 @@
 **Status**: Draft
 **Input**: User description: "I want to add a new packaging feature that allows me to package up one ore more MCP server configs, one ore more instuctions, Claude hooks, etc. The idea is that we can share a compete set of setttings. I have an MCP server with tools, but I also have custom instructions I want to add to my IDE that givs more value. I have Beeminder MCP server AND clickup MCP and I have custom instrutionson how they work together and a few /commands. I want to bundle all of that together as a packge. There's a manifest for each package. The packages can support one or more IDEs, but only capabilities the IDE supports. SO if there is a claude hook in the package, everythig else will be installed in Cursor, if it's supported. Packages can be installed from a template repo. User can browse and select/update individual packages. Packages can be installed globally or at the project level, based on the IDE config settings."
 
+## Clarifications
+
+### Session 2025-11-14
+
+- Q: How should system handle very large resource files (>100MB)? → A: Soft limit - warn for files >50MB, allow up to 200MB maximum, use streaming downloads for large files
+- Q: How should system handle partial installation failures (some components succeed, others fail)? → A: Best-effort - install successful components, log failures, allow retry of failed components only
+- Q: How should system handle main registry corruption? → A: Validate on startup, attempt to repair invalid entries, rebuild from project trackers if unrecoverable
+- Q: How should system handle binary file conflicts during updates (can't show diff)? → A: Show metadata (size, date, checksum), install new version with timestamp suffix, keep old version for comparison
+- Q: What happens when user cancels credential prompting mid-installation? → A: Continue with non-MCP components, mark MCP server as "pending credentials", allow configuration retry later
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Install Complete Workflow Package (Priority: P1)
@@ -95,7 +105,7 @@ A user wants to install some packages globally (available to all projects) and o
 - What happens when a package manifest specifies components that don't exist in the repository?
 - How does the system handle packages with circular dependencies or conflicting components?
 - What happens when a package requires a specific IDE version or MCP server version that isn't available?
-- How does the system handle partial installation failures (some components install successfully, others fail)?
+- How does the system handle partial installation failures (some components install successfully, others fail)? → Best-effort installation: successful components remain installed, failures logged, user can retry failed components
 - What happens when user manually modifies installed components from a package?
 - What happens when IDE configuration directories don't exist yet (fresh IDE installation)?
 - How does the system handle packages from untrusted sources?
@@ -107,14 +117,14 @@ A user wants to install some packages globally (available to all projects) and o
 - What happens when package repository rewrites history (force push) and versions change?
 
 **MCP Security:**
-- What happens when user cancels credential prompting mid-installation?
+- What happens when user cancels credential prompting mid-installation? → Install non-MCP components, mark MCP as "pending credentials", allow retry via configure command
 - How does system handle MCP configs with secrets that are already in the config (pre-existing, non-templated)?
 - What happens when `.env` file has merge conflicts during package update?
 - How does system handle credentials for MCP servers that are uninstalled but still in `.env`?
 
 **Resources:**
-- What happens when resource file is very large (>100MB)?
-- How does system handle binary file conflicts during updates (can't show diff)?
+- What happens when resource file is very large (>100MB)? → System warns for files >50MB, rejects files >200MB, uses streaming downloads for large files
+- How does system handle binary file conflicts during updates (can't show diff)? → Show metadata comparison (size, date, checksum), install new version with timestamp suffix, keep old version
 - What happens when resource path conflicts with existing project file?
 
 **Package Creation:**
@@ -133,7 +143,7 @@ A user wants to install some packages globally (available to all projects) and o
 - What happens when project path no longer exists but is still in main registry?
 - How does system handle projects on different drives or network shares?
 - What happens when multiple projects have same name but different paths?
-- How does system handle main registry corruption?
+- How does system handle main registry corruption? → Validate on startup, repair invalid entries, rebuild from project trackers if unrecoverable
 
 ## Requirements *(mandatory)*
 
@@ -160,79 +170,102 @@ A user wants to install some packages globally (available to all projects) and o
 - **FR-019**: System MUST validate that all components referenced in package manifest exist in the package repository
 - **FR-020**: System MUST allow users to create new package manifests from existing components
 - **FR-021**: System MUST support package versioning using semantic versioning (major.minor.patch)
+- **FR-022**: System MUST use best-effort installation strategy for packages (install successful components even if some fail)
+- **FR-023**: System MUST log all component installation failures with detailed error messages
+- **FR-024**: System MUST track partially installed packages with list of successful and failed components
+- **FR-025**: System MUST allow retry of only failed components from partial installation
+- **FR-026**: System MUST report installation summary showing successful, failed, and skipped components
 
 #### Main Registry
 
-- **FR-022**: System MUST maintain a main registry at `~/.instructionkit/registry.json` tracking installations across all projects
-- **FR-023**: System MUST auto-update main registry on install/uninstall operations
-- **FR-024**: System MUST provide scan command to rebuild main registry from project manifests
-- **FR-025**: System MUST treat project manifests as source of truth when syncing to main registry
-- **FR-026**: System MUST auto-register projects in main registry on first package installation
+- **FR-027**: System MUST maintain a main registry at `~/.instructionkit/registry.json` tracking installations across all projects
+- **FR-028**: System MUST auto-update main registry on install/uninstall operations
+- **FR-029**: System MUST provide scan command to rebuild main registry from project manifests
+- **FR-030**: System MUST treat project manifests as source of truth when syncing to main registry
+- **FR-031**: System MUST auto-register projects in main registry on first package installation
+- **FR-032**: System MUST validate main registry JSON structure on startup before operations
+- **FR-033**: System MUST attempt to repair invalid registry entries by removing malformed data
+- **FR-034**: System MUST rebuild main registry from project trackers if validation fails and repair is unsuccessful
+- **FR-035**: System MUST log registry corruption events with details for debugging
+- **FR-036**: System MUST continue operations with empty registry if rebuild fails (degraded mode)
 
 #### Package Versioning
 
-- **FR-027**: Package manifest MUST declare semantic version (major.minor.patch)
-- **FR-028**: System MUST track installed package version in project tracker
-- **FR-029**: System MUST track installed package version in main registry per project
-- **FR-030**: System MUST detect available package updates by comparing installed vs. repository versions
-- **FR-031**: System MUST support updating packages to specific versions
-- **FR-032**: System MUST support rollback to previously installed package versions
+- **FR-037**: Package manifest MUST declare semantic version (major.minor.patch)
+- **FR-038**: System MUST track installed package version in project tracker
+- **FR-039**: System MUST track installed package version in main registry per project
+- **FR-040**: System MUST detect available package updates by comparing installed vs. repository versions
+- **FR-041**: System MUST support updating packages to specific versions
+- **FR-042**: System MUST support rollback to previously installed package versions
 
 #### MCP Security
 
-- **FR-033**: MCP configs in packages MUST be templates with `${VARIABLE}` placeholders for credentials
-- **FR-034**: System MUST prompt users for required MCP credentials during package installation
-- **FR-035**: System MUST store MCP credentials in `.instructionkit/.env` (gitignored)
-- **FR-036**: System MUST merge MCP config templates with credentials when syncing to IDE config files
-- **FR-037**: System MUST preserve existing MCP credentials during package updates
-- **FR-038**: System MUST warn users if `.env` file is not in `.gitignore`
-- **FR-039**: Package manifest MUST declare required credentials for each MCP server component
-- **FR-040**: System MUST validate all required credentials are set before syncing MCP config to IDE
+- **FR-043**: MCP configs in packages MUST be templates with `${VARIABLE}` placeholders for credentials
+- **FR-044**: System MUST prompt users for required MCP credentials during package installation
+- **FR-045**: System MUST store MCP credentials in `.instructionkit/.env` (gitignored)
+- **FR-046**: System MUST merge MCP config templates with credentials when syncing to IDE config files
+- **FR-047**: System MUST preserve existing MCP credentials during package updates
+- **FR-048**: System MUST warn users if `.env` file is not in `.gitignore`
+- **FR-049**: Package manifest MUST declare required credentials for each MCP server component
+- **FR-050**: System MUST validate all required credentials are set before syncing MCP config to IDE
+- **FR-051**: System MUST allow users to cancel credential prompting during installation
+- **FR-052**: System MUST continue installing non-MCP components when user cancels credential prompting
+- **FR-053**: System MUST mark MCP servers as "pending credentials" when user cancels credential prompt
+- **FR-054**: System MUST provide command to configure credentials for pending MCP servers later
+- **FR-055**: System MUST track pending credential state in package installation record
 
 #### Custom Resources
 
-- **FR-041**: Packages MUST support resource components of any file type (PDF, PNG, SVG, JSON, YAML, ZIP, fonts, etc.)
-- **FR-042**: Resources MUST be installed to `.instructionkit/resources/<package-name>/` directory
-- **FR-043**: System MUST track resources with checksums for integrity validation and update detection
-- **FR-044**: Resource updates MUST prompt user for conflict resolution (keep local, accept update, view diff)
-- **FR-045**: Instructions MUST be able to reference resources using standard paths
+- **FR-056**: Packages MUST support resource components of any file type (PDF, PNG, SVG, JSON, YAML, ZIP, fonts, etc.)
+- **FR-057**: Resources MUST be installed to `.instructionkit/resources/<package-name>/` directory
+- **FR-058**: System MUST track resources with checksums for integrity validation and update detection
+- **FR-059**: Resource updates MUST prompt user for conflict resolution (keep local, accept update, view diff)
+- **FR-060**: Instructions MUST be able to reference resources using standard paths
+- **FR-061**: System MUST warn users when adding resources larger than 50MB during package creation
+- **FR-062**: System MUST reject resources larger than 200MB with clear error message
+- **FR-063**: System MUST use streaming downloads for resources larger than 10MB to prevent memory issues
+- **FR-064**: System MUST detect binary file conflicts by comparing checksums during resource updates
+- **FR-065**: System MUST display metadata comparison (file size, modification date, checksum) for binary file conflicts
+- **FR-066**: System MUST install new binary file version with timestamp suffix when conflict detected
+- **FR-067**: System MUST preserve original binary file for user comparison when conflict occurs
+- **FR-068**: System MUST notify user of binary file conflict with paths to both old and new versions
 
 #### Package Creation
 
-- **FR-046**: System MUST provide command to create packages from current project components
-- **FR-047**: System MUST allow interactive component selection via TUI for package creation
-- **FR-048**: System MUST allow non-interactive component selection via CLI flags for package creation
-- **FR-049**: System MUST scan current project to detect all packageable components (MCP servers, instructions, commands, resources)
-- **FR-050**: System MUST prompt for package metadata (name, version, description, author, license) during creation
-- **FR-051**: System MUST generate valid package manifest with all selected components
+- **FR-069**: System MUST provide command to create packages from current project components
+- **FR-070**: System MUST allow interactive component selection via TUI for package creation
+- **FR-071**: System MUST allow non-interactive component selection via CLI flags for package creation
+- **FR-072**: System MUST scan current project to detect all packageable components (MCP servers, instructions, commands, resources)
+- **FR-073**: System MUST prompt for package metadata (name, version, description, author, license) during creation
+- **FR-074**: System MUST generate valid package manifest with all selected components
 
 #### Secret Detection and Scrubbing
 
-- **FR-052**: System MUST analyze environment variables for secret likelihood during package creation
-- **FR-053**: System MUST auto-template high-confidence secrets (tokens, keys, passwords)
-- **FR-054**: System MUST prompt users to confirm templating for medium-confidence values
-- **FR-055**: System MUST preserve safe values (URLs, booleans, simple config) in package manifests
-- **FR-056**: System MUST allow manual override of automatic secret detection
+- **FR-075**: System MUST analyze environment variables for secret likelihood during package creation
+- **FR-076**: System MUST auto-template high-confidence secrets (tokens, keys, passwords)
+- **FR-077**: System MUST prompt users to confirm templating for medium-confidence values
+- **FR-078**: System MUST preserve safe values (URLs, booleans, simple config) in package manifests
+- **FR-079**: System MUST allow manual override of automatic secret detection
 
 #### Local MCP Server Handling
 
-- **FR-057**: System MUST detect local MCP server file paths during package creation
-- **FR-058**: System MUST offer options for local MCP servers: include source code, provide external install instructions, or skip
-- **FR-059**: System MUST normalize local file paths to package-relative paths when including source code
-- **FR-060**: System MUST generate install instructions for external MCP servers (npm, git, docker)
-- **FR-061**: System MUST handle project-relative MCP servers correctly
+- **FR-080**: System MUST detect local MCP server file paths during package creation
+- **FR-081**: System MUST offer options for local MCP servers: include source code, provide external install instructions, or skip
+- **FR-082**: System MUST normalize local file paths to package-relative paths when including source code
+- **FR-083**: System MUST generate install instructions for external MCP servers (npm, git, docker)
+- **FR-084**: System MUST handle project-relative MCP servers correctly
 
 #### IDE Translation Layer
 
-- **FR-062**: System MUST maintain IDE capability registry defining what each IDE supports
-- **FR-063**: System MUST translate package components to IDE-specific formats during installation
-- **FR-064**: System MUST skip components not supported by target IDE with clear user notification
-- **FR-065**: System MUST apply IDE-specific file extensions (.md vs .mdc vs .instructions.md)
-- **FR-066**: System MUST install components to IDE-specific paths (.cursor/rules/ vs .claude/rules/ vs .github/instructions/)
-- **FR-067**: System MUST translate MCP configs to IDE-specific format (Claude Desktop vs Windsurf)
-- **FR-068**: System MUST merge MCP configs into existing IDE config files (not replace entire file)
-- **FR-069**: System MUST apply IDE-specific transformations (frontmatter, formatting, structure)
-- **FR-070**: Package manifest MUST declare IDE-agnostic component definitions with optional IDE-specific translation hints
+- **FR-085**: System MUST maintain IDE capability registry defining what each IDE supports
+- **FR-086**: System MUST translate package components to IDE-specific formats during installation
+- **FR-087**: System MUST skip components not supported by target IDE with clear user notification
+- **FR-088**: System MUST apply IDE-specific file extensions (.md vs .mdc vs .instructions.md)
+- **FR-089**: System MUST install components to IDE-specific paths (.cursor/rules/ vs .claude/rules/ vs .github/instructions/)
+- **FR-090**: System MUST translate MCP configs to IDE-specific format (Claude Desktop vs Windsurf)
+- **FR-091**: System MUST merge MCP configs into existing IDE config files (not replace entire file)
+- **FR-092**: System MUST apply IDE-specific transformations (frontmatter, formatting, structure)
+- **FR-093**: Package manifest MUST declare IDE-agnostic component definitions with optional IDE-specific translation hints
 
 ### Key Entities *(include if feature involves data)*
 

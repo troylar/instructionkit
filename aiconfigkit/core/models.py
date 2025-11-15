@@ -970,3 +970,537 @@ class ActiveSetState:
             activated_at=activated_at,
             active_servers=data.get("active_servers", []),
         )
+
+
+# ============================================================================
+# Package System Models (Feature 004-config-package)
+# ============================================================================
+
+
+class ComponentType(Enum):
+    """Types of components that can be included in a package."""
+
+    INSTRUCTION = "instruction"
+    MCP_SERVER = "mcp_server"
+    HOOK = "hook"
+    COMMAND = "command"
+    RESOURCE = "resource"
+
+
+class InstallationStatus(Enum):
+    """Status of package installation."""
+
+    INSTALLING = "installing"
+    COMPLETE = "complete"
+    PARTIAL = "partial"  # Some components failed
+    UPDATING = "updating"
+    FAILED = "failed"
+
+
+class ComponentStatus(Enum):
+    """Status of individual component installation."""
+
+    INSTALLED = "installed"
+    FAILED = "failed"
+    SKIPPED = "skipped"  # Unsupported by IDE
+    PENDING_CREDENTIALS = "pending_credentials"  # MCP missing credentials
+
+
+class SecretConfidence(Enum):
+    """Confidence level for secret detection."""
+
+    HIGH = "high"  # Auto-template
+    MEDIUM = "medium"  # Prompt user
+    SAFE = "safe"  # Preserve value
+
+
+@dataclass
+class CredentialDescriptor:
+    """
+    Declaration of required environment variable for MCP server.
+
+    Attributes:
+        name: Environment variable name (UPPER_SNAKE_CASE)
+        description: What the credential is for
+        required: Whether credential is mandatory
+        default: Default value if not required
+        example: Example value for guidance
+    """
+
+    name: str
+    description: str
+    required: bool = True
+    default: Optional[str] = None
+    example: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        """Validate credential descriptor."""
+        if not self.name:
+            raise ValueError("Credential name cannot be empty")
+        if not self.name.isupper() or not self.name.replace("_", "").isalnum():
+            raise ValueError(f"Credential name '{self.name}' must be UPPER_SNAKE_CASE")
+        if self.required and self.default:
+            raise ValueError("Required credentials cannot have default values")
+
+    def to_dict(self) -> dict:
+        """Serialize to dictionary."""
+        return {
+            "name": self.name,
+            "description": self.description,
+            "required": self.required,
+            "default": self.default,
+            "example": self.example,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "CredentialDescriptor":
+        """Deserialize from dictionary."""
+        return cls(
+            name=data["name"],
+            description=data["description"],
+            required=data.get("required", True),
+            default=data.get("default"),
+            example=data.get("example"),
+        )
+
+
+@dataclass
+class InstructionComponent:
+    """
+    Reference to an instruction file in a package.
+
+    Attributes:
+        name: Instruction identifier
+        file: Relative path to instruction file
+        description: What the instruction does
+        tags: Searchable tags
+        ide_support: Specific IDE support (if restricted)
+    """
+
+    name: str
+    file: str
+    description: str
+    tags: list[str] = field(default_factory=list)
+    ide_support: Optional[list[str]] = None
+
+    def to_dict(self) -> dict:
+        """Serialize to dictionary."""
+        return {
+            "name": self.name,
+            "file": self.file,
+            "description": self.description,
+            "tags": self.tags,
+            "ide_support": self.ide_support,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "InstructionComponent":
+        """Deserialize from dictionary."""
+        return cls(
+            name=data["name"],
+            file=data["file"],
+            description=data["description"],
+            tags=data.get("tags", []),
+            ide_support=data.get("ide_support"),
+        )
+
+
+@dataclass
+class MCPServerComponent:
+    """
+    Reference to an MCP server configuration template.
+
+    Attributes:
+        name: Server identifier
+        file: Relative path to MCP config template
+        description: What the server provides
+        credentials: Required environment variables
+        ide_support: IDEs that support MCP
+    """
+
+    name: str
+    file: str
+    description: str
+    credentials: list[CredentialDescriptor] = field(default_factory=list)
+    ide_support: list[str] = field(default_factory=lambda: ["claude_code", "windsurf"])
+
+    def to_dict(self) -> dict:
+        """Serialize to dictionary."""
+        return {
+            "name": self.name,
+            "file": self.file,
+            "description": self.description,
+            "credentials": [c.to_dict() for c in self.credentials],
+            "ide_support": self.ide_support,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "MCPServerComponent":
+        """Deserialize from dictionary."""
+        return cls(
+            name=data["name"],
+            file=data["file"],
+            description=data["description"],
+            credentials=[CredentialDescriptor.from_dict(c) for c in data.get("credentials", [])],
+            ide_support=data.get("ide_support", ["claude_code", "windsurf"]),
+        )
+
+
+@dataclass
+class HookComponent:
+    """
+    Reference to an IDE lifecycle hook script.
+
+    Attributes:
+        name: Hook identifier
+        file: Relative path to hook script
+        description: What the hook does
+        hook_type: Hook trigger (e.g., pre-commit, post-install)
+        ide_support: IDEs that support hooks
+    """
+
+    name: str
+    file: str
+    description: str
+    hook_type: str
+    ide_support: list[str] = field(default_factory=lambda: ["claude_code"])
+
+    def to_dict(self) -> dict:
+        """Serialize to dictionary."""
+        return {
+            "name": self.name,
+            "file": self.file,
+            "description": self.description,
+            "hook_type": self.hook_type,
+            "ide_support": self.ide_support,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "HookComponent":
+        """Deserialize from dictionary."""
+        return cls(
+            name=data["name"],
+            file=data["file"],
+            description=data["description"],
+            hook_type=data["hook_type"],
+            ide_support=data.get("ide_support", ["claude_code"]),
+        )
+
+
+@dataclass
+class CommandComponent:
+    """
+    Reference to a slash command or script.
+
+    Attributes:
+        name: Command identifier
+        file: Relative path to command script
+        description: What the command does
+        command_type: Type (slash, shell)
+        ide_support: IDEs that support commands
+    """
+
+    name: str
+    file: str
+    description: str
+    command_type: str
+    ide_support: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        """Serialize to dictionary."""
+        return {
+            "name": self.name,
+            "file": self.file,
+            "description": self.description,
+            "command_type": self.command_type,
+            "ide_support": self.ide_support,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "CommandComponent":
+        """Deserialize from dictionary."""
+        return cls(
+            name=data["name"],
+            file=data["file"],
+            description=data["description"],
+            command_type=data["command_type"],
+            ide_support=data.get("ide_support", []),
+        )
+
+
+@dataclass
+class ResourceComponent:
+    """
+    Reference to an arbitrary file resource.
+
+    Attributes:
+        name: Resource identifier
+        file: Relative path to resource file
+        description: What the resource is
+        checksum: SHA256 checksum for integrity
+        size: File size in bytes
+    """
+
+    name: str
+    file: str
+    description: str
+    checksum: str
+    size: int
+
+    def to_dict(self) -> dict:
+        """Serialize to dictionary."""
+        return {
+            "name": self.name,
+            "file": self.file,
+            "description": self.description,
+            "checksum": self.checksum,
+            "size": self.size,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ResourceComponent":
+        """Deserialize from dictionary."""
+        return cls(
+            name=data["name"],
+            file=data["file"],
+            description=data["description"],
+            checksum=data["checksum"],
+            size=data["size"],
+        )
+
+
+@dataclass
+class PackageComponents:
+    """
+    Container for all component types in a package.
+
+    Attributes:
+        instructions: Instruction files
+        mcp_servers: MCP server configs
+        hooks: IDE lifecycle hooks
+        commands: Slash commands/scripts
+        resources: Arbitrary files
+    """
+
+    instructions: list[InstructionComponent] = field(default_factory=list)
+    mcp_servers: list[MCPServerComponent] = field(default_factory=list)
+    hooks: list[HookComponent] = field(default_factory=list)
+    commands: list[CommandComponent] = field(default_factory=list)
+    resources: list[ResourceComponent] = field(default_factory=list)
+
+    @property
+    def total_count(self) -> int:
+        """Total number of components."""
+        return (
+            len(self.instructions) + len(self.mcp_servers) + len(self.hooks) + len(self.commands) + len(self.resources)
+        )
+
+    @property
+    def component_types(self) -> list[str]:
+        """List of component types present."""
+        types = []
+        if self.instructions:
+            types.append("instructions")
+        if self.mcp_servers:
+            types.append("mcp_servers")
+        if self.hooks:
+            types.append("hooks")
+        if self.commands:
+            types.append("commands")
+        if self.resources:
+            types.append("resources")
+        return types
+
+    def __post_init__(self) -> None:
+        """Validate at least one component exists."""
+        if self.total_count == 0:
+            raise ValueError("Package must contain at least one component")
+
+    def to_dict(self) -> dict:
+        """Serialize to dictionary."""
+        return {
+            "instructions": [i.to_dict() for i in self.instructions],
+            "mcp_servers": [m.to_dict() for m in self.mcp_servers],
+            "hooks": [h.to_dict() for h in self.hooks],
+            "commands": [c.to_dict() for c in self.commands],
+            "resources": [r.to_dict() for r in self.resources],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "PackageComponents":
+        """Deserialize from dictionary."""
+        return cls(
+            instructions=[InstructionComponent.from_dict(i) for i in data.get("instructions", [])],
+            mcp_servers=[MCPServerComponent.from_dict(m) for m in data.get("mcp_servers", [])],
+            hooks=[HookComponent.from_dict(h) for h in data.get("hooks", [])],
+            commands=[CommandComponent.from_dict(c) for c in data.get("commands", [])],
+            resources=[ResourceComponent.from_dict(r) for r in data.get("resources", [])],
+        )
+
+
+@dataclass
+class Package:
+    """
+    A bundle of related configuration components with metadata.
+
+    Attributes:
+        name: Package identifier (lowercase, hyphenated)
+        version: Semantic version (major.minor.patch)
+        description: Human-readable description
+        author: Package author/maintainer
+        license: License identifier (e.g., MIT, Apache-2.0)
+        namespace: Repository namespace (e.g., owner/repo)
+        components: Included components
+        created_at: Package creation timestamp
+        updated_at: Last update timestamp
+    """
+
+    name: str
+    version: str
+    description: str
+    author: str
+    license: str
+    namespace: str
+    components: PackageComponents
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    def __post_init__(self) -> None:
+        """Validate package data."""
+        if not self.name:
+            raise ValueError("Package name cannot be empty")
+        if not self.name.replace("-", "").replace("_", "").isalnum():
+            raise ValueError(f"Package name '{self.name}' must be lowercase alphanumeric with hyphens")
+        if not self.version:
+            raise ValueError("Package version cannot be empty")
+        if not self.namespace:
+            raise ValueError("Package namespace cannot be empty")
+
+    def to_dict(self) -> dict:
+        """Serialize to dictionary."""
+        return {
+            "name": self.name,
+            "version": self.version,
+            "description": self.description,
+            "author": self.author,
+            "license": self.license,
+            "namespace": self.namespace,
+            "components": self.components.to_dict(),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Package":
+        """Deserialize from dictionary."""
+        created_at = None
+        if data.get("created_at"):
+            created_at = datetime.fromisoformat(data["created_at"])
+        updated_at = None
+        if data.get("updated_at"):
+            updated_at = datetime.fromisoformat(data["updated_at"])
+        return cls(
+            name=data["name"],
+            version=data["version"],
+            description=data["description"],
+            author=data["author"],
+            license=data["license"],
+            namespace=data["namespace"],
+            components=PackageComponents.from_dict(data["components"]),
+            created_at=created_at,
+            updated_at=updated_at,
+        )
+
+
+@dataclass
+class InstalledComponent:
+    """
+    Tracks individual installed component within a package.
+
+    Attributes:
+        type: Component type
+        name: Component name
+        installed_path: Relative path where installed
+        checksum: File checksum for update detection
+        status: Installation status
+    """
+
+    type: ComponentType
+    name: str
+    installed_path: str
+    checksum: str
+    status: ComponentStatus
+
+    def to_dict(self) -> dict:
+        """Serialize to dictionary."""
+        return {
+            "type": self.type.value,
+            "name": self.name,
+            "installed_path": self.installed_path,
+            "checksum": self.checksum,
+            "status": self.status.value,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "InstalledComponent":
+        """Deserialize from dictionary."""
+        return cls(
+            type=ComponentType(data["type"]),
+            name=data["name"],
+            installed_path=data["installed_path"],
+            checksum=data["checksum"],
+            status=ComponentStatus(data["status"]),
+        )
+
+
+@dataclass
+class PackageInstallationRecord:
+    """
+    Tracks installed package in a project.
+
+    Attributes:
+        package_name: Package identifier
+        namespace: Repository namespace
+        version: Installed version
+        installed_at: Installation timestamp
+        updated_at: Last update timestamp
+        scope: Installation scope (project_level)
+        components: Installed component details
+        status: Installation state
+    """
+
+    package_name: str
+    namespace: str
+    version: str
+    installed_at: datetime
+    updated_at: datetime
+    scope: InstallationScope
+    components: list[InstalledComponent]
+    status: InstallationStatus
+
+    def to_dict(self) -> dict:
+        """Serialize to dictionary."""
+        return {
+            "package_name": self.package_name,
+            "namespace": self.namespace,
+            "version": self.version,
+            "installed_at": self.installed_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+            "scope": self.scope.value,
+            "components": [c.to_dict() for c in self.components],
+            "status": self.status.value,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "PackageInstallationRecord":
+        """Deserialize from dictionary."""
+        return cls(
+            package_name=data["package_name"],
+            namespace=data["namespace"],
+            version=data["version"],
+            installed_at=datetime.fromisoformat(data["installed_at"]),
+            updated_at=datetime.fromisoformat(data["updated_at"]),
+            scope=InstallationScope(data["scope"]),
+            components=[InstalledComponent.from_dict(c) for c in data.get("components", [])],
+            status=InstallationStatus(data["status"]),
+        )
