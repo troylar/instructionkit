@@ -1,5 +1,6 @@
-"""Unit tests for checksum utilities."""
+"""Unit tests for checksum module."""
 
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -17,476 +18,386 @@ from aiconfigkit.core.checksum import (
 )
 
 
+class TestChecksumError:
+    """Test ChecksumError exception."""
+
+    def test_exception_creation(self) -> None:
+        """Test creating ChecksumError."""
+        error = ChecksumError("Test error")
+        assert str(error) == "Test error"
+        assert isinstance(error, Exception)
+
+
 class TestCalculateChecksum:
-    """Test checksum calculation for strings."""
+    """Test calculate_checksum function."""
 
-    def test_sha256_checksum(self) -> None:
-        """Test SHA-256 checksum calculation."""
-        content = "Hello, world!"
+    def test_calculate_sha256(self) -> None:
+        """Test calculating SHA-256 checksum."""
+        content = "Hello, World!"
         checksum = calculate_checksum(content, "sha256")
+        expected = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        assert checksum == expected
+        assert len(checksum) == 64  # SHA-256 produces 64 hex characters
 
-        # Verify it's a 64-character hex string (SHA-256)
-        assert len(checksum) == 64
-        assert all(c in "0123456789abcdef" for c in checksum)
-
-    def test_sha1_checksum(self) -> None:
-        """Test SHA-1 checksum calculation."""
-        content = "Hello, world!"
+    def test_calculate_sha1(self) -> None:
+        """Test calculating SHA-1 checksum."""
+        content = "Hello, World!"
         checksum = calculate_checksum(content, "sha1")
+        expected = hashlib.sha1(content.encode("utf-8")).hexdigest()
+        assert checksum == expected
+        assert len(checksum) == 40  # SHA-1 produces 40 hex characters
 
-        # Verify it's a 40-character hex string (SHA-1)
-        assert len(checksum) == 40
-        assert all(c in "0123456789abcdef" for c in checksum)
-
-    def test_md5_checksum(self) -> None:
-        """Test MD5 checksum calculation."""
-        content = "Hello, world!"
+    def test_calculate_md5(self) -> None:
+        """Test calculating MD5 checksum."""
+        content = "Hello, World!"
         checksum = calculate_checksum(content, "md5")
+        expected = hashlib.md5(content.encode("utf-8")).hexdigest()
+        assert checksum == expected
+        assert len(checksum) == 32  # MD5 produces 32 hex characters
 
-        # Verify it's a 32-character hex string (MD5)
-        assert len(checksum) == 32
-        assert all(c in "0123456789abcdef" for c in checksum)
-
-    def test_default_algorithm_is_sha256(self) -> None:
-        """Test that default algorithm is SHA-256."""
+    def test_calculate_default_algorithm(self) -> None:
+        """Test that default algorithm is sha256."""
         content = "Test content"
         checksum_default = calculate_checksum(content)
         checksum_sha256 = calculate_checksum(content, "sha256")
-
         assert checksum_default == checksum_sha256
 
-    def test_different_content_different_checksum(self) -> None:
-        """Test that different content produces different checksums."""
-        content1 = "Content A"
-        content2 = "Content B"
-
-        checksum1 = calculate_checksum(content1)
-        checksum2 = calculate_checksum(content2)
-
-        assert checksum1 != checksum2
-
-    def test_same_content_same_checksum(self) -> None:
-        """Test that same content produces same checksum."""
-        content = "Same content"
-
-        checksum1 = calculate_checksum(content)
-        checksum2 = calculate_checksum(content)
-
-        assert checksum1 == checksum2
-
-    def test_case_insensitive_algorithm(self) -> None:
+    def test_calculate_case_insensitive_algorithm(self) -> None:
         """Test that algorithm name is case-insensitive."""
-        content = "Test"
-
+        content = "Test content"
         checksum_lower = calculate_checksum(content, "sha256")
         checksum_upper = calculate_checksum(content, "SHA256")
-        checksum_mixed = calculate_checksum(content, "Sha256")
-
+        checksum_mixed = calculate_checksum(content, "ShA256")
         assert checksum_lower == checksum_upper == checksum_mixed
 
-    def test_unsupported_algorithm_raises_error(self) -> None:
-        """Test that unsupported algorithm raises ValueError."""
-        with pytest.raises(ValueError, match="Unsupported hash algorithm"):
-            calculate_checksum("test", "unsupported")
+    def test_calculate_unsupported_algorithm(self) -> None:
+        """Test that unsupported algorithm raises error."""
+        with pytest.raises(ValueError, match="Unsupported hash algorithm: sha512"):
+            calculate_checksum("content", "sha512")
 
-    def test_empty_string(self) -> None:
-        """Test checksum of empty string."""
+    def test_calculate_empty_string(self) -> None:
+        """Test calculating checksum of empty string."""
         checksum = calculate_checksum("")
-        assert len(checksum) == 64  # SHA-256 produces 64 chars
+        # Empty string has a known SHA-256 hash
+        expected = hashlib.sha256(b"").hexdigest()
+        assert checksum == expected
 
-    def test_unicode_content(self) -> None:
-        """Test checksum of Unicode content."""
-        content = "Hello, 世界! 🌍"
+    def test_calculate_unicode_content(self) -> None:
+        """Test calculating checksum with Unicode characters."""
+        content = "Hello 世界! 🌍"
         checksum = calculate_checksum(content)
-        assert len(checksum) == 64
-
-    def test_multiline_content(self) -> None:
-        """Test checksum of multiline content."""
-        content = """Line 1
-Line 2
-Line 3"""
-        checksum = calculate_checksum(content)
-        assert len(checksum) == 64
+        expected = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        assert checksum == expected
 
 
 class TestVerifyChecksum:
-    """Test checksum verification."""
+    """Test verify_checksum function."""
 
-    def test_verify_correct_checksum(self) -> None:
-        """Test verification of correct checksum."""
+    def test_verify_matching_checksum(self) -> None:
+        """Test verifying matching checksum."""
         content = "Test content"
-        checksum = calculate_checksum(content)
+        expected = calculate_checksum(content)
+        assert verify_checksum(content, expected) is True
 
-        assert verify_checksum(content, checksum) is True
-
-    def test_verify_incorrect_checksum(self) -> None:
-        """Test verification of incorrect checksum."""
+    def test_verify_non_matching_checksum(self) -> None:
+        """Test verifying non-matching checksum."""
         content = "Test content"
-        wrong_checksum = "0" * 64
-
+        wrong_checksum = calculate_checksum("Different content")
         assert verify_checksum(content, wrong_checksum) is False
 
     def test_verify_case_insensitive(self) -> None:
         """Test that checksum verification is case-insensitive."""
-        content = "Test"
+        content = "Test content"
         checksum = calculate_checksum(content)
-
         assert verify_checksum(content, checksum.upper()) is True
         assert verify_checksum(content, checksum.lower()) is True
 
     def test_verify_with_different_algorithm(self) -> None:
-        """Test verification with different hash algorithms."""
+        """Test verifying with different hash algorithm."""
         content = "Test content"
+        expected_md5 = calculate_checksum(content, "md5")
+        assert verify_checksum(content, expected_md5, "md5") is True
 
+    def test_verify_wrong_algorithm(self) -> None:
+        """Test that wrong algorithm doesn't match."""
+        content = "Test content"
         sha256_checksum = calculate_checksum(content, "sha256")
-        sha1_checksum = calculate_checksum(content, "sha1")
-        md5_checksum = calculate_checksum(content, "md5")
-
-        assert verify_checksum(content, sha256_checksum, "sha256") is True
-        assert verify_checksum(content, sha1_checksum, "sha1") is True
-        assert verify_checksum(content, md5_checksum, "md5") is True
+        # Using MD5 algorithm with SHA-256 checksum should fail
+        assert verify_checksum(content, sha256_checksum, "md5") is False
 
 
 class TestVerifyChecksumStrict:
-    """Test strict checksum verification."""
+    """Test verify_checksum_strict function."""
 
-    def test_verify_strict_correct_checksum(self) -> None:
-        """Test strict verification of correct checksum."""
+    def test_verify_strict_matching(self) -> None:
+        """Test strict verification with matching checksum."""
         content = "Test content"
-        checksum = calculate_checksum(content)
+        expected = calculate_checksum(content)
+        # Should not raise error
+        verify_checksum_strict(content, expected)
 
-        # Should not raise
-        verify_checksum_strict(content, checksum)
-
-    def test_verify_strict_incorrect_checksum_raises(self) -> None:
-        """Test strict verification of incorrect checksum raises."""
+    def test_verify_strict_non_matching_raises_error(self) -> None:
+        """Test strict verification raises error on mismatch."""
         content = "Test content"
-        wrong_checksum = "0" * 64
+        wrong_checksum = calculate_checksum("Different content")
 
         with pytest.raises(ChecksumError, match="Checksum mismatch"):
             verify_checksum_strict(content, wrong_checksum)
 
-    def test_verify_strict_shows_expected_and_actual(self) -> None:
-        """Test that error message shows expected and actual checksums."""
+    def test_verify_strict_error_includes_checksums(self) -> None:
+        """Test that error message includes expected and actual checksums."""
         content = "Test content"
-        wrong_checksum = "0" * 64
+        wrong_checksum = "a" * 64
 
-        with pytest.raises(ChecksumError) as exc_info:
+        try:
             verify_checksum_strict(content, wrong_checksum)
-
-        error_msg = str(exc_info.value)
-        assert "Expected:" in error_msg
-        assert "Actual:" in error_msg
-        assert wrong_checksum in error_msg
+            pytest.fail("Should have raised ChecksumError")
+        except ChecksumError as e:
+            error_msg = str(e)
+            assert wrong_checksum in error_msg
+            assert calculate_checksum(content) in error_msg
 
 
 class TestCalculateFileChecksum:
-    """Test file checksum calculation."""
+    """Test calculate_file_checksum function."""
 
-    def test_calculate_file_checksum(self, tmp_path: Path) -> None:
-        """Test calculating checksum of a file."""
+    def test_calculate_file_sha256(self, tmp_path: Path) -> None:
+        """Test calculating file checksum."""
         test_file = tmp_path / "test.txt"
-        test_file.write_text("File content")
-
-        checksum = calculate_file_checksum(str(test_file))
-        assert len(checksum) == 64
-
-    def test_file_checksum_matches_content_checksum(self, tmp_path: Path) -> None:
-        """Test that file checksum matches content checksum."""
-        content = "Test content"
-        test_file = tmp_path / "test.txt"
+        content = "Hello, World!"
         test_file.write_text(content)
 
-        file_checksum = calculate_file_checksum(str(test_file))
-        content_checksum = calculate_checksum(content)
+        checksum = calculate_file_checksum(str(test_file))
+        expected = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        assert checksum == expected
 
-        assert file_checksum == content_checksum
-
-    def test_different_files_different_checksums(self, tmp_path: Path) -> None:
-        """Test that different files produce different checksums."""
-        file1 = tmp_path / "file1.txt"
-        file2 = tmp_path / "file2.txt"
-
-        file1.write_text("Content A")
-        file2.write_text("Content B")
-
-        checksum1 = calculate_file_checksum(str(file1))
-        checksum2 = calculate_file_checksum(str(file2))
-
-        assert checksum1 != checksum2
-
-    def test_file_checksum_with_algorithm(self, tmp_path: Path) -> None:
+    def test_calculate_file_different_algorithms(self, tmp_path: Path) -> None:
         """Test file checksum with different algorithms."""
         test_file = tmp_path / "test.txt"
-        test_file.write_text("Test")
+        content = "Test content"
+        test_file.write_bytes(content.encode("utf-8"))
 
-        sha256 = calculate_file_checksum(str(test_file), "sha256")
-        sha1 = calculate_file_checksum(str(test_file), "sha1")
-        md5 = calculate_file_checksum(str(test_file), "md5")
+        sha256_sum = calculate_file_checksum(str(test_file), "sha256")
+        sha1_sum = calculate_file_checksum(str(test_file), "sha1")
+        md5_sum = calculate_file_checksum(str(test_file), "md5")
 
-        assert len(sha256) == 64
-        assert len(sha1) == 40
-        assert len(md5) == 32
+        assert len(sha256_sum) == 64
+        assert len(sha1_sum) == 40
+        assert len(md5_sum) == 32
 
-    def test_file_not_found_raises_error(self) -> None:
-        """Test that missing file raises FileNotFoundError."""
+    def test_calculate_file_nonexistent(self, tmp_path: Path) -> None:
+        """Test calculating checksum of nonexistent file."""
+        nonexistent = tmp_path / "nonexistent.txt"
+
         with pytest.raises(FileNotFoundError):
-            calculate_file_checksum("/nonexistent/file.txt")
+            calculate_file_checksum(str(nonexistent))
 
-    def test_unsupported_algorithm_raises_error(self, tmp_path: Path) -> None:
-        """Test that unsupported algorithm raises ValueError."""
-        test_file = tmp_path / "test.txt"
-        test_file.write_text("Test")
-
-        with pytest.raises(ValueError, match="Unsupported hash algorithm"):
-            calculate_file_checksum(str(test_file), "unsupported")
-
-    def test_binary_file_checksum(self, tmp_path: Path) -> None:
-        """Test checksum of binary file."""
-        test_file = tmp_path / "binary.dat"
-        test_file.write_bytes(b"\x00\x01\x02\x03\xff\xfe\xfd")
-
-        checksum = calculate_file_checksum(str(test_file))
-        assert len(checksum) == 64
-
-    def test_large_file_checksum(self, tmp_path: Path) -> None:
-        """Test checksum of large file (tests chunked reading)."""
-        test_file = tmp_path / "large.txt"
-
-        # Create file larger than chunk size (8192 bytes)
-        large_content = "x" * 10000
-        test_file.write_text(large_content)
-
-        checksum = calculate_file_checksum(str(test_file))
-        assert len(checksum) == 64
-
-    def test_empty_file_checksum(self, tmp_path: Path) -> None:
-        """Test checksum of empty file."""
+    def test_calculate_file_empty(self, tmp_path: Path) -> None:
+        """Test calculating checksum of empty file."""
         test_file = tmp_path / "empty.txt"
         test_file.write_text("")
 
         checksum = calculate_file_checksum(str(test_file))
-        assert len(checksum) == 64
+        expected = hashlib.sha256(b"").hexdigest()
+        assert checksum == expected
+
+    def test_calculate_file_large(self, tmp_path: Path) -> None:
+        """Test calculating checksum of large file (tests chunking)."""
+        test_file = tmp_path / "large.txt"
+        # Create file larger than chunk size (8192 bytes)
+        content = "x" * 20000
+        test_file.write_text(content)
+
+        checksum = calculate_file_checksum(str(test_file))
+        expected = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        assert checksum == expected
+
+    def test_calculate_file_binary(self, tmp_path: Path) -> None:
+        """Test calculating checksum of binary file."""
+        test_file = tmp_path / "binary.dat"
+        binary_content = bytes(range(256))
+        test_file.write_bytes(binary_content)
+
+        checksum = calculate_file_checksum(str(test_file))
+        expected = hashlib.sha256(binary_content).hexdigest()
+        assert checksum == expected
+
+    def test_calculate_file_unsupported_algorithm(self, tmp_path: Path) -> None:
+        """Test that unsupported algorithm raises error."""
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("content")
+
+        with pytest.raises(ValueError, match="Unsupported hash algorithm"):
+            calculate_file_checksum(str(test_file), "sha512")
 
 
 class TestVerifyFileChecksum:
-    """Test file checksum verification."""
+    """Test verify_file_checksum function."""
 
-    def test_verify_correct_file_checksum(self, tmp_path: Path) -> None:
-        """Test verification of correct file checksum."""
+    def test_verify_file_matching(self, tmp_path: Path) -> None:
+        """Test verifying file with matching checksum."""
+        test_file = tmp_path / "test.txt"
+        content = "Test content"
+        test_file.write_text(content)
+
+        expected = calculate_file_checksum(str(test_file))
+        assert verify_file_checksum(str(test_file), expected) is True
+
+    def test_verify_file_non_matching(self, tmp_path: Path) -> None:
+        """Test verifying file with non-matching checksum."""
         test_file = tmp_path / "test.txt"
         test_file.write_text("Test content")
 
-        checksum = calculate_file_checksum(str(test_file))
-        assert verify_file_checksum(str(test_file), checksum) is True
-
-    def test_verify_incorrect_file_checksum(self, tmp_path: Path) -> None:
-        """Test verification of incorrect file checksum."""
-        test_file = tmp_path / "test.txt"
-        test_file.write_text("Test content")
-
-        wrong_checksum = "0" * 64
+        wrong_checksum = "a" * 64
         assert verify_file_checksum(str(test_file), wrong_checksum) is False
 
-    def test_verify_file_checksum_case_insensitive(self, tmp_path: Path) -> None:
-        """Test that file checksum verification is case-insensitive."""
+    def test_verify_file_case_insensitive(self, tmp_path: Path) -> None:
+        """Test file verification is case-insensitive."""
         test_file = tmp_path / "test.txt"
-        test_file.write_text("Test")
+        test_file.write_text("Test content")
 
         checksum = calculate_file_checksum(str(test_file))
         assert verify_file_checksum(str(test_file), checksum.upper()) is True
+        assert verify_file_checksum(str(test_file), checksum.lower()) is True
 
 
 class TestChecksumValidator:
     """Test ChecksumValidator class."""
 
-    def test_validator_default_algorithm(self) -> None:
-        """Test validator with default algorithm."""
+    def test_validator_init_defaults(self) -> None:
+        """Test validator initialization with defaults."""
         validator = ChecksumValidator()
         assert validator.algorithm == "sha256"
-
-    def test_validator_custom_algorithm(self) -> None:
-        """Test validator with custom algorithm."""
-        validator = ChecksumValidator(algorithm="sha1")
-        assert validator.algorithm == "sha1"
-
-    def test_validator_strict_mode_default(self) -> None:
-        """Test validator strict mode is True by default."""
-        validator = ChecksumValidator()
         assert validator.strict is True
 
-    def test_validator_non_strict_mode(self) -> None:
-        """Test validator with strict=False."""
-        validator = ChecksumValidator(strict=False)
+    def test_validator_init_custom(self) -> None:
+        """Test validator initialization with custom values."""
+        validator = ChecksumValidator(algorithm="md5", strict=False)
+        assert validator.algorithm == "md5"
         assert validator.strict is False
 
-    def test_validate_correct_checksum(self) -> None:
-        """Test validation of correct checksum."""
+    def test_validator_valid_checksum(self) -> None:
+        """Test validation with valid checksum."""
         content = "Test content"
-        checksum = calculate_checksum(content)
+        expected = calculate_checksum(content)
 
         validator = ChecksumValidator()
-        assert validator.validate(content, checksum) is True
+        assert validator.validate(content, expected) is True
 
-    def test_validate_incorrect_checksum_strict_mode(self) -> None:
-        """Test validation of incorrect checksum in strict mode raises."""
+    def test_validator_invalid_checksum_strict(self) -> None:
+        """Test validation with invalid checksum in strict mode."""
         content = "Test content"
-        wrong_checksum = "0" * 64
+        wrong_checksum = "a" * 64
 
         validator = ChecksumValidator(strict=True)
         with pytest.raises(ChecksumError, match="Checksum validation failed"):
             validator.validate(content, wrong_checksum)
 
-    def test_validate_incorrect_checksum_non_strict_mode(self) -> None:
-        """Test validation of incorrect checksum in non-strict mode."""
+    def test_validator_invalid_checksum_non_strict(self) -> None:
+        """Test validation with invalid checksum in non-strict mode."""
         content = "Test content"
-        wrong_checksum = "0" * 64
+        wrong_checksum = "a" * 64
 
         validator = ChecksumValidator(strict=False)
         assert validator.validate(content, wrong_checksum) is False
 
-    def test_validate_none_checksum_returns_true(self) -> None:
-        """Test that None checksum skips validation."""
+    def test_validator_none_checksum(self) -> None:
+        """Test validation with None checksum (skip validation)."""
         content = "Test content"
 
-        validator = ChecksumValidator()
-        assert validator.validate(content, None) is True
+        validator_strict = ChecksumValidator(strict=True)
+        validator_non_strict = ChecksumValidator(strict=False)
 
-    def test_validate_with_different_algorithm(self) -> None:
-        """Test validation with different hash algorithm."""
+        # Both should return True when checksum is None
+        assert validator_strict.validate(content, None) is True
+        assert validator_non_strict.validate(content, None) is True
+
+    def test_validator_different_algorithm(self) -> None:
+        """Test validator with different algorithm."""
         content = "Test content"
-        checksum = calculate_checksum(content, "sha1")
+        expected_md5 = calculate_checksum(content, "md5")
 
-        validator = ChecksumValidator(algorithm="sha1")
-        assert validator.validate(content, checksum) is True
+        validator = ChecksumValidator(algorithm="md5")
+        assert validator.validate(content, expected_md5) is True
 
-    def test_validate_error_message_includes_details(self) -> None:
-        """Test that validation error includes expected, actual, and algorithm."""
-        content = "Test"
-        wrong_checksum = "0" * 64
+    def test_validator_strict_error_message(self) -> None:
+        """Test that strict mode error includes helpful information."""
+        content = "Test content"
+        wrong_checksum = "a" * 64
 
-        validator = ChecksumValidator(algorithm="sha256")
-        with pytest.raises(ChecksumError) as exc_info:
+        validator = ChecksumValidator(algorithm="sha256", strict=True)
+
+        try:
             validator.validate(content, wrong_checksum)
+            pytest.fail("Should have raised ChecksumError")
+        except ChecksumError as e:
+            error_msg = str(e)
+            assert "Checksum validation failed" in error_msg
+            assert wrong_checksum in error_msg
+            assert "sha256" in error_msg
 
-        error_msg = str(exc_info.value)
-        assert "Expected:" in error_msg
-        assert "Actual:" in error_msg
-        assert "Algorithm:" in error_msg
-        assert "sha256" in error_msg
 
+class TestSHA256File:
+    """Test sha256_file function."""
 
-class TestTemplateHelpers:
-    """Test template-specific helper functions."""
-
-    def test_sha256_string(self) -> None:
-        """Test SHA-256 string helper."""
-        content = "Hello, world!"
-        checksum = sha256_string(content)
-
-        # Should match calculate_checksum with sha256
-        expected = calculate_checksum(content, "sha256")
-        assert checksum == expected
-        assert len(checksum) == 64
-
-    def test_sha256_file(self, tmp_path: Path) -> None:
-        """Test SHA-256 file helper."""
+    def test_sha256_file_basic(self, tmp_path: Path) -> None:
+        """Test SHA-256 file checksum calculation."""
         test_file = tmp_path / "test.txt"
-        test_file.write_text("File content")
+        content = "Test content"
+        test_file.write_text(content)
 
         checksum = sha256_file(test_file)
-
-        # Should match calculate_file_checksum with sha256
-        expected = calculate_file_checksum(str(test_file), "sha256")
+        expected = hashlib.sha256(content.encode("utf-8")).hexdigest()
         assert checksum == expected
         assert len(checksum) == 64
 
-    def test_sha256_file_accepts_path_object(self, tmp_path: Path) -> None:
-        """Test that sha256_file accepts Path object."""
+    def test_sha256_file_path_object(self, tmp_path: Path) -> None:
+        """Test that sha256_file accepts Path objects."""
         test_file = tmp_path / "test.txt"
-        test_file.write_text("Test")
+        test_file.write_text("content")
 
-        # Should accept Path object (not just string)
+        # Should accept Path object
         checksum = sha256_file(test_file)
         assert isinstance(checksum, str)
         assert len(checksum) == 64
 
-    def test_sha256_helpers_consistency(self, tmp_path: Path) -> None:
-        """Test that string and file helpers produce same result."""
-        content = "Test content"
-
-        # Calculate using string helper
-        string_checksum = sha256_string(content)
-
-        # Write to file and calculate using file helper
+    def test_sha256_file_matches_calculate_file_checksum(self, tmp_path: Path) -> None:
+        """Test that sha256_file matches calculate_file_checksum."""
         test_file = tmp_path / "test.txt"
-        test_file.write_text(content)
-        file_checksum = sha256_file(test_file)
+        test_file.write_text("Test content")
 
-        assert string_checksum == file_checksum
-
-
-class TestChecksumError:
-    """Test ChecksumError exception."""
-
-    def test_checksum_error_is_exception(self) -> None:
-        """Test that ChecksumError is an Exception."""
-        error = ChecksumError("Test error")
-        assert isinstance(error, Exception)
-
-    def test_checksum_error_message(self) -> None:
-        """Test ChecksumError message."""
-        message = "Checksum failed"
-        error = ChecksumError(message)
-        assert str(error) == message
-
-    def test_raise_checksum_error(self) -> None:
-        """Test raising ChecksumError."""
-        with pytest.raises(ChecksumError, match="Test"):
-            raise ChecksumError("Test")
+        checksum1 = sha256_file(test_file)
+        checksum2 = calculate_file_checksum(str(test_file), "sha256")
+        assert checksum1 == checksum2
 
 
-class TestEdgeCases:
-    """Test edge cases and special scenarios."""
+class TestSHA256String:
+    """Test sha256_string function."""
 
-    def test_very_long_content(self) -> None:
-        """Test checksum of very long content."""
-        content = "x" * 1000000  # 1MB of 'x'
-        checksum = calculate_checksum(content)
+    def test_sha256_string_basic(self) -> None:
+        """Test SHA-256 string checksum calculation."""
+        content = "Test content"
+        checksum = sha256_string(content)
+        expected = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        assert checksum == expected
         assert len(checksum) == 64
 
-    def test_special_characters(self) -> None:
-        """Test checksum of content with special characters."""
-        content = "!@#$%^&*()_+-=[]{}|;:',.<>?/~`"
-        checksum = calculate_checksum(content)
-        assert len(checksum) == 64
+    def test_sha256_string_empty(self) -> None:
+        """Test SHA-256 of empty string."""
+        checksum = sha256_string("")
+        expected = hashlib.sha256(b"").hexdigest()
+        assert checksum == expected
 
-    def test_newline_variations(self) -> None:
-        """Test that different newline styles produce different checksums."""
-        content_lf = "Line1\nLine2"
-        content_crlf = "Line1\r\nLine2"
-        content_cr = "Line1\rLine2"
+    def test_sha256_string_unicode(self) -> None:
+        """Test SHA-256 with Unicode content."""
+        content = "Hello 世界! 🌍"
+        checksum = sha256_string(content)
+        expected = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        assert checksum == expected
 
-        checksum_lf = calculate_checksum(content_lf)
-        checksum_crlf = calculate_checksum(content_crlf)
-        checksum_cr = calculate_checksum(content_cr)
-
-        # All should be different
-        assert checksum_lf != checksum_crlf
-        assert checksum_lf != checksum_cr
-        assert checksum_crlf != checksum_cr
-
-    def test_whitespace_sensitivity(self) -> None:
-        """Test that checksums are sensitive to whitespace."""
-        content1 = "Hello World"
-        content2 = "Hello  World"  # Extra space
-        content3 = "Hello World "  # Trailing space
-
-        checksum1 = calculate_checksum(content1)
-        checksum2 = calculate_checksum(content2)
-        checksum3 = calculate_checksum(content3)
-
-        # All should be different
-        assert checksum1 != checksum2
-        assert checksum1 != checksum3
-        assert checksum2 != checksum3
+    def test_sha256_string_matches_calculate_checksum(self) -> None:
+        """Test that sha256_string matches calculate_checksum."""
+        content = "Test content"
+        checksum1 = sha256_string(content)
+        checksum2 = calculate_checksum(content, "sha256")
+        assert checksum1 == checksum2
