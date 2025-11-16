@@ -51,10 +51,13 @@ Search for relevant packages (we'll create a discovery mechanism, but for now, l
 
 ## Step 3: Set Up Project A (Django API)
 
-Navigate to your Django project:
+Navigate to your Django project (replace with your actual project path):
 
 ```bash
+# Example - replace with your actual project path
 cd ~/projects/project-a-django-api
+# Or: cd ~/code/my-django-project
+# Or: cd /path/to/your/django/project
 ```
 
 Verify you're in a git repository (AI Config Kit works best with git projects):
@@ -314,7 +317,8 @@ touch resources/editorconfig.txt
 Now install the package to your Django project:
 
 ```bash
-cd ~/projects/project-a-django-api
+# Navigate back to your Django project
+cd ~/projects/project-a-django-api  # Use your actual project path
 
 # Install the package
 aiconfig package install /tmp/django-rest-package --ide claude
@@ -408,9 +412,10 @@ Claude should now:
 
 ## Step 5: Set Up Project B (React TypeScript)
 
-Now switch to your React project:
+Now switch to your React project (replace with your actual project path):
 
 ```bash
+# Example - replace with your actual project path
 cd ~/projects/project-b-react-app
 ```
 
@@ -621,7 +626,8 @@ EOF
 Install to your React project:
 
 ```bash
-cd ~/projects/project-b-react-app
+# Navigate back to your React project
+cd ~/projects/project-b-react-app  # Use your actual project path
 aiconfig package install /tmp/react-typescript-package --ide cursor
 ```
 
@@ -775,7 +781,8 @@ EOF
 Install to your data science project:
 
 ```bash
-cd ~/projects/project-c-data-science
+# Navigate to your data science project
+cd ~/projects/project-c-data-science  # Use your actual project path
 aiconfig package install /tmp/data-science-package --ide claude
 ```
 

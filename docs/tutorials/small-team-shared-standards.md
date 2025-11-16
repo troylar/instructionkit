@@ -42,7 +42,10 @@ You'll create a team coding standards package and publish it to GitHub.
 **How**:
 
 ```bash
-# Create local directory
+# Navigate to where you keep your projects/packages
+cd ~/projects  # Or your preferred location (e.g., ~/code, ~/workspace)
+
+# Create local directory for team standards
 mkdir team-coding-standards
 cd team-coding-standards
 git init
@@ -412,7 +415,8 @@ You're a team member. Your lead just shared the team standards package. Here's h
 ### Step 2.1: Navigate to Your Project
 
 ```bash
-cd ~/projects/acme-webapp  # Your project
+# Navigate to your actual project (replace with your project path)
+cd ~/projects/acme-webapp  # Replace with your actual project directory
 ```
 
 ---

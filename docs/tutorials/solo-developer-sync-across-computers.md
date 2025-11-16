@@ -33,9 +33,10 @@ Use Git to version control your AI configuration. Set it up once, sync everywher
 
 ```bash
 # On your desktop (Device #1)
-cd ~/projects/my-project
+# Navigate to where you keep your projects/templates (not inside a project!)
+cd ~/projects  # Or your preferred location for packages
 
-# Create a simple package
+# Create a simple package directory here
 mkdir my-coding-standards
 cd my-coding-standards
 
@@ -88,7 +89,8 @@ EOF
 **How**:
 
 ```bash
-cd ~/projects/my-project
+# Navigate to your actual project (replace with your project path)
+cd ~/projects/my-project  # Or your actual project directory
 aiconfig package install ~/projects/my-coding-standards --ide claude
 ```
 
@@ -141,7 +143,8 @@ git push
 
 ```bash
 # On your laptop (Device #2)
-cd ~/projects/my-project
+# Navigate to your project (should be same path or cloned repo)
+cd ~/projects/my-project  # Or your actual project path
 git pull
 ```
 
@@ -214,8 +217,8 @@ git pull
 **Solution**: Create a personal "dotfiles" repo for your AI configurations.
 
 ```bash
-# Create a central config repo
-mkdir ~/ai-configs
+# Create a central config repo (explicit location)
+mkdir -p ~/ai-configs
 cd ~/ai-configs
 git init
 
