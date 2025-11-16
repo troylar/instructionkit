@@ -14,10 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Install templates with namespace isolation using dot notation (e.g., `acme.security-rules`)
   - Support for instructions, slash commands, and prompt hooks
   - Cross-IDE compatibility (Claude Code, Cursor, Windsurf, GitHub Copilot)
-  - Template library management with `inskit template` commands
+  - Template library management with `aiconfig template` commands
   - Installation tracking with checksum verification
 - **Template Validation** - Health checking system for installed templates
-  - `inskit template validate` command with severity-based reporting (error/warning/info)
+  - `aiconfig template validate` command with severity-based reporting (error/warning/info)
   - Detects missing files, local modifications, and outdated versions
   - Checksum-based verification using SHA-256 hashing
   - Validates template integrity across project and global scopes
@@ -25,10 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `--verbose` flag for detailed diagnostic output
 - **Automatic Backup System** - Protection against accidental data loss
   - Automatic timestamped backups before any template overwrite
-  - Backups stored in `.instructionkit/backups/<timestamp>/`
-  - `inskit template backup list` - View available backups
-  - `inskit template backup restore` - Restore files from backups
-  - `inskit template backup cleanup` - Remove old backups (default: 30 days)
+  - Backups stored in `.ai-config-kit/backups/<timestamp>/`
+  - `aiconfig template backup list` - View available backups
+  - `aiconfig template backup restore` - Restore files from backups
+  - `aiconfig template backup cleanup` - Remove old backups (default: 30 days)
   - Support for both project and global scopes
 - **Interactive Conflict Resolution** - User prompts for template conflicts
   - Rich terminal UI for conflict resolution choices
@@ -36,17 +36,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Side-by-side conflict information display
   - Prevents accidental overwrites of modified templates
 - **Template Repository Scaffolding** - Create new template repositories with one command
-  - `inskit template init` - Generate scaffolded template repository
+  - `aiconfig template init` - Generate scaffolded template repository
   - Pre-configured `templatekit.yaml` with examples
   - Example templates with comprehensive documentation
   - Ready-to-use directory structure for all template types
   - Automatic README and .gitignore generation
 - Template-specific CLI commands:
-  - `inskit template init` - Create new template repository
-  - `inskit template install` - Install templates from library
-  - `inskit template list` - List available templates
-  - `inskit template update` - Update installed templates
-  - `inskit template uninstall` - Remove installed templates
+  - `aiconfig template init` - Create new template repository
+  - `aiconfig template install` - Install templates from library
+  - `aiconfig template list` - List available templates
+  - `aiconfig template update` - Update installed templates
+  - `aiconfig template uninstall` - Remove installed templates
 
 ### Changed
 - Default conflict resolution strategy changed from `skip` to `prompt` for template operations
@@ -66,10 +66,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Git repository updates now work correctly - `.git` directory is preserved during download (#16)
-  - Previously, downloading from Git URLs would skip the `.git` directory, preventing `inskit update --all` from working
+  - Previously, downloading from Git URLs would skip the `.git` directory, preventing `aiconfig update --all` from working
   - Update command would show "Not a Git repository (local source)" for all Git-based repositories
   - Now the entire `.git` directory is copied to the library alongside instruction files
-  - Enables proper Git-based updates via `inskit update --all` and `inskit update --namespace`
+  - Enables proper Git-based updates via `aiconfig update --all` and `aiconfig update --namespace`
   - Local (non-Git) sources continue to work as before
 
 ## [0.3.0] - 2025-10-27
@@ -80,20 +80,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Previous installations with `.md` extension will not be recognized by Copilot
   - **Action required** if you have existing Copilot instructions:
     ```bash
-    inskit uninstall <instruction-name> --tool copilot
-    inskit install <instruction-name>
+    aiconfig uninstall <instruction-name> --tool copilot
+    aiconfig install <instruction-name>
     ```
   - Affects: GitHub Copilot only (Cursor, Claude Code, Windsurf unchanged)
 
 ### Added
 - Git-based repository versioning support - download and manage multiple versions of instruction repositories
-  - `inskit download --ref <tag|branch|commit>` to download specific Git references
+  - `aiconfig download --ref <tag|branch|commit>` to download specific Git references
   - Support for tags (e.g., `v1.0.0`), branches (e.g., `main`), and commit hashes
   - Multiple versions of the same repository can coexist in the library
   - Version information tracked in installation records (`source_ref` and `source_ref_type`)
   - Automatic update behavior: branch-based installs auto-update, tag/commit-based installs remain pinned
-  - `inskit update` intelligently updates only mutable references (branches)
-  - Version display in TUI installer and `inskit list` commands
+  - `aiconfig update` intelligently updates only mutable references (branches)
+  - Version display in TUI installer and `aiconfig list` commands
 - **Upgrade detection and prompts** - when installing a newer version of an existing instruction:
   - Automatically detects version changes (e.g., v1.0.0 → v2.0.0)
   - Displays side-by-side version comparison with old and new versions
@@ -142,7 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.2] - 2025-10-24
 
 ### Fixed
-- Fixed duplicate installation confirmation prompt in `inskit install` command (#1)
+- Fixed duplicate installation confirmation prompt in `aiconfig install` command (#1)
 - Improved path assertions for cross-platform compatibility (Windows support)
 
 ### Changed

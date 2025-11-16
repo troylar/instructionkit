@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from instructionkit.utils.project import (
+from aiconfigkit.utils.project import (
     find_project_root,
     get_project_installation_tracker_path,
     get_project_instructions_dir,

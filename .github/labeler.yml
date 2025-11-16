@@ -12,27 +12,27 @@
 
 'scope: cli':
   - changed-files:
-    - any-glob-to-any-file: 'instructionkit/cli/**'
+    - any-glob-to-any-file: 'ai-config-kit/cli/**'
 
 'scope: core':
   - changed-files:
-    - any-glob-to-any-file: 'instructionkit/core/**'
+    - any-glob-to-any-file: 'ai-config-kit/core/**'
 
 'scope: storage':
   - changed-files:
-    - any-glob-to-any-file: 'instructionkit/storage/**'
+    - any-glob-to-any-file: 'ai-config-kit/storage/**'
 
 'scope: ai-tools':
   - changed-files:
-    - any-glob-to-any-file: 'instructionkit/ai_tools/**'
+    - any-glob-to-any-file: 'ai-config-kit/ai_tools/**'
 
 'scope: tui':
   - changed-files:
-    - any-glob-to-any-file: 'instructionkit/tui/**'
+    - any-glob-to-any-file: 'ai-config-kit/tui/**'
 
 'scope: utils':
   - changed-files:
-    - any-glob-to-any-file: 'instructionkit/utils/**'
+    - any-glob-to-any-file: 'ai-config-kit/utils/**'
 
 'type: ci/cd':
   - changed-files:

@@ -3,7 +3,7 @@
 import logging
 from pathlib import Path
 
-from instructionkit.utils.logging import get_logger, setup_logging
+from aiconfigkit.utils.logging import get_logger, setup_logging
 
 
 def test_setup_logging_default() -> None:

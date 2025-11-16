@@ -1,6 +1,6 @@
 # Development Guide
 
-This guide covers development workflows, tools, and best practices for contributing to InstructionKit.
+This guide covers development workflows, tools, and best practices for contributing to AI Config Kit.
 
 ---
 
@@ -10,8 +10,8 @@ This guide covers development workflows, tools, and best practices for contribut
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/instructionkit.git
-cd instructionkit
+git clone https://github.com/yourusername/ai-config-kit.git
+cd ai-config-kit
 
 # Create virtual environment
 python -m venv venv
@@ -27,7 +27,7 @@ pip install -e .[dev]
 
 ## 📋 Using Invoke Tasks
 
-InstructionKit uses [Invoke](https://www.pyinvoke.org/) for task automation. All common development operations are available as invoke tasks.
+AI Config Kit uses [Invoke](https://www.pyinvoke.org/) for task automation. All common development operations are available as invoke tasks.
 
 ### List All Available Tasks
 
@@ -202,8 +202,8 @@ open htmlcov/index.html
 ```python
 def test_parse_conflict_strategy():
     """Test conflict strategy parsing."""
-    from instructionkit.cli.install_new import _parse_conflict_strategy
-    from instructionkit.core.models import ConflictResolution
+    from ai-config-kit.cli.install_new import _parse_conflict_strategy
+    from ai-config-kit.core.models import ConflictResolution
     
     result = _parse_conflict_strategy("skip")
     assert result == ConflictResolution.SKIP
@@ -217,7 +217,7 @@ def test_parse_conflict_strategy():
 ```python
 def test_add_repository(temp_dir: Path):
     """Test adding a repository to library."""
-    from instructionkit.storage.library import LibraryManager
+    from ai-config-kit.storage.library import LibraryManager
     
     manager = LibraryManager(temp_dir / "library")
     repo = manager.add_repository(
@@ -238,7 +238,7 @@ def test_add_repository(temp_dir: Path):
 
 ### Formatting & Linting
 
-InstructionKit uses:
+AI Config Kit uses:
 - **Black** for code formatting (line length: 100)
 - **Ruff** for fast Python linting
 - **MyPy** for type checking
@@ -310,7 +310,7 @@ invoke quality --fix
 ## 📦 Project Structure
 
 ```
-instructionkit/
+ai-config-kit/
 ├── ai_tools/           # AI tool integrations
 │   ├── base.py        # Abstract base class
 │   ├── claude.py      # Claude integration
@@ -445,7 +445,7 @@ import pdb; pdb.set_trace()
 
 ```bash
 # Run with debug logging
-LOGLEVEL=DEBUG instructionkit install
+LOGLEVEL=DEBUG ai-config-kit install
 
 # Run specific test with output
 pytest tests/unit/test_models.py -s
@@ -475,7 +475,7 @@ def profile_function():
 
 ```bash
 # Time command execution
-time instructionkit install test-instruction
+time ai-config-kit install test-instruction
 
 # Memory profiling (requires memory_profiler)
 python -m memory_profiler script.py
@@ -497,7 +497,7 @@ safety check
 
 # Scan code for security issues
 pip install bandit
-bandit -r instructionkit/
+bandit -r ai-config-kit/
 ```
 
 ### Security Best Practices
@@ -717,8 +717,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines.
 
 ## 📞 Getting Help
 
-- **Issues**: https://github.com/instructionkit/instructionkit/issues
-- **Discussions**: https://github.com/instructionkit/instructionkit/discussions
+- **Issues**: https://github.com/ai-config-kit/ai-config-kit/issues
+- **Discussions**: https://github.com/ai-config-kit/ai-config-kit/discussions
 - **Documentation**: See README.md and docs/
 
 ---

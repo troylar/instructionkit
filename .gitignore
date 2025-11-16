@@ -80,6 +80,13 @@ dmypy.json
 # Archived/old files
 archive/
 
+# Personal/private files
+*_PERSONAL.*
+*PERSONAL*
+TODO_*
+NOTES_*
+SCRATCH_*
+
 # Test data and local repos
 test-local-repo/
 

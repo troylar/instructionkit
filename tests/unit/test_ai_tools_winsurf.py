@@ -2,8 +2,8 @@
 
 import pytest
 
-from instructionkit.ai_tools.winsurf import WinsurfTool
-from instructionkit.core.models import AIToolType, InstallationScope, Instruction
+from aiconfigkit.ai_tools.winsurf import WinsurfTool
+from aiconfigkit.core.models import AIToolType, InstallationScope, Instruction
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def mock_winsurf_installed(monkeypatch, temp_dir):
 
     winsurf_dir.mkdir(parents=True)
 
-    monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+    monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
     return winsurf_dir
 
 
@@ -56,7 +56,7 @@ class TestWinsurfTool:
         """Test is_installed returns False when Windsurf is not present."""
         home_dir = temp_dir / "empty_home"
         home_dir.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
         winsurf_tool = WinsurfTool()
         assert winsurf_tool.is_installed() is False
 
@@ -66,7 +66,7 @@ class TestWinsurfTool:
         def raise_error():
             raise RuntimeError("Test error")
 
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", raise_error)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", raise_error)
         winsurf_tool = WinsurfTool()
         assert winsurf_tool.is_installed() is False
 
@@ -109,6 +109,13 @@ class TestWinsurfTool:
         assert path.exists()
         assert path.read_text() == "Test content"
         assert path.suffix == ".md"
+
+    def test_get_mcp_config_path(self, winsurf_tool):
+        """Test get_mcp_config_path returns correct path."""
+        config_path = winsurf_tool.get_mcp_config_path()
+        # Should return a Path object pointing to Windsurf MCP config
+        assert config_path is not None
+        assert "windsurf" in str(config_path).lower()
 
     def test_repr(self, winsurf_tool):
         """Test string representation."""

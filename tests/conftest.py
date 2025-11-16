@@ -35,7 +35,7 @@ def mock_instruction_repo(temp_dir: Path) -> Path:
     repo = temp_dir / "test-instructions"
     repo.mkdir()
 
-    # Create instructionkit.yaml
+    # Create templatekit.yaml
     yaml_content = """name: Test Instructions
 description: Test instruction repository
 version: 1.0.0
@@ -65,7 +65,7 @@ bundles:
     tags:
       - python
 """
-    (repo / "instructionkit.yaml").write_text(yaml_content)
+    (repo / "templatekit.yaml").write_text(yaml_content)
 
     # Create instructions directory
     instructions_dir = repo / "instructions"

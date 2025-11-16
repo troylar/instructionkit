@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 import pytest
 
-from instructionkit.core.models import TemplateDefinition, TemplateFile, TemplateManifest
-from instructionkit.storage.template_library import TemplateLibraryManager
+from aiconfigkit.core.models import TemplateDefinition, TemplateFile, TemplateManifest
+from aiconfigkit.storage.template_library import TemplateLibraryManager
 
 
 @pytest.fixture
@@ -109,9 +109,9 @@ class TestTemplateLibraryManagerInit:
 class TestCloneRepository:
     """Tests for clone_repository method."""
 
-    @patch("instructionkit.storage.template_library.clone_template_repo")
-    @patch("instructionkit.storage.template_library.derive_namespace")
-    @patch("instructionkit.storage.template_library.load_manifest")
+    @patch("aiconfigkit.storage.template_library.clone_template_repo")
+    @patch("aiconfigkit.storage.template_library.derive_namespace")
+    @patch("aiconfigkit.storage.template_library.load_manifest")
     def test_clone_new_repository(
         self, mock_load_manifest, mock_derive_namespace, mock_clone, temp_library, sample_manifest
     ):
@@ -138,9 +138,9 @@ class TestCloneRepository:
         assert repo_path == expected_dest
         assert manifest == sample_manifest
 
-    @patch("instructionkit.storage.template_library.clone_template_repo")
-    @patch("instructionkit.storage.template_library.derive_namespace")
-    @patch("instructionkit.storage.template_library.load_manifest")
+    @patch("aiconfigkit.storage.template_library.clone_template_repo")
+    @patch("aiconfigkit.storage.template_library.derive_namespace")
+    @patch("aiconfigkit.storage.template_library.load_manifest")
     def test_clone_with_namespace_override(
         self, mock_load_manifest, mock_derive_namespace, mock_clone, temp_library, sample_manifest
     ):
@@ -155,9 +155,9 @@ class TestCloneRepository:
 
         mock_derive_namespace.assert_called_once_with(repo_url, "custom-namespace")
 
-    @patch("instructionkit.storage.template_library.clone_template_repo")
-    @patch("instructionkit.storage.template_library.derive_namespace")
-    @patch("instructionkit.storage.template_library.load_manifest")
+    @patch("aiconfigkit.storage.template_library.clone_template_repo")
+    @patch("aiconfigkit.storage.template_library.derive_namespace")
+    @patch("aiconfigkit.storage.template_library.load_manifest")
     def test_clone_replaces_existing_repository(
         self, mock_load_manifest, mock_derive_namespace, mock_clone, temp_library, sample_manifest
     ):
@@ -231,7 +231,7 @@ class TestListAvailableTemplates:
 class TestGetRepositoryVersion:
     """Tests for get_repository_version method."""
 
-    @patch("instructionkit.storage.template_library.get_repo_version")
+    @patch("aiconfigkit.storage.template_library.get_repo_version")
     def test_get_version_success(self, mock_get_version, temp_library):
         """Test getting repository version successfully."""
         # Create a repository directory
@@ -253,7 +253,7 @@ class TestGetRepositoryVersion:
 
         assert version is None
 
-    @patch("instructionkit.storage.template_library.get_repo_version")
+    @patch("aiconfigkit.storage.template_library.get_repo_version")
     def test_get_version_exception_returns_none(self, mock_get_version, temp_library):
         """Test that exceptions during version retrieval return None."""
         repo_path = temp_library / "acme-templates"
@@ -332,6 +332,23 @@ templates: []
         library_path = tmp_path / "nonexistent"
         manager = TemplateLibraryManager(library_path=library_path)
 
+        repos = manager.list_installed_repositories()
+        assert repos == []
+
+    def test_list_repositories_deleted_after_init(self, tmp_path):
+        """Test listing repositories when library is deleted after initialization."""
+        import shutil
+
+        library_path = tmp_path / "library"
+        manager = TemplateLibraryManager(library_path=library_path)
+
+        # Verify library was created by __init__
+        assert library_path.exists()
+
+        # Delete the library directory
+        shutil.rmtree(library_path)
+
+        # Should return empty list when library doesn't exist
         repos = manager.list_installed_repositories()
         assert repos == []
 

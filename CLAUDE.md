@@ -4,23 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**InstructionKit** is a CLI tool for managing AI coding assistant instructions. It allows users to download instruction repositories to a local library, browse them with an interactive TUI, and install them to AI tools (Cursor, Claude Code, Windsurf, GitHub Copilot) at the project level.
+**AI Config Kit** is a CLI tool for managing AI coding assistant instructions. It allows users to download instruction repositories to a local library, browse them with an interactive TUI, and install them to AI tools (Cursor, Claude Code, Windsurf, GitHub Copilot) at the project level.
 
-**CLI entry point:** `inskit` (installed via `pip install instructionkit`)
+**CLI entry point:** `aiconfig` (installed via `pip install ai-config-kit`)
 
 ## Architecture
 
 ### Core Concepts
 
-1. **Library System**: Instructions are downloaded from Git repos or local folders to `~/.instructionkit/library/` organized by namespace
+1. **Library System**: Instructions are downloaded from Git repos or local folders to `~/.ai-config-kit/library/` organized by namespace
 2. **Project-Level Installation**: All installations are project-specific, stored in tool-specific directories (`.cursor/rules/`, `.claude/rules/`, etc.)
-3. **Installation Tracking**: Tracked in `<project-root>/.instructionkit/installations.json` for each project
+3. **Installation Tracking**: Tracked in `<project-root>/.ai-config-kit/installations.json` for each project (instructions) and `<project-root>/.ai-config-kit/packages.json` for packages
 4. **Interactive TUI**: Terminal UI for browsing and selecting instructions from the library
+5. **Configuration Packages**: Multi-component packages containing instructions, MCP servers, hooks, commands, and resources that can be installed as a unit
 
 ### Package Structure
 
 ```
-instructionkit/
+ai-config-kit/
 ├── ai_tools/          # AI tool integrations and detection
 │   ├── base.py       # Abstract AITool base class
 │   ├── claude.py     # Claude Code (.claude/rules/*.md)
@@ -37,16 +38,19 @@ instructionkit/
 │   ├── update.py     # Update library repos
 │   ├── delete.py     # Delete from library
 │   ├── uninstall.py  # Uninstall from projects
-│   └── tools.py      # List detected AI tools
+│   ├── tools.py      # List detected AI tools
+│   ├── package.py    # Package management commands (list, uninstall)
+│   └── package_install.py # Package installation logic
 ├── core/              # Core business logic
 │   ├── models.py     # Data models (Instruction, Repository, etc.)
-│   ├── repository.py # Parse instructionkit.yaml
+│   ├── repository.py # Parse ai-config-kit.yaml
 │   ├── git_operations.py # Git clone/pull operations
 │   ├── checksum.py   # File integrity checking
 │   └── conflict_resolution.py # Handle file conflicts
 ├── storage/           # Data persistence
-│   ├── library.py    # LibraryManager for ~/.instructionkit/library/
-│   └── tracker.py    # InstallationTracker for installations.json
+│   ├── library.py    # LibraryManager for ~/.ai-config-kit/library/
+│   ├── tracker.py    # InstallationTracker for installations.json
+│   └── package_tracker.py # PackageTracker for packages.json
 ├── tui/               # Terminal UI
 │   └── installer.py  # Textual-based interactive browser
 └── utils/             # Utilities
@@ -56,14 +60,24 @@ instructionkit/
 
 ### Key Data Models
 
-From `instructionkit/core/models.py`:
+From `ai-config-kit/core/models.py`:
 
+#### Instructions
 - **Instruction**: Single instruction file with name, description, content, file_path, tags, checksum
 - **InstructionBundle**: Group of related instructions
 - **Repository**: Instruction repository with instructions and bundles
 - **InstallationRecord**: Tracks installed instruction with ai_tool, source_repo, installed_path, scope
 - **LibraryInstruction**: Instruction in library (downloaded but not installed)
 - **LibraryRepository**: Downloaded repository in library
+
+#### Packages
+- **Package**: Configuration package containing multiple components (instructions, MCP servers, hooks, commands, resources)
+- **PackageComponents**: Container for all components in a package with methods to count and manage them
+- **ComponentType**: Enum for component types (INSTRUCTION, MCP_SERVER, HOOK, COMMAND, RESOURCE)
+- **InstalledComponent**: Tracks installed component with type, name, path, checksum, and status
+- **PackageInstallationRecord**: Tracks installed package with name, version, components, timestamps, scope, and status
+- **InstallationStatus**: Enum for installation status (COMPLETE, PARTIAL, FAILED, PENDING_CREDENTIALS)
+- **ConflictResolution**: Enum for conflict handling strategies (SKIP, OVERWRITE, RENAME)
 
 ### AI Tool Integration
 
@@ -217,7 +231,7 @@ Always reference GitHub issues in commit messages to create automatic links and 
 
   Fixes #1
 
-  The inskit install command was prompting users twice...
+  The aiconfig install command was prompting users twice...
   ```
 
 - **Referencing issues**: Use `Refs #123` or `See #123` to reference related issues without closing them
@@ -257,13 +271,13 @@ Allows installing multiple instructions in one command..."
 ## Important Implementation Details
 
 ### Project Root Detection
-The `utils/project.py` module detects project root by looking for markers like `.git/`, `pyproject.toml`, `package.json`, etc. This enables running `inskit` from any subdirectory within a project.
+The `utils/project.py` module detects project root by looking for markers like `.git/`, `pyproject.toml`, `package.json`, etc. This enables running `aiconfig` from any subdirectory within a project.
 
 ### Installation Workflow
-1. **Download**: Clone/copy repo to `~/.instructionkit/library/<namespace>/`
+1. **Download**: Clone/copy repo to `~/.ai-config-kit/library/<namespace>/`
 2. **Browse**: TUI reads library, displays instructions
 3. **Install**: Copy instruction file to project's tool-specific directory
-4. **Track**: Record in `<project-root>/.instructionkit/installations.json`
+4. **Track**: Record in `<project-root>/.ai-config-kit/installations.json`
 
 ### Conflict Resolution
 When installing an instruction that already exists:
@@ -272,7 +286,7 @@ When installing an instruction that already exists:
 - **OVERWRITE**: Replace existing file
 
 ### Repository Format
-Instruction repositories must have `instructionkit.yaml`:
+Instruction repositories must have `ai-config-kit.yaml`:
 ```yaml
 name: My Instructions
 description: Description
@@ -290,6 +304,108 @@ bundles:
     instructions: [instruction1, instruction2]
     tags: [tag]
 ```
+
+### Package Management System
+
+The package management system allows installing multi-component bundles that include instructions, MCP servers, hooks, commands, and resources.
+
+#### Package Structure
+Packages must contain an `ai-config-kit-package.yaml` manifest:
+```yaml
+name: package-name
+version: 1.0.0
+description: Package description
+author: Author Name
+license: MIT
+namespace: org/repo
+
+components:
+  instructions:
+    - name: instruction-name
+      file: instructions/file.md
+      description: Instruction description
+      tags: [tag1, tag2]
+
+  mcp_servers:
+    - name: server-name
+      file: mcp/config.json
+      description: MCP server configuration
+      credentials:
+        - name: ENV_VAR
+          description: Environment variable description
+          required: true
+          default: "default-value"
+
+  hooks:
+    - name: hook-name
+      file: hooks/script.sh
+      description: Hook description
+      hook_type: pre-commit
+
+  commands:
+    - name: command-name
+      file: commands/script.sh
+      description: Command description
+      command_type: shell
+
+  resources:
+    - name: resource-name
+      file: resources/file.txt
+      description: Resource file
+      checksum: sha256:...
+      size: 1234
+```
+
+#### Package Commands
+```bash
+# Install a package
+aiconfig package install ./path/to/package --ide claude
+
+# Install with conflict resolution
+aiconfig package install ./package --ide cursor --conflict overwrite
+
+# Force reinstall
+aiconfig package install ./package --force
+
+# List installed packages
+aiconfig package list
+
+# List with JSON output
+aiconfig package list --json
+
+# Uninstall a package
+aiconfig package uninstall package-name
+
+# Uninstall without confirmation
+aiconfig package uninstall package-name --yes
+```
+
+#### Package Installation Workflow
+1. **Parse Manifest**: Read and validate `ai-config-kit-package.yaml`
+2. **Check Existing**: Detect if package already installed
+3. **Filter Components**: Only install components supported by target IDE
+4. **Translate Components**: Convert to IDE-specific formats
+5. **Install Files**: Copy files with conflict resolution
+6. **Track Installation**: Record in `.ai-config-kit/packages.json`
+
+#### IDE Capability Filtering
+Different IDEs support different component types:
+- **Claude Code**: All components (instructions, MCP, hooks, commands, resources)
+- **Cursor**: Instructions and resources only
+- **Windsurf**: Instructions and resources only
+- **GitHub Copilot**: Instructions only
+
+Unsupported components are automatically skipped and counted separately.
+
+#### Component Translation
+Components are translated to IDE-specific formats:
+- **Claude Code**: `.md` files in `.claude/rules/`, `.claude/hooks/`, `.claude/commands/`
+- **Cursor**: `.mdc` files in `.cursor/rules/`
+- **Windsurf**: `.md` files in `.windsurf/rules/`
+- **GitHub Copilot**: `.md` files in `.github/instructions/`
+
+#### Example Package
+See `example-package/` directory for a complete example with all component types.
 
 ## CI/CD
 
@@ -309,14 +425,14 @@ chmod +x .githooks/pre-push
 ## Common Tasks
 
 ### Adding a New AI Tool
-1. Create `instructionkit/ai_tools/newtool.py` inheriting from `AITool`
+1. Create `ai-config-kit/ai_tools/newtool.py` inheriting from `AITool`
 2. Implement `detect()`, `get_install_path()`, and `install()` methods
 3. Add to `AIToolType` enum in `models.py`
 4. Register in `detector.py`
 5. Add tests in `tests/unit/test_ai_tools.py`
 
 ### Adding a New CLI Command
-1. Create command file in `instructionkit/cli/`
+1. Create command file in `ai-config-kit/cli/`
 2. Define Typer command with `@app.command()`
 3. Register in `cli/main.py`
 4. Add tests in `tests/unit/test_cli.py`
@@ -356,7 +472,7 @@ Follow the `.cursor/rules/documentation-practices.mdc` guide:
 
 ```bash
 # Enable debug logging
-LOGLEVEL=DEBUG inskit install
+LOGLEVEL=DEBUG aiconfig install
 
 # Run specific test with output
 pytest tests/unit/test_models.py -s -vv
@@ -379,9 +495,9 @@ This project uses **GitHub Actions with PyPI Trusted Publishing** for automated 
 
 1. Go to https://pypi.org/manage/account/publishing/
 2. Add a new publisher:
-   - **PyPI Project Name**: `instructionkit`
+   - **PyPI Project Name**: `ai-config-kit`
    - **Owner**: `troylar`
-   - **Repository**: `instructionkit`
+   - **Repository**: `ai-config-kit`
    - **Workflow name**: `publish.yml`
    - **Environment**: (leave empty)
 3. Save the trusted publisher
@@ -511,7 +627,7 @@ gh release create v0.2.0 \
 ```
 
 **Alternative:** Create release manually on GitHub:
-1. Go to https://github.com/troylar/instructionkit/releases/new
+1. Go to https://github.com/troylar/ai-config-kit/releases/new
 2. Click "Choose a tag" and select `v0.2.0`
 3. Title: `v0.2.0`
 4. Copy the relevant section from CHANGELOG.md into the description
@@ -532,7 +648,7 @@ gh run watch
 gh run list --workflow=publish.yml
 ```
 
-You can also monitor at: https://github.com/troylar/instructionkit/actions
+You can also monitor at: https://github.com/troylar/ai-config-kit/actions
 
 ### Post-Release Verification
 
@@ -540,16 +656,16 @@ Wait for the GitHub Actions workflow to complete (usually 2-5 minutes), then:
 
 ```bash
 # Verify package on PyPI
-pip install --upgrade instructionkit
+pip install --upgrade ai-config-kit
 
 # Check installed version
-inskit --version
+aiconfig --version
 
 # Verify GitHub release
 gh release view v0.2.0
 
 # Check PyPI page
-open https://pypi.org/project/instructionkit/
+open https://pypi.org/project/ai-config-kit/
 ```
 
 ### Testing on TestPyPI (Optional)
@@ -564,7 +680,7 @@ gh workflow run publish.yml -f repository=testpypi
 gh run watch
 ```
 
-Then verify on TestPyPI: https://test.pypi.org/project/instructionkit/
+Then verify on TestPyPI: https://test.pypi.org/project/ai-config-kit/
 
 ### Rollback (If Needed)
 
@@ -622,9 +738,12 @@ gh run watch
 The GitHub Actions workflow (`.github/workflows/publish.yml`) handles building and publishing automatically.
 
 ## Active Technologies
-- Markdown (instruction content) | Python 3.10+ (for InstructionKit CLI - no changes needed) + Git (for repository hosting), existing InstructionKit commands (no new dependencies) (001-example-instruction-repo)
-- GitHub repository at `troylar/instructionkit-examples` | Git-based versioning (001-example-instruction-repo)
+- Markdown (instruction content) | Python 3.10+ (for AI Config Kit CLI - no changes needed) + Git (for repository hosting), existing AI Config Kit commands (no new dependencies) (001-example-instruction-repo)
+- GitHub repository at `troylar/ai-config-kit-examples` | Git-based versioning (001-example-instruction-repo)
 - Python 3.10+ (targeting 3.10-3.13) (002-template-sync-system)
+- Filesystem-based (MCP definitions in `~/.ai-config-kit/library/<namespace>/`, credentials in `.ai-config-kit/.env`, AI tool configs at standard locations) (003-mcp-server-management)
+- Python 3.10+ (minimum 3.10, support 3.10-3.13) + PyYAML (manifest parsing), Rich/Textual (TUI), Typer (CLI), existing ai-config-kit modules (004-config-package)
+- JSON files (registry, package tracker) + YAML (manifests) + filesystem (.instructionkit/ structure) (004-config-package)
 
 ## Recent Changes
-- 001-example-instruction-repo: Added Markdown (instruction content) | Python 3.10+ (for InstructionKit CLI - no changes needed) + Git (for repository hosting), existing InstructionKit commands (no new dependencies)
+- 001-example-instruction-repo: Added Markdown (instruction content) | Python 3.10+ (for AI Config Kit CLI - no changes needed) + Git (for repository hosting), existing AI Config Kit commands (no new dependencies)

@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from instructionkit.core.models import Repository
-from instructionkit.core.repository import RepositoryParser, validate_repository_structure
+from aiconfigkit.core.models import Repository
+from aiconfigkit.core.repository import RepositoryParser, validate_repository_structure
 
 
 class TestRepositoryParser:
@@ -105,7 +105,7 @@ instructions:
     description: Test
     file: instructions/missing.md
 """
-        (temp_dir / "instructionkit.yaml").write_text(yaml_content)
+        (temp_dir / "templatekit.yaml").write_text(yaml_content)
 
         parser = RepositoryParser(temp_dir)
 
@@ -125,7 +125,7 @@ class TestRepositoryValidation:
         """Test validation when metadata file is missing."""
         error = validate_repository_structure(temp_dir)
         assert error is not None
-        assert "Missing instructionkit.yaml" in error
+        assert "Missing templatekit.yaml" in error
 
     def test_validate_empty_repository(self, temp_dir: Path):
         """Test validation when repository has no instructions."""
@@ -136,7 +136,7 @@ version: 1.0.0
 instructions: []
 bundles: []
 """
-        (temp_dir / "instructionkit.yaml").write_text(yaml_content)
+        (temp_dir / "templatekit.yaml").write_text(yaml_content)
 
         error = validate_repository_structure(temp_dir)
         assert error is not None

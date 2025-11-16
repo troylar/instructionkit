@@ -1,0 +1,47 @@
+name: example-package
+version: 1.0.0
+description: Example configuration package demonstrating all component types
+author: AI Config Kit Team
+license: MIT
+namespace: aiconfigkit/examples
+
+components:
+  instructions:
+    - name: code-quality
+      file: instructions/code-quality.md
+      description: Code quality and best practices guidelines
+      tags: [quality, best-practices, code-review]
+
+    - name: testing-strategy
+      file: instructions/testing-strategy.md
+      description: Testing strategy and TDD guidelines
+      tags: [testing, tdd, quality]
+
+  mcp_servers:
+    - name: filesystem
+      file: mcp/filesystem.json
+      description: Local filesystem access MCP server
+      credentials:
+        - name: ALLOWED_DIRECTORIES
+          description: Comma-separated list of allowed directories
+          required: false
+          default: "."
+
+  hooks:
+    - name: pre-commit
+      file: hooks/pre-commit.sh
+      description: Run linting and formatting before commits
+      hook_type: pre-commit
+
+  commands:
+    - name: test
+      file: commands/test.sh
+      description: Run test suite with coverage
+      command_type: shell
+
+  resources:
+    - name: gitignore
+      file: resources/.gitignore
+      description: Standard gitignore for AI projects
+      checksum: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      size: 250

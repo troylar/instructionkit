@@ -5,17 +5,17 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from instructionkit.cli.delete import delete_from_library
-from instructionkit.core.models import LibraryInstruction, LibraryRepository
-from instructionkit.storage.library import LibraryManager
-from instructionkit.storage.tracker import InstallationTracker
+from aiconfigkit.cli.delete import delete_from_library
+from aiconfigkit.core.models import LibraryInstruction, LibraryRepository
+from aiconfigkit.storage.library import LibraryManager
+from aiconfigkit.storage.tracker import InstallationTracker
 
 
 @pytest.fixture
 def mock_library_manager(monkeypatch: pytest.MonkeyPatch) -> Mock:
     """Create a mock library manager."""
     mock = Mock(spec=LibraryManager)
-    monkeypatch.setattr("instructionkit.cli.delete.LibraryManager", lambda: mock)
+    monkeypatch.setattr("aiconfigkit.cli.delete.LibraryManager", lambda: mock)
     return mock
 
 
@@ -23,7 +23,7 @@ def mock_library_manager(monkeypatch: pytest.MonkeyPatch) -> Mock:
 def mock_tracker(monkeypatch: pytest.MonkeyPatch) -> Mock:
     """Create a mock installation tracker."""
     mock = Mock(spec=InstallationTracker)
-    monkeypatch.setattr("instructionkit.cli.delete.InstallationTracker", lambda: mock)
+    monkeypatch.setattr("aiconfigkit.cli.delete.InstallationTracker", lambda: mock)
     return mock
 
 
@@ -117,7 +117,7 @@ def test_delete_repository_failure(mock_library_manager: Mock, mock_tracker: Moc
     assert exit_code == 1
 
 
-@patch("instructionkit.cli.delete.Confirm.ask")
+@patch("aiconfigkit.cli.delete.Confirm.ask")
 def test_delete_repository_with_confirmation_cancelled(
     mock_confirm: Mock, mock_library_manager: Mock, mock_tracker: Mock
 ) -> None:
@@ -143,7 +143,7 @@ def test_delete_repository_with_confirmation_cancelled(
     mock_library_manager.remove_repository.assert_not_called()
 
 
-@patch("instructionkit.cli.delete.Confirm.ask")
+@patch("aiconfigkit.cli.delete.Confirm.ask")
 def test_delete_repository_with_confirmation_accepted(
     mock_confirm: Mock, mock_library_manager: Mock, mock_tracker: Mock
 ) -> None:

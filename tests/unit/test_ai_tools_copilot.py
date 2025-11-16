@@ -2,8 +2,8 @@
 
 import pytest
 
-from instructionkit.ai_tools.copilot import CopilotTool
-from instructionkit.core.models import AIToolType, InstallationScope, Instruction
+from aiconfigkit.ai_tools.copilot import CopilotTool
+from aiconfigkit.core.models import AIToolType, InstallationScope, Instruction
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ def mock_copilot_installed(monkeypatch, temp_dir):
 
     copilot_dir.mkdir(parents=True)
 
-    monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+    monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
     return copilot_dir
 
 
@@ -58,7 +58,7 @@ class TestCopilotTool:
         """Test is_installed returns False when Copilot is not present."""
         home_dir = temp_dir / "empty_home"
         home_dir.mkdir()
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", lambda: home_dir)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", lambda: home_dir)
         copilot_tool = CopilotTool()
         assert copilot_tool.is_installed() is False
 
@@ -68,7 +68,7 @@ class TestCopilotTool:
         def raise_error():
             raise RuntimeError("Test error")
 
-        monkeypatch.setattr("instructionkit.utils.paths.get_home_directory", raise_error)
+        monkeypatch.setattr("aiconfigkit.utils.paths.get_home_directory", raise_error)
         copilot_tool = CopilotTool()
         assert copilot_tool.is_installed() is False
 
