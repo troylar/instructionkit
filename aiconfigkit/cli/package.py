@@ -99,10 +99,11 @@ def install_package_command(
                 console.print(f"[red]Error: Project directory not found: {project}[/red]")
                 raise typer.Exit(1)
         else:
-            project_root = find_project_root()
-            if not project_root:
+            project_root_maybe = find_project_root()
+            if not project_root_maybe:
                 console.print("[red]Error: Could not find project root. " "Use --project to specify explicitly.[/red]")
                 raise typer.Exit(1)
+            project_root = project_root_maybe
 
         # Resolve package path
         pkg_path = Path(package_path).resolve()
@@ -223,10 +224,11 @@ def list_packages_command(
                 console.print(f"[red]Error: Project directory not found: {project}[/red]")
                 raise typer.Exit(1)
         else:
-            project_root = find_project_root()
-            if not project_root:
+            project_root_maybe = find_project_root()
+            if not project_root_maybe:
                 console.print("[red]Error: Could not find project root. " "Use --project to specify explicitly.[/red]")
                 raise typer.Exit(1)
+            project_root = project_root_maybe
 
         # Get tracker
         tracker_file = project_root / ".ai-config-kit" / "packages.json"
@@ -321,10 +323,11 @@ def uninstall_package_command(
                 console.print(f"[red]Error: Project directory not found: {project}[/red]")
                 raise typer.Exit(1)
         else:
-            project_root = find_project_root()
-            if not project_root:
+            project_root_maybe = find_project_root()
+            if not project_root_maybe:
                 console.print("[red]Error: Could not find project root. " "Use --project to specify explicitly.[/red]")
                 raise typer.Exit(1)
+            project_root = project_root_maybe
 
         # Get tracker
         tracker_file = project_root / ".ai-config-kit" / "packages.json"

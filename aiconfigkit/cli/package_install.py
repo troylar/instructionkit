@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from aiconfigkit.ai_tools.capability_registry import get_capability
 from aiconfigkit.ai_tools.translator import get_translator
@@ -194,11 +194,15 @@ def install_package(
 
         # Step 8: Record installation
         now = datetime.now()
+        # Get original install time for reinstalls
+        existing_record = tracker.get_package(package.name, scope) if is_reinstall else None
+        original_install_time = existing_record.installed_at if existing_record else now
+
         installation_record = PackageInstallationRecord(
             package_name=package.name,
             namespace=package.namespace,
             version=package.version,
-            installed_at=now if not is_reinstall else tracker.get_package(package.name, scope).installed_at,
+            installed_at=original_install_time,
             updated_at=now,
             scope=scope,
             components=installed_components,
@@ -233,9 +237,9 @@ def install_package(
         )
 
 
-def _filter_components_by_capability(package: Package, capability) -> dict:
+def _filter_components_by_capability(package: Package, capability: Any) -> dict[str, list[Any]]:
     """Filter package components by IDE capability."""
-    filtered = {}
+    filtered: dict[str, list[Any]] = {}
 
     if capability.supports_component(ComponentType.INSTRUCTION):
         filtered["instructions"] = package.components.instructions
@@ -256,7 +260,7 @@ def _filter_components_by_capability(package: Package, capability) -> dict:
 
 
 def _install_instruction_component(
-    component, package_path, project_root, translator, conflict_resolution
+    component: Any, package_path: Path, project_root: Path, translator: Any, conflict_resolution: ConflictResolution
 ) -> Optional[InstalledComponent]:
     """Install instruction component."""
     try:
@@ -304,7 +308,7 @@ def _install_instruction_component(
 
 
 def _install_mcp_component(
-    component, package_path, project_root, translator, conflict_resolution
+    component: Any, package_path: Path, project_root: Path, translator: Any, conflict_resolution: ConflictResolution
 ) -> Optional[InstalledComponent]:
     """Install MCP server component."""
     try:
@@ -341,7 +345,7 @@ def _install_mcp_component(
 
 
 def _install_hook_component(
-    component, package_path, project_root, translator, conflict_resolution
+    component: Any, package_path: Path, project_root: Path, translator: Any, conflict_resolution: ConflictResolution
 ) -> Optional[InstalledComponent]:
     """Install hook component."""
     try:
@@ -385,7 +389,7 @@ def _install_hook_component(
 
 
 def _install_command_component(
-    component, package_path, project_root, translator, conflict_resolution
+    component: Any, package_path: Path, project_root: Path, translator: Any, conflict_resolution: ConflictResolution
 ) -> Optional[InstalledComponent]:
     """Install command component."""
     try:
@@ -429,7 +433,7 @@ def _install_command_component(
 
 
 def _install_resource_component(
-    component, package_path, project_root, translator, conflict_resolution
+    component: Any, package_path: Path, project_root: Path, translator: Any, conflict_resolution: ConflictResolution
 ) -> Optional[InstalledComponent]:
     """Install resource component."""
     try:
