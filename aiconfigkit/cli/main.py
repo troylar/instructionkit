@@ -425,15 +425,15 @@ def tools() -> None:
 
 @app.command()
 def version() -> None:
-    """Show InstructionKit version."""
+    """Show AI Config Kit version."""
     from importlib.metadata import version as get_version
 
     try:
-        version = get_version("instructionkit")
+        version = get_version("ai-config-kit")
     except Exception:
         version = "unknown"
 
-    typer.echo(f"InstructionKit version {version}")
+    typer.echo(f"AI Config Kit version {version}")
 
 
 @app.callback(invoke_without_command=True)
