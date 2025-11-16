@@ -1,8 +1,9 @@
 name: Performance Benchmarks
 
 on:
-  pull_request:
-    branches: [ main ]
+  # Disabled for PRs until benchmark tests are added
+  # pull_request:
+  #   branches: [ main ]
   push:
     branches: [ main ]
   workflow_dispatch:
