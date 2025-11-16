@@ -126,9 +126,7 @@ class TestComponentInstallation:
         project.mkdir()
         return project
 
-    def test_install_mcp_with_overwrite(
-        self, temp_package: Path, temp_project: Path
-    ) -> None:
+    def test_install_mcp_with_overwrite(self, temp_package: Path, temp_project: Path) -> None:
         """Test MCP installation with OVERWRITE conflict resolution."""
         component = MCPServerComponent(name="test", file="mcp/test.json", description="Test")
         translator = get_translator(AIToolType.CLAUDE)
@@ -139,18 +137,14 @@ class TestComponentInstallation:
         existing_file.write_text('{"old": "content"}')
 
         # Install with overwrite
-        result = _install_mcp_component(
-            component, temp_package, temp_project, translator, ConflictResolution.OVERWRITE
-        )
+        result = _install_mcp_component(component, temp_package, temp_project, translator, ConflictResolution.OVERWRITE)
 
         assert result is not None
         assert result.name == "test"
         # New content should overwrite old
         assert existing_file.read_text() == '{"mcpServers": {}}'
 
-    def test_install_hook_with_rename(
-        self, temp_package: Path, temp_project: Path
-    ) -> None:
+    def test_install_hook_with_rename(self, temp_package: Path, temp_project: Path) -> None:
         """Test hook installation with RENAME conflict resolution."""
         component = HookComponent(name="test", file="hooks/test.sh", description="Test", hook_type="pre-commit")
         translator = get_translator(AIToolType.CLAUDE)
@@ -161,9 +155,7 @@ class TestComponentInstallation:
         existing_file.write_text("old content")
 
         # Install with rename
-        result = _install_hook_component(
-            component, temp_package, temp_project, translator, ConflictResolution.RENAME
-        )
+        result = _install_hook_component(component, temp_package, temp_project, translator, ConflictResolution.RENAME)
 
         assert result is not None
         # Should create numbered copy
@@ -171,9 +163,7 @@ class TestComponentInstallation:
         assert renamed_file.exists()
         assert existing_file.read_text() == "old content"  # Original preserved
 
-    def test_install_command_error_handling(
-        self, temp_package: Path, temp_project: Path
-    ) -> None:
+    def test_install_command_error_handling(self, temp_package: Path, temp_project: Path) -> None:
         """Test command installation error handling."""
         # Component with non-existent file
         component = CommandComponent(
@@ -181,16 +171,12 @@ class TestComponentInstallation:
         )
         translator = get_translator(AIToolType.CLAUDE)
 
-        result = _install_command_component(
-            component, temp_package, temp_project, translator, ConflictResolution.SKIP
-        )
+        result = _install_command_component(component, temp_package, temp_project, translator, ConflictResolution.SKIP)
 
         # Should return None on error
         assert result is None
 
-    def test_install_resource_with_skip(
-        self, temp_package: Path, temp_project: Path
-    ) -> None:
+    def test_install_resource_with_skip(self, temp_package: Path, temp_project: Path) -> None:
         """Test resource installation with SKIP conflict resolution."""
         component = ResourceComponent(
             name="test",
@@ -207,18 +193,14 @@ class TestComponentInstallation:
         existing_file.write_text("existing content")
 
         # Install with skip
-        result = _install_resource_component(
-            component, temp_package, temp_project, translator, ConflictResolution.SKIP
-        )
+        result = _install_resource_component(component, temp_package, temp_project, translator, ConflictResolution.SKIP)
 
         # Should return None (skipped)
         assert result is None
         # Original file preserved
         assert existing_file.read_text() == "existing content"
 
-    def test_install_resource_without_source_path(
-        self, temp_package: Path, temp_project: Path
-    ) -> None:
+    def test_install_resource_without_source_path(self, temp_package: Path, temp_project: Path) -> None:
         """Test resource installation fallback when no source_path in metadata."""
         from unittest.mock import MagicMock
 
@@ -242,7 +224,7 @@ class TestComponentInstallation:
             component_name="test",
             target_path=".testfile",
             content="test content",
-            metadata={}  # No source_path - triggers fallback
+            metadata={},  # No source_path - triggers fallback
         )
 
         # Install resource

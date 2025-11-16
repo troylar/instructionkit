@@ -522,9 +522,7 @@ components:
         with patch("aiconfigkit.cli.package_install.get_translator") as mock_translator:
             mock_translator.return_value.translate_mcp_server.side_effect = RuntimeError("MCP error")
 
-            result = install_package(
-                package_path=mcp_package, project_root=project_root, target_ide=AIToolType.CLAUDE
-            )
+            result = install_package(package_path=mcp_package, project_root=project_root, target_ide=AIToolType.CLAUDE)
 
             # Should complete but skip the failed MCP
             assert result.success is True
@@ -562,12 +560,8 @@ components:
         with patch("aiconfigkit.cli.package_install.get_translator") as mock_translator:
             mock_translator.return_value.translate_hook.side_effect = RuntimeError("Hook error")
 
-            result = install_package(
-                package_path=hook_package, project_root=project_root, target_ide=AIToolType.CLAUDE
-            )
+            result = install_package(package_path=hook_package, project_root=project_root, target_ide=AIToolType.CLAUDE)
 
             # Should complete but skip the failed hook
             assert result.success is True
             assert result.skipped_count >= 1
-
-

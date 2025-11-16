@@ -452,9 +452,7 @@ class TestRepositoryParser:
         """Test parsing MCP sets."""
         metadata = {
             "name": "Test",
-            "mcp_sets": [
-                {"name": "test-set", "description": "Test set", "servers": ["server1", "server2"]}
-            ],
+            "mcp_sets": [{"name": "test-set", "description": "Test set", "servers": ["server1", "server2"]}],
         }
 
         repo_path = tmp_path / "repo"

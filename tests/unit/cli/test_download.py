@@ -13,9 +13,7 @@ class TestDownloadInstructions:
 
     @patch("aiconfigkit.cli.download.GitOperations.is_local_path")
     @patch("aiconfigkit.cli.download.GitOperations.detect_ref_type")
-    def test_download_remote_invalid_reference(
-        self, mock_detect_ref: MagicMock, mock_is_local: MagicMock
-    ) -> None:
+    def test_download_remote_invalid_reference(self, mock_detect_ref: MagicMock, mock_is_local: MagicMock) -> None:
         """Test downloading with invalid reference."""
         mock_is_local.return_value = False
         mock_detect_ref.side_effect = RepositoryOperationError("invalid_reference", "Ref not found")
@@ -26,9 +24,7 @@ class TestDownloadInstructions:
 
     @patch("aiconfigkit.cli.download.GitOperations.is_local_path")
     @patch("aiconfigkit.cli.download.GitOperations.detect_ref_type")
-    def test_download_remote_network_error(
-        self, mock_detect_ref: MagicMock, mock_is_local: MagicMock
-    ) -> None:
+    def test_download_remote_network_error(self, mock_detect_ref: MagicMock, mock_is_local: MagicMock) -> None:
         """Test downloading with network error."""
         mock_is_local.return_value = False
         mock_detect_ref.side_effect = RepositoryOperationError("network_error", "Connection failed")
@@ -39,9 +35,7 @@ class TestDownloadInstructions:
 
     @patch("aiconfigkit.cli.download.GitOperations.is_local_path")
     @patch("aiconfigkit.cli.download.GitOperations.detect_ref_type")
-    def test_download_remote_generic_ref_error(
-        self, mock_detect_ref: MagicMock, mock_is_local: MagicMock
-    ) -> None:
+    def test_download_remote_generic_ref_error(self, mock_detect_ref: MagicMock, mock_is_local: MagicMock) -> None:
         """Test downloading with generic ref validation error."""
         mock_is_local.return_value = False
         mock_detect_ref.side_effect = RepositoryOperationError("unknown", "Unknown error")
@@ -84,9 +78,7 @@ class TestDownloadInstructions:
         inst_file = repo_path / "test.md"
         inst_file.write_text("# Test")
 
-        instruction = Instruction(
-            name="test", description="Test", content="# Test", file_path="test.md", tags=[]
-        )
+        instruction = Instruction(name="test", description="Test", content="# Test", file_path="test.md", tags=[])
 
         mock_repo = MagicMock()
         mock_repo.instructions = [instruction]
@@ -252,9 +244,7 @@ class TestDownloadInstructions:
         inst_file.write_text("# Test")
 
         # Setup repository parser
-        instruction = Instruction(
-            name="test", description="Test", content="# Test", file_path="test.md", tags=[]
-        )
+        instruction = Instruction(name="test", description="Test", content="# Test", file_path="test.md", tags=[])
 
         mock_repo = MagicMock()
         mock_repo.instructions = [instruction]
@@ -347,9 +337,7 @@ class TestDownloadInstructions:
         inst_file.write_text("# Test")
 
         # Setup repository parser
-        instruction = Instruction(
-            name="test", description="Test", content="# Test", file_path="test.md", tags=[]
-        )
+        instruction = Instruction(name="test", description="Test", content="# Test", file_path="test.md", tags=[])
 
         mock_repo = MagicMock()
         mock_repo.instructions = [instruction]

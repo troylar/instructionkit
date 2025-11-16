@@ -10,9 +10,7 @@ from aiconfigkit.storage.package_tracker import PackageTracker
 class TestBasicInstallation:
     """Test basic package installation workflows."""
 
-    def test_install_simple_package_from_directory(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_install_simple_package_from_directory(self, package_builder, test_project: Path) -> None:
         """Test installing a simple package from a local directory."""
         # Create package
         pkg = package_builder(
@@ -45,9 +43,7 @@ class TestBasicInstallation:
         assert pkg_record is not None
         assert pkg_record.version == "1.0.0"
 
-    def test_install_complete_package_all_components(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_install_complete_package_all_components(self, package_builder, test_project: Path) -> None:
         """Test installing a package with all component types."""
         pkg = package_builder(
             name="complete-pkg",
@@ -96,9 +92,7 @@ class TestBasicInstallation:
             hook_path = test_project / ".claude/hooks/pre-commit.sh"
             assert hook_path.stat().st_mode & 0o111  # Has execute permission
 
-    def test_install_to_different_project_locations(
-        self, package_builder, tmp_path: Path
-    ) -> None:
+    def test_install_to_different_project_locations(self, package_builder, tmp_path: Path) -> None:
         """Test installing to different project locations."""
         pkg = package_builder(
             name="test-pkg",
@@ -136,9 +130,7 @@ class TestListPackages:
 
         assert len(packages) == 0
 
-    def test_list_single_package(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_list_single_package(self, package_builder, test_project: Path) -> None:
         """Test listing a single installed package."""
         pkg = package_builder(
             name="my-package",
@@ -156,9 +148,7 @@ class TestListPackages:
         assert packages[0].version == "1.0.0"
         assert packages[0].status == InstallationStatus.COMPLETE
 
-    def test_list_multiple_packages(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_list_multiple_packages(self, package_builder, test_project: Path) -> None:
         """Test listing multiple installed packages."""
         pkg1 = package_builder(
             name="package-1",
@@ -185,9 +175,7 @@ class TestListPackages:
 class TestUninstallPackages:
     """Test uninstalling packages."""
 
-    def test_uninstall_removes_files(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_uninstall_removes_files(self, package_builder, test_project: Path) -> None:
         """Test that uninstalling removes all package files."""
         pkg = package_builder(
             name="test-pkg",
@@ -224,9 +212,7 @@ class TestUninstallPackages:
         assert not hook_path.exists()
         assert tracker.get_package("test-pkg", InstallationScope.PROJECT) is None
 
-    def test_uninstall_does_not_affect_other_packages(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_uninstall_does_not_affect_other_packages(self, package_builder, test_project: Path) -> None:
         """Test that uninstalling one package doesn't affect others."""
         pkg1 = package_builder(
             name="package-1",
@@ -271,9 +257,7 @@ class TestUninstallPackages:
 class TestReinstallation:
     """Test reinstalling packages."""
 
-    def test_reinstall_without_force_skips(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_reinstall_without_force_skips(self, package_builder, test_project: Path) -> None:
         """Test that reinstalling without force detects existing installation."""
         pkg = package_builder(
             name="test-pkg",
@@ -286,16 +270,12 @@ class TestReinstallation:
         assert result1.success is True
 
         # Install again without force
-        result2 = install_package(
-            pkg, test_project, AIToolType.CLAUDE, force=False
-        )
+        result2 = install_package(pkg, test_project, AIToolType.CLAUDE, force=False)
 
         # Should detect as reinstall
         assert result2.is_reinstall is True
 
-    def test_reinstall_with_force_overwrites(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_reinstall_with_force_overwrites(self, package_builder, test_project: Path) -> None:
         """Test that force reinstall overwrites existing installation."""
         pkg = package_builder(
             name="test-pkg",

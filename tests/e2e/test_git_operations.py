@@ -11,9 +11,7 @@ from aiconfigkit.storage.package_tracker import PackageTracker
 class TestGitRepositoryInstallation:
     """Test installing packages from git repositories."""
 
-    def test_install_from_local_git_repo(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_install_from_local_git_repo(self, package_builder, test_project: Path) -> None:
         """Test installing a package from a local git repository."""
         pkg = package_builder(
             name="git-pkg",
@@ -32,9 +30,7 @@ class TestGitRepositoryInstallation:
         assert pkg_record is not None
         assert pkg_record.version == "1.0.0"
 
-    def test_install_from_cloned_repo(
-        self, package_builder, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_install_from_cloned_repo(self, package_builder, test_project: Path, tmp_path: Path) -> None:
         """Test installing from a git repository that was cloned."""
         # Create original repo
         original = package_builder(
@@ -58,9 +54,7 @@ class TestGitRepositoryInstallation:
         assert result.success is True
         assert (test_project / ".claude/rules/guide.md").exists()
 
-    def test_install_after_git_pull_updates_package(
-        self, package_builder, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_install_after_git_pull_updates_package(self, package_builder, test_project: Path, tmp_path: Path) -> None:
         """Test that pulling updates from git and reinstalling updates the package."""
         # Create repo with v1.0.0
         repo = package_builder(
@@ -121,9 +115,7 @@ class TestGitRepositoryInstallation:
 class TestGitBranches:
     """Test installing from different git branches."""
 
-    def test_install_from_main_branch(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_install_from_main_branch(self, package_builder, test_project: Path) -> None:
         """Test installing from main branch."""
         pkg = package_builder(
             name="main-pkg",
@@ -139,9 +131,7 @@ class TestGitBranches:
         content = (test_project / ".claude/rules/guide.md").read_text()
         assert "Main branch" in content
 
-    def test_install_from_feature_branch(
-        self, package_builder, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_install_from_feature_branch(self, package_builder, test_project: Path, tmp_path: Path) -> None:
         """Test installing from a feature branch."""
         # Create repo on main
         repo = package_builder(
@@ -198,9 +188,7 @@ class TestGitBranches:
         content = (test_project / ".claude/rules/guide.md").read_text()
         assert "Feature branch" in content
 
-    def test_switch_between_branches(
-        self, package_builder, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_switch_between_branches(self, package_builder, test_project: Path, tmp_path: Path) -> None:
         """Test switching between branches and reinstalling."""
         # Create repo with two branches
         repo = package_builder(
@@ -263,9 +251,7 @@ class TestGitBranches:
 class TestGitTags:
     """Test installing from git tags."""
 
-    def test_install_from_latest_tag(
-        self, package_builder, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_install_from_latest_tag(self, package_builder, test_project: Path, tmp_path: Path) -> None:
         """Test installing from the latest git tag."""
         # Create repo with multiple tags
         repo = package_builder(
@@ -293,9 +279,7 @@ class TestGitTags:
         pkg_record = tracker.get_package("tagged-pkg", InstallationScope.PROJECT)
         assert pkg_record.version == "1.1.0"
 
-    def test_install_specific_tag_version(
-        self, package_builder, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_install_specific_tag_version(self, package_builder, test_project: Path, tmp_path: Path) -> None:
         """Test checking out and installing a specific tag."""
         # Create repo with v1.0.0 and v2.0.0
         repo = package_builder(
@@ -346,9 +330,7 @@ class TestGitTags:
 class TestGitCommits:
     """Test installing from specific commits."""
 
-    def test_install_from_specific_commit(
-        self, package_builder, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_install_from_specific_commit(self, package_builder, test_project: Path, tmp_path: Path) -> None:
         """Test checking out and installing from a specific commit."""
         # Create repo with multiple commits
         repo = package_builder(
@@ -402,9 +384,7 @@ class TestGitCommits:
         assert "Second" not in content
         assert "Third" not in content
 
-    def test_update_to_latest_commit(
-        self, package_builder, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_update_to_latest_commit(self, package_builder, test_project: Path, tmp_path: Path) -> None:
         """Test updating from old commit to latest commit."""
         # Create repo
         repo = package_builder(
@@ -451,9 +431,7 @@ class TestGitCommits:
 class TestGitHistory:
     """Test scenarios involving git history."""
 
-    def test_install_then_package_repo_history_changes(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_install_then_package_repo_history_changes(self, package_builder, test_project: Path) -> None:
         """Test that package can be updated even after git history is rewritten."""
         # Create repo
         repo = package_builder(
@@ -490,9 +468,7 @@ class TestGitHistory:
         content = (test_project / ".claude/rules/guide.md").read_text()
         assert "Amended" in content
 
-    def test_install_from_repo_with_no_commits(
-        self, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_install_from_repo_with_no_commits(self, test_project: Path, tmp_path: Path) -> None:
         """Test installing from a freshly initialized git repo with no commits."""
         # Create empty git repo
         empty_repo = tmp_path / "empty-repo"
@@ -511,7 +487,8 @@ class TestGitHistory:
         )
 
         # Add package files but don't commit
-        (empty_repo / "ai-config-kit-package.yaml").write_text("""name: no-commit-pkg
+        (empty_repo / "ai-config-kit-package.yaml").write_text(
+            """name: no-commit-pkg
 version: 1.0.0
 description: Package with no commits
 author: Test
@@ -524,7 +501,8 @@ components:
       description: Guide
       file: instructions/guide.md
       tags: [test]
-""")
+"""
+        )
         (empty_repo / "instructions").mkdir()
         (empty_repo / "instructions/guide.md").write_text("# Guide")
 

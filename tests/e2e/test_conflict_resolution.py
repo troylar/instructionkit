@@ -10,9 +10,7 @@ from aiconfigkit.storage.package_tracker import PackageTracker
 class TestSkipStrategy:
     """Test SKIP conflict resolution strategy."""
 
-    def test_skip_preserves_user_modifications(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_skip_preserves_user_modifications(self, package_builder, test_project: Path) -> None:
         """Test that SKIP strategy preserves user modifications."""
         # Install package
         pkg = package_builder(
@@ -44,9 +42,7 @@ class TestSkipStrategy:
         # Verify user modifications preserved
         assert guide_path.read_text() == user_content
 
-    def test_skip_only_affects_existing_files(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_skip_only_affects_existing_files(self, package_builder, test_project: Path) -> None:
         """Test that SKIP only affects files that already exist."""
         # Install v1 with one instruction
         pkg_v1 = package_builder(
@@ -90,9 +86,7 @@ class TestSkipStrategy:
         assert guide2_path.exists()
         assert "Guide 2 New" in guide2_path.read_text()
 
-    def test_skip_with_multiple_file_types(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_skip_with_multiple_file_types(self, package_builder, test_project: Path) -> None:
         """Test SKIP strategy with different component types."""
         # Install package with multiple components
         pkg = package_builder(
@@ -128,9 +122,7 @@ class TestSkipStrategy:
 class TestOverwriteStrategy:
     """Test OVERWRITE conflict resolution strategy."""
 
-    def test_overwrite_replaces_user_modifications(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_overwrite_replaces_user_modifications(self, package_builder, test_project: Path) -> None:
         """Test that OVERWRITE replaces all user modifications."""
         # Install package
         pkg = package_builder(
@@ -163,9 +155,7 @@ class TestOverwriteStrategy:
         assert "Original Package Content" in content
         assert "User Modifications" not in content
 
-    def test_overwrite_all_component_types(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_overwrite_all_component_types(self, package_builder, test_project: Path) -> None:
         """Test OVERWRITE with all component types."""
         # Install package
         pkg = package_builder(
@@ -201,9 +191,7 @@ class TestOverwriteStrategy:
         assert "echo 'test original'" in (test_project / ".claude/commands/test.sh").read_text()
         assert "# Original gitignore" in (test_project / ".gitignore").read_text()
 
-    def test_overwrite_during_version_update(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_overwrite_during_version_update(self, package_builder, test_project: Path) -> None:
         """Test OVERWRITE when updating package versions."""
         # Install v1.0.0
         pkg_v1 = package_builder(
@@ -249,9 +237,7 @@ class TestOverwriteStrategy:
 class TestRenameStrategy:
     """Test RENAME conflict resolution strategy."""
 
-    def test_rename_creates_numbered_copy(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_rename_creates_numbered_copy(self, package_builder, test_project: Path) -> None:
         """Test that RENAME creates numbered copies."""
         # Install package
         pkg = package_builder(
@@ -285,9 +271,7 @@ class TestRenameStrategy:
         assert renamed_path.exists()
         assert "# Original" in renamed_path.read_text()
 
-    def test_rename_increments_number(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_rename_increments_number(self, package_builder, test_project: Path) -> None:
         """Test that RENAME increments number for multiple installs."""
         pkg = package_builder(
             name="test-pkg",
@@ -332,9 +316,7 @@ class TestRenameStrategy:
         assert (rules_dir / "guide-1.md").exists()
         assert (rules_dir / "guide-2.md").exists()
 
-    def test_rename_with_all_component_types(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_rename_with_all_component_types(self, package_builder, test_project: Path) -> None:
         """Test RENAME works with all component types."""
         # Install package
         pkg = package_builder(
@@ -375,9 +357,7 @@ class TestRenameStrategy:
         assert (test_project / ".claude/hooks/pre-commit-1.sh").exists()
         assert (test_project / ".claude/commands/test-1.sh").exists()
 
-    def test_rename_preserves_permissions(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_rename_preserves_permissions(self, package_builder, test_project: Path) -> None:
         """Test that RENAME preserves executable permissions for scripts."""
         # Install package with hook
         pkg = package_builder(
@@ -416,9 +396,7 @@ class TestRenameStrategy:
 class TestConflictResolutionCombinations:
     """Test different conflict scenarios and strategy combinations."""
 
-    def test_partial_conflicts_with_skip(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_partial_conflicts_with_skip(self, package_builder, test_project: Path) -> None:
         """Test package with some conflicting and some new files with SKIP."""
         # Install v1 with 2 instructions
         pkg_v1 = package_builder(
@@ -465,9 +443,7 @@ class TestConflictResolutionCombinations:
         assert (test_project / ".claude/rules/guide3.md").exists()
         assert "Guide 3 New" in (test_project / ".claude/rules/guide3.md").read_text()
 
-    def test_no_conflicts_all_strategies_identical(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_no_conflicts_all_strategies_identical(self, package_builder, test_project: Path) -> None:
         """Test that all strategies work identically when there are no conflicts."""
         pkg = package_builder(
             name="test-pkg",
@@ -479,6 +455,7 @@ class TestConflictResolutionCombinations:
         for strategy in [ConflictResolution.SKIP, ConflictResolution.OVERWRITE, ConflictResolution.RENAME]:
             # Clean project
             import shutil
+
             claude_dir = test_project / ".claude"
             aikit_dir = test_project / ".ai-config-kit"
             if claude_dir.exists():
@@ -497,9 +474,7 @@ class TestConflictResolutionCombinations:
             assert result.success is True
             assert (test_project / ".claude/rules/guide.md").exists()
 
-    def test_changing_strategies_between_installs(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_changing_strategies_between_installs(self, package_builder, test_project: Path) -> None:
         """Test using different strategies for different installs."""
         pkg = package_builder(
             name="test-pkg",

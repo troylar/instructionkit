@@ -14,6 +14,7 @@ def git_repo(tmp_path: Path) -> Callable[[str, dict[str, str] | None], Path]:
 
     Returns a function that creates a git repo at a given path with optional files.
     """
+
     def _create_repo(name: str, files: dict[str, str] | None = None) -> Path:
         """Create a git repository.
 
@@ -82,6 +83,7 @@ def package_builder(tmp_path: Path) -> Callable:
 
     Returns a function that creates a complete package directory.
     """
+
     def _build_package(
         name: str,
         version: str,
@@ -146,15 +148,10 @@ components:
             for mcp in mcp_servers:
                 mcp_name = mcp["name"]
                 mcp_desc = mcp.get("description", f"{mcp_name} MCP server")
-                mcp_config = mcp.get("config", {
-                    "mcpServers": {
-                        mcp_name: {
-                            "command": "npx",
-                            "args": ["-y", f"@test/{mcp_name}"],
-                            "env": {}
-                        }
-                    }
-                })
+                mcp_config = mcp.get(
+                    "config",
+                    {"mcpServers": {mcp_name: {"command": "npx", "args": ["-y", f"@test/{mcp_name}"], "env": {}}}},
+                )
                 mcp_creds = mcp.get("requires_credentials", [])
 
                 manifest += f"""    - name: {mcp_name}
@@ -168,9 +165,8 @@ components:
                         manifest += f"        - {cred}\n"
 
                 import json
-                (pkg_path / "mcp" / f"{mcp_name}.json").write_text(
-                    json.dumps(mcp_config, indent=2)
-                )
+
+                (pkg_path / "mcp" / f"{mcp_name}.json").write_text(json.dumps(mcp_config, indent=2))
 
         # Add hooks
         if hooks:
@@ -180,11 +176,14 @@ components:
                 hook_name = hook["name"]
                 hook_desc = hook.get("description", f"{hook_name} hook")
                 hook_type = hook.get("hook_type", hook_name)  # Default to hook name
-                hook_content = hook.get("content", f"""#!/usr/bin/env bash
+                hook_content = hook.get(
+                    "content",
+                    f"""#!/usr/bin/env bash
 # {hook_name} hook
 echo "Running {hook_name}"
 exit 0
-""")
+""",
+                )
 
                 manifest += f"""    - name: {hook_name}
       description: {hook_desc}
@@ -204,11 +203,14 @@ exit 0
                 cmd_name = cmd["name"]
                 cmd_desc = cmd.get("description", f"{cmd_name} command")
                 cmd_type = cmd.get("command_type", "shell")  # Default to shell
-                cmd_content = cmd.get("content", f"""#!/usr/bin/env bash
+                cmd_content = cmd.get(
+                    "content",
+                    f"""#!/usr/bin/env bash
 # {cmd_name} command
 echo "Running {cmd_name}"
 exit 0
-""")
+""",
+                )
 
                 manifest += f"""    - name: {cmd_name}
       description: {cmd_desc}

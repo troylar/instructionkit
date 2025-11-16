@@ -376,4 +376,3 @@ class TestValidateCommand:
             validate_command(scope="project", fix=False, verbose=False)
 
         assert exc_info.value.exit_code == 1
-

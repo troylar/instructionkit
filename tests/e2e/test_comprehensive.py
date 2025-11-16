@@ -14,9 +14,7 @@ from aiconfigkit.storage.package_tracker import PackageTracker
 class TestIDECompatibility:
     """Test package installation across different IDEs."""
 
-    def test_claude_code_installs_all_components(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_claude_code_installs_all_components(self, package_builder, test_project: Path) -> None:
         """Test that Claude Code installs all component types."""
         pkg = package_builder(
             name="complete-pkg",
@@ -40,9 +38,7 @@ class TestIDECompatibility:
         assert (test_project / ".claude/commands/test.sh").exists()
         assert (test_project / ".gitignore").exists()
 
-    def test_cursor_filters_unsupported_components(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_cursor_filters_unsupported_components(self, package_builder, test_project: Path) -> None:
         """Test that Cursor only installs instructions and resources."""
         pkg = package_builder(
             name="complete-pkg",
@@ -71,9 +67,7 @@ class TestIDECompatibility:
         assert not (test_project / ".cursor/hooks").exists()
         assert not (test_project / ".cursor/commands").exists()
 
-    def test_cursor_uses_mdc_extension(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_cursor_uses_mdc_extension(self, package_builder, test_project: Path) -> None:
         """Test that Cursor installs instructions with .mdc extension."""
         pkg = package_builder(
             name="cursor-pkg",
@@ -95,9 +89,7 @@ class TestIDECompatibility:
         # Not .md
         assert not (test_project / ".cursor/rules/style.md").exists()
 
-    def test_windsurf_filters_correctly(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_windsurf_filters_correctly(self, package_builder, test_project: Path) -> None:
         """Test that Windsurf filters components correctly."""
         pkg = package_builder(
             name="windsurf-pkg",
@@ -119,9 +111,7 @@ class TestIDECompatibility:
         assert (test_project / ".windsurf/rules/guide.md").exists()
         assert (test_project / ".env.example").exists()
 
-    def test_github_copilot_instructions_only(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_github_copilot_instructions_only(self, package_builder, test_project: Path) -> None:
         """Test that GitHub Copilot only supports instructions."""
         pkg = package_builder(
             name="copilot-pkg",
@@ -144,9 +134,7 @@ class TestIDECompatibility:
         # Others not installed
         assert not (test_project / ".editorconfig").exists()
 
-    def test_same_package_different_ides(
-        self, package_builder, tmp_path: Path
-    ) -> None:
+    def test_same_package_different_ides(self, package_builder, tmp_path: Path) -> None:
         """Test installing the same package to projects using different IDEs."""
         pkg = package_builder(
             name="universal-pkg",
@@ -188,9 +176,7 @@ class TestIDECompatibility:
 class TestEdgeCases:
     """Test edge cases and unusual scenarios."""
 
-    def test_package_with_very_long_names(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_package_with_very_long_names(self, package_builder, test_project: Path) -> None:
         """Test package and component with very long names."""
         long_instruction_name = "a" * 50  # 50 character name
 
@@ -205,15 +191,10 @@ class TestEdgeCases:
         assert result.success is True
         assert (test_project / f".claude/rules/{long_instruction_name}.md").exists()
 
-    def test_package_with_many_components(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_package_with_many_components(self, package_builder, test_project: Path) -> None:
         """Test package with large number of components."""
         # Create 50 instructions
-        instructions = [
-            {"name": f"guide-{i:02d}", "content": f"# Guide {i}"}
-            for i in range(50)
-        ]
+        instructions = [{"name": f"guide-{i:02d}", "content": f"# Guide {i}"} for i in range(50)]
 
         pkg = package_builder(
             name="large-pkg",
@@ -231,9 +212,7 @@ class TestEdgeCases:
             assert (test_project / f".claude/rules/guide-{i:02d}.md").exists()
 
     @pytest.mark.skipif(os.name == "nt", reason="Unicode encoding issues on Windows")
-    def test_package_with_special_characters_in_content(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_package_with_special_characters_in_content(self, package_builder, test_project: Path) -> None:
         """Test package with special characters and unicode in content."""
         content = """# Guide with Special Characters
 
@@ -269,15 +248,14 @@ def hello():
         assert "🚀" in installed_content
         assert "©" in installed_content
 
-    def test_empty_package_no_components(
-        self, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_empty_package_no_components(self, test_project: Path, tmp_path: Path) -> None:
         """Test package with valid manifest but no components."""
         # Create minimal package
         pkg_path = tmp_path / "empty-pkg"
         pkg_path.mkdir()
 
-        (pkg_path / "ai-config-kit-package.yaml").write_text("""name: empty-pkg
+        (pkg_path / "ai-config-kit-package.yaml").write_text(
+            """name: empty-pkg
 version: 1.0.0
 description: Empty package
 author: Test
@@ -285,7 +263,8 @@ namespace: test/empty
 license: MIT
 
 components:
-""")
+"""
+        )
 
         # Should succeed but install nothing
         result = install_package(pkg_path, test_project, AIToolType.CLAUDE)
@@ -303,7 +282,8 @@ components:
         (pkg_path / "instructions/deep/nested/path").mkdir(parents=True)
         (pkg_path / "instructions/deep/nested/path/guide.md").write_text("# Deep")
 
-        (pkg_path / "ai-config-kit-package.yaml").write_text("""name: nested-pkg
+        (pkg_path / "ai-config-kit-package.yaml").write_text(
+            """name: nested-pkg
 version: 1.0.0
 description: Nested package
 author: Test
@@ -316,30 +296,31 @@ components:
       description: Deeply nested guide
       file: instructions/deep/nested/path/guide.md
       tags: [nested]
-""")
+"""
+        )
 
         result = install_package(pkg_path, test_project, AIToolType.CLAUDE)
 
         assert result.success is True
         assert (test_project / ".claude/rules/deep-guide.md").exists()
 
-    def test_package_with_binary_resource_content(
-        self, package_builder, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_package_with_binary_resource_content(self, package_builder, test_project: Path, tmp_path: Path) -> None:
         """Test package with binary file as resource."""
         pkg_path = tmp_path / "binary-pkg"
         pkg_path.mkdir()
         (pkg_path / "resources").mkdir()
 
         # Create a small binary file (PNG-like header)
-        binary_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR'
+        binary_data = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
         (pkg_path / "resources/icon.png").write_bytes(binary_data)
 
         # Calculate checksum
         import hashlib
+
         checksum = hashlib.sha256(binary_data).hexdigest()
 
-        (pkg_path / "ai-config-kit-package.yaml").write_text(f"""name: binary-pkg
+        (pkg_path / "ai-config-kit-package.yaml").write_text(
+            f"""name: binary-pkg
 version: 1.0.0
 description: Package with binary
 author: Test
@@ -355,7 +336,8 @@ components:
       checksum: sha256:{checksum}
       size: {len(binary_data)}
       tags: [binary]
-""")
+"""
+        )
 
         result = install_package(pkg_path, test_project, AIToolType.CLAUDE)
 
@@ -369,9 +351,7 @@ components:
 class TestErrorHandling:
     """Test error handling and validation."""
 
-    def test_missing_manifest_file(
-        self, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_missing_manifest_file(self, test_project: Path, tmp_path: Path) -> None:
         """Test installing from directory without manifest."""
         empty_dir = tmp_path / "no-manifest"
         empty_dir.mkdir()
@@ -381,52 +361,51 @@ class TestErrorHandling:
         assert result.success is False
         assert "manifest" in result.error_message.lower()
 
-    def test_invalid_manifest_yaml(
-        self, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_invalid_manifest_yaml(self, test_project: Path, tmp_path: Path) -> None:
         """Test manifest with invalid YAML syntax."""
         pkg_path = tmp_path / "invalid-yaml"
         pkg_path.mkdir()
 
-        (pkg_path / "ai-config-kit-package.yaml").write_text("""name: test
+        (pkg_path / "ai-config-kit-package.yaml").write_text(
+            """name: test
 version: 1.0.0
 description: Test
   invalid yaml syntax here
 author: Test
-""")
+"""
+        )
 
         result = install_package(pkg_path, test_project, AIToolType.CLAUDE)
 
         assert result.success is False
         assert result.error_message is not None
 
-    def test_missing_required_manifest_fields(
-        self, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_missing_required_manifest_fields(self, test_project: Path, tmp_path: Path) -> None:
         """Test manifest missing required fields."""
         pkg_path = tmp_path / "incomplete"
         pkg_path.mkdir()
 
         # Missing 'author' field
-        (pkg_path / "ai-config-kit-package.yaml").write_text("""name: test
+        (pkg_path / "ai-config-kit-package.yaml").write_text(
+            """name: test
 version: 1.0.0
 description: Test
 namespace: test/pkg
-""")
+"""
+        )
 
         result = install_package(pkg_path, test_project, AIToolType.CLAUDE)
 
         assert result.success is False
         assert "author" in result.error_message.lower()
 
-    def test_component_file_does_not_exist(
-        self, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_component_file_does_not_exist(self, test_project: Path, tmp_path: Path) -> None:
         """Test component referencing non-existent file."""
         pkg_path = tmp_path / "missing-file"
         pkg_path.mkdir()
 
-        (pkg_path / "ai-config-kit-package.yaml").write_text("""name: missing-file-pkg
+        (pkg_path / "ai-config-kit-package.yaml").write_text(
+            """name: missing-file-pkg
 version: 1.0.0
 description: Test
 author: Test
@@ -439,23 +418,23 @@ components:
       description: This file doesn't exist
       file: instructions/nonexistent.md
       tags: [test]
-""")
+"""
+        )
 
         result = install_package(pkg_path, test_project, AIToolType.CLAUDE)
 
         assert result.success is False
         assert "not found" in result.error_message.lower() or "exist" in result.error_message.lower()
 
-    def test_invalid_version_format(
-        self, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_invalid_version_format(self, test_project: Path, tmp_path: Path) -> None:
         """Test manifest with invalid version format."""
         pkg_path = tmp_path / "bad-version"
         pkg_path.mkdir()
         (pkg_path / "instructions").mkdir()
         (pkg_path / "instructions/guide.md").write_text("# Guide")
 
-        (pkg_path / "ai-config-kit-package.yaml").write_text("""name: bad-version
+        (pkg_path / "ai-config-kit-package.yaml").write_text(
+            """name: bad-version
 version: not-a-version
 description: Test
 author: Test
@@ -468,16 +447,15 @@ components:
       description: Guide
       file: instructions/guide.md
       tags: [test]
-""")
+"""
+        )
 
         result = install_package(pkg_path, test_project, AIToolType.CLAUDE)
 
         assert result.success is False
         assert result.error_message is not None
 
-    def test_install_to_nonexistent_project_directory(
-        self, package_builder, tmp_path: Path
-    ) -> None:
+    def test_install_to_nonexistent_project_directory(self, package_builder, tmp_path: Path) -> None:
         """Test installing to a project directory that doesn't exist."""
         pkg = package_builder(
             name="test-pkg",
@@ -501,9 +479,7 @@ components:
 class TestRealWorldWorkflows:
     """Test realistic end-to-end workflows."""
 
-    def test_new_developer_onboarding_workflow(
-        self, package_builder, tmp_path: Path
-    ) -> None:
+    def test_new_developer_onboarding_workflow(self, package_builder, tmp_path: Path) -> None:
         """Simulate complete new developer onboarding."""
         # New dev clones project
         project = tmp_path / "backend-api"
@@ -517,9 +493,7 @@ class TestRealWorldWorkflows:
                 {"name": "security-policy", "content": "# Security policies"},
                 {"name": "code-review", "content": "# Code review checklist"},
             ],
-            hooks=[
-                {"name": "pre-commit", "content": "#!/bin/bash\necho 'Security checks'\n"}
-            ],
+            hooks=[{"name": "pre-commit", "content": "#!/bin/bash\necho 'Security checks'\n"}],
         )
 
         # Backend team standards
@@ -530,9 +504,7 @@ class TestRealWorldWorkflows:
                 {"name": "api-design", "content": "# API design"},
                 {"name": "database-patterns", "content": "# DB patterns"},
             ],
-            commands=[
-                {"name": "test", "content": "#!/bin/bash\necho 'Run tests'\n"}
-            ],
+            commands=[{"name": "test", "content": "#!/bin/bash\necho 'Run tests'\n"}],
         )
 
         # Python-specific package
@@ -554,11 +526,7 @@ class TestRealWorldWorkflows:
         packages = tracker.get_installed_packages()
 
         assert len(packages) == 3
-        assert {p.package_name for p in packages} == {
-            "company-security",
-            "backend-standards",
-            "python-style"
-        }
+        assert {p.package_name for p in packages} == {"company-security", "backend-standards", "python-style"}
 
         # All files installed
         assert (project / ".claude/rules/security-policy.md").exists()
@@ -567,9 +535,7 @@ class TestRealWorldWorkflows:
         assert (project / ".claude/hooks/pre-commit.sh").exists()
         assert (project / ".claude/commands/test.sh").exists()
 
-    def test_team_sync_workflow(
-        self, package_builder, tmp_path: Path
-    ) -> None:
+    def test_team_sync_workflow(self, package_builder, tmp_path: Path) -> None:
         """Test team keeping packages in sync."""
         # Create team package repo
         team_pkg_v1 = package_builder(
@@ -617,9 +583,7 @@ class TestRealWorldWorkflows:
             record = tracker.get_package("team-standards", InstallationScope.PROJECT)
             assert record.version == "1.1.0"
 
-    def test_multi_project_selective_packages(
-        self, package_builder, tmp_path: Path
-    ) -> None:
+    def test_multi_project_selective_packages(self, package_builder, tmp_path: Path) -> None:
         """Test installing different packages to different projects."""
         # Create packages
         frontend_pkg = package_builder(
@@ -662,9 +626,7 @@ class TestRealWorldWorkflows:
         be_packages = {p.package_name for p in be_tracker.get_installed_packages()}
         assert be_packages == {"backend-pkg", "shared-pkg"}
 
-    def test_migration_from_manual_to_packages(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_migration_from_manual_to_packages(self, package_builder, test_project: Path) -> None:
         """Test migrating from manual files to package management."""
         # User has manually created files
         rules_dir = test_project / ".claude/rules"
@@ -703,9 +665,7 @@ class TestRealWorldWorkflows:
         tracker = PackageTracker(test_project / ".ai-config-kit/packages.json")
         assert tracker.is_package_installed("official-standards", InstallationScope.PROJECT)
 
-    def test_cleanup_old_versions_workflow(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_cleanup_old_versions_workflow(self, package_builder, test_project: Path) -> None:
         """Test cleaning up after multiple version installs with RENAME."""
         pkg_v1 = package_builder(
             name="evolving-pkg",

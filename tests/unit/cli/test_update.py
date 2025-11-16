@@ -53,9 +53,7 @@ class TestUpdateRepository:
 
     @patch("aiconfigkit.cli.update.InstallationTracker")
     @patch("aiconfigkit.cli.update.LibraryManager")
-    def test_update_skip_immutable_tag(
-        self, mock_library_class: MagicMock, mock_tracker_class: MagicMock
-    ) -> None:
+    def test_update_skip_immutable_tag(self, mock_library_class: MagicMock, mock_tracker_class: MagicMock) -> None:
         """Test updating repository with tag reference (should skip)."""
         # Create repository with tag reference in namespace
         repo = LibraryRepository(
@@ -83,9 +81,7 @@ class TestUpdateRepository:
 
     @patch("aiconfigkit.cli.update.InstallationTracker")
     @patch("aiconfigkit.cli.update.LibraryManager")
-    def test_update_skip_immutable_commit(
-        self, mock_library_class: MagicMock, mock_tracker_class: MagicMock
-    ) -> None:
+    def test_update_skip_immutable_commit(self, mock_library_class: MagicMock, mock_tracker_class: MagicMock) -> None:
         """Test updating repository with commit reference (should skip)."""
         # Create repository with commit reference in namespace
         repo = LibraryRepository(
@@ -296,9 +292,7 @@ class TestUpdateRepository:
         mock_pull_updates.return_value = {"success": True}
 
         # Mock repository parser
-        instruction = Instruction(
-            name="test", description="Test", content="# Test", file_path="test.md", tags=[]
-        )
+        instruction = Instruction(name="test", description="Test", content="# Test", file_path="test.md", tags=[])
 
         mock_repo_parsed = MagicMock()
         mock_repo_parsed.instructions = [instruction]
@@ -558,9 +552,7 @@ class TestUpdateInstalledInstructions:
     """Test _update_installed_instructions helper function."""
 
     @patch("aiconfigkit.cli.update.find_project_root")
-    def test_update_installed_no_records(
-        self, mock_find_root: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_update_installed_no_records(self, mock_find_root: MagicMock, tmp_path: Path) -> None:
         """Test updating when no instructions are installed."""
         mock_find_root.return_value = tmp_path
 
@@ -574,9 +566,7 @@ class TestUpdateInstalledInstructions:
         # Should complete without error
 
     @patch("aiconfigkit.cli.update.find_project_root")
-    def test_update_installed_success(
-        self, mock_find_root: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_update_installed_success(self, mock_find_root: MagicMock, tmp_path: Path) -> None:
         """Test updating installed instruction files."""
         project_root = tmp_path / "project"
         project_root.mkdir()

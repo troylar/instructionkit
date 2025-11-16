@@ -13,9 +13,7 @@ class TestUninstallInstruction:
 
     @patch("aiconfigkit.cli.uninstall.find_project_root")
     @patch("aiconfigkit.cli.uninstall.InstallationTracker")
-    def test_uninstall_not_installed(
-        self, mock_tracker_class: MagicMock, mock_find_root: MagicMock
-    ) -> None:
+    def test_uninstall_not_installed(self, mock_tracker_class: MagicMock, mock_find_root: MagicMock) -> None:
         """Test uninstalling instruction that is not installed."""
         mock_find_root.return_value = Path("/project")
 
@@ -29,9 +27,7 @@ class TestUninstallInstruction:
 
     @patch("aiconfigkit.cli.uninstall.find_project_root")
     @patch("aiconfigkit.cli.uninstall.InstallationTracker")
-    def test_uninstall_invalid_tool(
-        self, mock_tracker_class: MagicMock, mock_find_root: MagicMock
-    ) -> None:
+    def test_uninstall_invalid_tool(self, mock_tracker_class: MagicMock, mock_find_root: MagicMock) -> None:
         """Test uninstalling with invalid tool name."""
         mock_find_root.return_value = Path("/project")
 
@@ -340,9 +336,7 @@ class TestUninstallInstruction:
 
     @patch("aiconfigkit.cli.uninstall.find_project_root")
     @patch("aiconfigkit.cli.uninstall.InstallationTracker")
-    def test_uninstall_with_tool_filter(
-        self, mock_tracker_class: MagicMock, mock_find_root: MagicMock
-    ) -> None:
+    def test_uninstall_with_tool_filter(self, mock_tracker_class: MagicMock, mock_find_root: MagicMock) -> None:
         """Test uninstalling from specific tool."""
         mock_find_root.return_value = Path("/project")
 

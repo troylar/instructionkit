@@ -37,6 +37,7 @@ class TestGetHomeDirectory:
 class TestGetCursorConfigDir:
     """Test get_cursor_config_dir function."""
 
+    @pytest.mark.skipif(os.name == "nt", reason="os.uname not available on Windows")
     @patch("os.name", "posix")
     @patch("os.uname")
     def test_cursor_config_macos(self, mock_uname: MagicMock) -> None:
@@ -45,6 +46,7 @@ class TestGetCursorConfigDir:
         config_dir = get_cursor_config_dir()
         assert "Library/Application Support/Cursor" in str(config_dir)
 
+    @pytest.mark.skipif(os.name == "nt", reason="os.uname not available on Windows")
     @patch("os.name", "posix")
     @patch("os.uname")
     def test_cursor_config_linux(self, mock_uname: MagicMock) -> None:
@@ -64,6 +66,7 @@ class TestGetCursorConfigDir:
 class TestGetCopilotConfigDir:
     """Test get_copilot_config_dir function."""
 
+    @pytest.mark.skipif(os.name == "nt", reason="os.uname not available on Windows")
     @patch("os.name", "posix")
     @patch("os.uname")
     def test_copilot_config_macos(self, mock_uname: MagicMock) -> None:
@@ -73,6 +76,7 @@ class TestGetCopilotConfigDir:
         assert "Library/Application Support/Code" in str(config_dir)
         assert "github.copilot" in str(config_dir)
 
+    @pytest.mark.skipif(os.name == "nt", reason="os.uname not available on Windows")
     @patch("os.name", "posix")
     @patch("os.uname")
     def test_copilot_config_linux(self, mock_uname: MagicMock) -> None:
@@ -95,6 +99,7 @@ class TestGetCopilotConfigDir:
 class TestGetWinsurfConfigDir:
     """Test get_winsurf_config_dir function."""
 
+    @pytest.mark.skipif(os.name == "nt", reason="os.uname not available on Windows")
     @patch("os.name", "posix")
     @patch("os.uname")
     def test_winsurf_config_macos(self, mock_uname: MagicMock) -> None:
@@ -103,6 +108,7 @@ class TestGetWinsurfConfigDir:
         config_dir = get_winsurf_config_dir()
         assert "Library/Application Support/Windsurf" in str(config_dir)
 
+    @pytest.mark.skipif(os.name == "nt", reason="os.uname not available on Windows")
     @patch("os.name", "posix")
     @patch("os.uname")
     def test_winsurf_config_linux(self, mock_uname: MagicMock) -> None:

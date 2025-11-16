@@ -15,6 +15,7 @@ except ImportError:
     class InvalidGitRepositoryError(Exception):  # type: ignore
         pass
 
+
 from aiconfigkit.utils.git_helpers import (
     GitPythonNotInstalledError,
     TemplateAuthError,

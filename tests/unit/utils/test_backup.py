@@ -106,9 +106,7 @@ class TestCreateBackup:
         assert backup_path.read_bytes() == binary_content
 
     @patch("aiconfigkit.utils.project.find_project_root")
-    def test_create_backup_default_dir_with_project(
-        self, mock_find_root: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_create_backup_default_dir_with_project(self, mock_find_root: MagicMock, tmp_path: Path) -> None:
         """Test default backup directory with project root."""
         mock_find_root.return_value = tmp_path
 
@@ -241,9 +239,7 @@ class TestListBackups:
         assert len(backups) == 0
 
     @patch("aiconfigkit.utils.project.find_project_root")
-    def test_list_backups_default_dir_with_project(
-        self, mock_find_root: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_list_backups_default_dir_with_project(self, mock_find_root: MagicMock, tmp_path: Path) -> None:
         """Test default backup directory detection with project."""
         mock_find_root.return_value = tmp_path
 
@@ -366,9 +362,7 @@ class TestCleanupOldBackups:
         assert len(list(backup_dir.iterdir())) == 1  # 5 day old backup remains
 
     @patch("aiconfigkit.utils.project.find_project_root")
-    def test_cleanup_default_dir_with_project(
-        self, mock_find_root: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_cleanup_default_dir_with_project(self, mock_find_root: MagicMock, tmp_path: Path) -> None:
         """Test cleanup with default project directory."""
         mock_find_root.return_value = tmp_path
 

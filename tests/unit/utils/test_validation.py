@@ -1,6 +1,5 @@
 """Unit tests for validation utilities."""
 
-
 from aiconfigkit.utils.validation import (
     is_valid_checksum,
     is_valid_git_url,

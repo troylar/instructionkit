@@ -159,9 +159,11 @@ class TestCleanupRepository:
         regular_dir = Path("/home/user/my-repo")
 
         # Mock exists() and is_dir() to return True
-        with patch.object(Path, 'exists', return_value=True), \
-             patch.object(Path, 'is_dir', return_value=True), \
-             patch('shutil.rmtree') as mock_rmtree:
+        with (
+            patch.object(Path, "exists", return_value=True),
+            patch.object(Path, "is_dir", return_value=True),
+            patch("shutil.rmtree") as mock_rmtree,
+        ):
 
             GitOperations.cleanup_repository(regular_dir, is_temp=True)
 
@@ -794,5 +796,3 @@ class TestGetRepoInfoEdgeCases:
 
         # Should handle exception gracefully, set current_branch to None
         assert info["current_branch"] is None
-
-

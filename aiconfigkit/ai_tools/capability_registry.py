@@ -115,8 +115,7 @@ CAPABILITY_REGISTRY: dict[AIToolType, IDECapability] = {
         hooks_directory=None,  # Hooks not supported
         commands_directory=None,  # Commands not supported
         notes=(
-            "GitHub Copilot uses .github/instructions/ for project-level. "
-            "Multi-file approach. Instructions only."
+            "GitHub Copilot uses .github/instructions/ for project-level. " "Multi-file approach. Instructions only."
         ),
     ),
 }

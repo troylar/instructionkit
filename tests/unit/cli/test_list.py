@@ -30,9 +30,7 @@ class TestListAvailable:
 
     @patch("aiconfigkit.cli.list.GitOperations.is_git_installed")
     @patch("aiconfigkit.cli.list.is_valid_git_url")
-    def test_list_available_git_not_installed(
-        self, mock_valid: MagicMock, mock_git_installed: MagicMock
-    ) -> None:
+    def test_list_available_git_not_installed(self, mock_valid: MagicMock, mock_git_installed: MagicMock) -> None:
         """Test listing when Git is not installed."""
         mock_valid.return_value = True
         mock_git_installed.return_value = False
@@ -142,9 +140,7 @@ class TestListAvailable:
 
         # Setup repository parser with mixed tags
         instructions = [
-            Instruction(
-                name="test1", description="Test 1", content="# Test 1", file_path="test1.md", tags=["python"]
-            ),
+            Instruction(name="test1", description="Test 1", content="# Test 1", file_path="test1.md", tags=["python"]),
             Instruction(
                 name="test2", description="Test 2", content="# Test 2", file_path="test2.md", tags=["javascript"]
             ),
@@ -315,9 +311,7 @@ class TestListInstalled:
 
     @patch("aiconfigkit.cli.list.find_project_root")
     @patch("aiconfigkit.cli.list.InstallationTracker")
-    def test_list_installed_no_results(
-        self, mock_tracker_class: MagicMock, mock_find_root: MagicMock
-    ) -> None:
+    def test_list_installed_no_results(self, mock_tracker_class: MagicMock, mock_find_root: MagicMock) -> None:
         """Test listing installed with no results."""
         mock_find_root.return_value = Path("/project")
 
@@ -331,9 +325,7 @@ class TestListInstalled:
 
     @patch("aiconfigkit.cli.list.find_project_root")
     @patch("aiconfigkit.cli.list.InstallationTracker")
-    def test_list_installed_invalid_tool(
-        self, mock_tracker_class: MagicMock, mock_find_root: MagicMock
-    ) -> None:
+    def test_list_installed_invalid_tool(self, mock_tracker_class: MagicMock, mock_find_root: MagicMock) -> None:
         """Test listing with invalid tool name."""
         mock_find_root.return_value = Path("/project")
 
@@ -346,9 +338,7 @@ class TestListInstalled:
 
     @patch("aiconfigkit.cli.list.find_project_root")
     @patch("aiconfigkit.cli.list.InstallationTracker")
-    def test_list_installed_with_tool_filter(
-        self, mock_tracker_class: MagicMock, mock_find_root: MagicMock
-    ) -> None:
+    def test_list_installed_with_tool_filter(self, mock_tracker_class: MagicMock, mock_find_root: MagicMock) -> None:
         """Test listing with tool filter."""
         mock_find_root.return_value = Path("/project")
 

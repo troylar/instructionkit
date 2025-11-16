@@ -217,9 +217,7 @@ class TestUninstallPackageCommand:
 
     @patch("aiconfigkit.cli.package.PackageTracker")
     @patch("aiconfigkit.cli.package.find_project_root")
-    def test_uninstall_package_not_found(
-        self, mock_find_root: MagicMock, mock_tracker_class: MagicMock
-    ) -> None:
+    def test_uninstall_package_not_found(self, mock_find_root: MagicMock, mock_tracker_class: MagicMock) -> None:
         """Test uninstalling non-existent package."""
         project_root = Path("/project")
         mock_find_root.return_value = project_root

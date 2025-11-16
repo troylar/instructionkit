@@ -11,9 +11,7 @@ from aiconfigkit.storage.package_tracker import PackageTracker
 class TestVersionUpdates:
     """Test updating packages to newer versions."""
 
-    def test_update_patch_version(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_update_patch_version(self, package_builder, test_project: Path) -> None:
         """Test updating from 1.0.0 to 1.0.1 (patch update)."""
         # Install v1.0.0
         pkg_v1 = package_builder(
@@ -56,9 +54,7 @@ class TestVersionUpdates:
         assert "1.0.1" in content
         assert "Bug fix" in content
 
-    def test_update_minor_version(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_update_minor_version(self, package_builder, test_project: Path) -> None:
         """Test updating from 1.0.0 to 1.1.0 (minor update with new features)."""
         # Install v1.0.0
         pkg_v1 = package_builder(
@@ -100,9 +96,7 @@ class TestVersionUpdates:
         assert pkg_record.version == "1.1.0"
         assert len(pkg_record.components) == 2
 
-    def test_update_major_version(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_update_major_version(self, package_builder, test_project: Path) -> None:
         """Test updating from 1.0.0 to 2.0.0 (major update with breaking changes)."""
         # Install v1.0.0
         pkg_v1 = package_builder(
@@ -151,9 +145,7 @@ class TestVersionUpdates:
         pkg_record = tracker.get_package("test-pkg", InstallationScope.PROJECT)
         assert pkg_record.version == "2.0.0"
 
-    def test_downgrade_version(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_downgrade_version(self, package_builder, test_project: Path) -> None:
         """Test downgrading from 2.0.0 to 1.0.0."""
         # Install v2.0.0
         pkg_v2 = package_builder(
@@ -196,9 +188,7 @@ class TestVersionUpdates:
 class TestGitVersionTags:
     """Test installing specific versions from git tags."""
 
-    def test_install_from_specific_tag(
-        self, package_builder, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_install_from_specific_tag(self, package_builder, test_project: Path, tmp_path: Path) -> None:
         """Test installing a package from a specific git tag."""
         # Create v1.0.0
         pkg_path = package_builder(
@@ -255,9 +245,7 @@ class TestGitVersionTags:
         assert "v1.0.0" in content
         assert "v1.1.0" not in content
 
-    def test_update_by_installing_newer_tag(
-        self, package_builder, test_project: Path, tmp_path: Path
-    ) -> None:
+    def test_update_by_installing_newer_tag(self, package_builder, test_project: Path, tmp_path: Path) -> None:
         """Test updating by installing from a newer tag."""
         # Create repo with multiple versions
         pkg_path = package_builder(
@@ -300,9 +288,7 @@ class TestGitVersionTags:
 class TestVersionConflicts:
     """Test handling version conflicts and requirements."""
 
-    def test_install_older_version_over_newer_warns(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_install_older_version_over_newer_warns(self, package_builder, test_project: Path) -> None:
         """Test installing an older version over a newer one."""
         # Install v2.0.0
         pkg_v2 = package_builder(
@@ -334,9 +320,7 @@ class TestVersionConflicts:
         pkg_record = tracker.get_package("test-pkg", InstallationScope.PROJECT)
         assert pkg_record.version == "1.0.0"
 
-    def test_multiple_versions_in_different_projects(
-        self, package_builder, tmp_path: Path
-    ) -> None:
+    def test_multiple_versions_in_different_projects(self, package_builder, tmp_path: Path) -> None:
         """Test installing different versions in different projects."""
         # Create two projects
         project1 = tmp_path / "project1"
@@ -381,9 +365,7 @@ class TestVersionConflicts:
 class TestPreReleaseVersions:
     """Test handling pre-release versions."""
 
-    def test_install_alpha_version(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_install_alpha_version(self, package_builder, test_project: Path) -> None:
         """Test installing an alpha pre-release version."""
         pkg = package_builder(
             name="test-pkg",
@@ -398,9 +380,7 @@ class TestPreReleaseVersions:
         pkg_record = tracker.get_package("test-pkg", InstallationScope.PROJECT)
         assert pkg_record.version == "2.0.0-alpha.1"
 
-    def test_install_beta_then_release(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_install_beta_then_release(self, package_builder, test_project: Path) -> None:
         """Test upgrading from beta to final release."""
         # Install beta
         pkg_beta = package_builder(
@@ -429,9 +409,7 @@ class TestPreReleaseVersions:
         pkg_record = tracker.get_package("test-pkg", InstallationScope.PROJECT)
         assert pkg_record.version == "1.0.0"
 
-    def test_install_rc_version(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_install_rc_version(self, package_builder, test_project: Path) -> None:
         """Test installing release candidate version."""
         pkg = package_builder(
             name="test-pkg",

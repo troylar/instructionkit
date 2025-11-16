@@ -203,7 +203,7 @@ class PackageManifestParser:
         errors = []
 
         # Validate version format (semantic versioning: X.Y.Z)
-        version_pattern = r'^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$'
+        version_pattern = r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$"
         if not re.match(version_pattern, package.version):
             errors.append(f"Invalid version format: {package.version}. Must follow semantic versioning (X.Y.Z)")
 

@@ -10,9 +10,7 @@ from aiconfigkit.storage.package_tracker import PackageTracker
 class TestMultiplePackages:
     """Test installing and managing multiple packages."""
 
-    def test_install_multiple_packages_same_project(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_install_multiple_packages_same_project(self, package_builder, test_project: Path) -> None:
         """Test installing multiple packages to the same project."""
         # Create three different packages
         pkg1 = package_builder(
@@ -51,9 +49,7 @@ class TestMultiplePackages:
         names = {p.package_name for p in packages}
         assert names == {"python-pkg", "django-pkg", "testing-pkg"}
 
-    def test_packages_with_overlapping_namespaces(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_packages_with_overlapping_namespaces(self, package_builder, test_project: Path) -> None:
         """Test packages from the same namespace but different names."""
         pkg1 = package_builder(
             name="base-pkg",
@@ -78,9 +74,7 @@ class TestMultiplePackages:
         assert len(packages) == 2
         assert {p.package_name for p in packages} == {"base-pkg", "advanced-pkg"}
 
-    def test_update_one_package_leaves_others_unchanged(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_update_one_package_leaves_others_unchanged(self, package_builder, test_project: Path) -> None:
         """Test that updating one package doesn't affect others."""
         # Install two packages
         pkg1_v1 = package_builder(
@@ -124,9 +118,7 @@ class TestMultiplePackages:
         assert "v2.0" in (test_project / ".claude/rules/guide1.md").read_text()
         assert "v1.0" in (test_project / ".claude/rules/guide2.md").read_text()
 
-    def test_uninstall_one_package_leaves_others_installed(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_uninstall_one_package_leaves_others_installed(self, package_builder, test_project: Path) -> None:
         """Test that uninstalling one package doesn't affect others."""
         pkg1 = package_builder(
             name="pkg1",
@@ -173,9 +165,7 @@ class TestMultiplePackages:
 class TestPackageConflicts:
     """Test conflicts between different packages."""
 
-    def test_packages_with_same_instruction_name(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_packages_with_same_instruction_name(self, package_builder, test_project: Path) -> None:
         """Test two packages with instructions of the same name."""
         pkg1 = package_builder(
             name="pkg1",
@@ -207,9 +197,7 @@ class TestPackageConflicts:
         content = (test_project / ".claude/rules/style-guide.md").read_text()
         assert "Pkg1 Style" in content
 
-    def test_packages_with_same_instruction_name_rename(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_packages_with_same_instruction_name_rename(self, package_builder, test_project: Path) -> None:
         """Test RENAME strategy with conflicting instruction names."""
         pkg1 = package_builder(
             name="pkg1",
@@ -241,9 +229,7 @@ class TestPackageConflicts:
         assert "Pkg1" in content1
         assert "Pkg2" in content2
 
-    def test_package_with_resource_conflicts_with_project_file(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_package_with_resource_conflicts_with_project_file(self, package_builder, test_project: Path) -> None:
         """Test package resource conflicting with existing project file."""
         # Create project file
         (test_project / ".gitignore").write_text("# Project gitignore\n*.pyc\n")
@@ -252,9 +238,7 @@ class TestPackageConflicts:
         pkg = package_builder(
             name="pkg",
             version="1.0.0",
-            resources=[
-                {"name": ".gitignore", "content": "# Package gitignore\nnode_modules/\n"}
-            ],
+            resources=[{"name": ".gitignore", "content": "# Package gitignore\nnode_modules/\n"}],
         )
 
         # Install with SKIP (preserves project file)
@@ -276,9 +260,7 @@ class TestPackageConflicts:
 class TestPackageDependencies:
     """Test scenarios involving package dependencies."""
 
-    def test_install_base_then_extension_package(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_install_base_then_extension_package(self, package_builder, test_project: Path) -> None:
         """Test installing a base package followed by an extension."""
         # Base package
         base_pkg = package_builder(
@@ -314,9 +296,7 @@ class TestPackageDependencies:
         packages = tracker.get_installed_packages()
         assert len(packages) == 2
 
-    def test_company_team_personal_package_layering(
-        self, package_builder, tmp_path: Path
-    ) -> None:
+    def test_company_team_personal_package_layering(self, package_builder, tmp_path: Path) -> None:
         """Test realistic scenario: company + team + personal packages."""
         project = tmp_path / "project"
         project.mkdir()
@@ -366,9 +346,7 @@ class TestPackageDependencies:
 class TestPackageOrdering:
     """Test installation order and its effects."""
 
-    def test_installation_order_matters_for_conflicts(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_installation_order_matters_for_conflicts(self, package_builder, test_project: Path) -> None:
         """Test that installation order matters when files conflict."""
         pkg_a = package_builder(
             name="pkg-a",
@@ -393,9 +371,7 @@ class TestPackageOrdering:
         content = (test_project / ".claude/rules/shared.md").read_text()
         assert "Package A" in content  # First one wins
 
-    def test_reinstall_all_in_different_order(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_reinstall_all_in_different_order(self, package_builder, test_project: Path) -> None:
         """Test reinstalling multiple packages in different order."""
         pkg1 = package_builder(
             name="pkg1",
@@ -455,9 +431,7 @@ class TestPackageOrdering:
 class TestPackageUpdates:
     """Test updating multiple packages."""
 
-    def test_update_all_packages_to_latest(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_update_all_packages_to_latest(self, package_builder, test_project: Path) -> None:
         """Test updating all installed packages to newer versions."""
         # Install v1.0.0 of three packages
         pkg1_v1 = package_builder(
@@ -525,9 +499,7 @@ class TestPackageUpdates:
             record = tracker.get_package(name, InstallationScope.PROJECT)
             assert record.version == "2.0.0"
 
-    def test_selective_package_updates(
-        self, package_builder, test_project: Path
-    ) -> None:
+    def test_selective_package_updates(self, package_builder, test_project: Path) -> None:
         """Test updating only some packages while leaving others at old versions."""
         # Install three packages
         pkg1 = package_builder(
