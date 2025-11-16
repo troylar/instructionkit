@@ -24,6 +24,7 @@ def test_main_module_version() -> None:
         text=True,
         timeout=10,
     )
-    assert result.returncode == 0
-    # Should output version number
-    assert any(char.isdigit() for char in result.stdout)
+    assert result.returncode == 0, f"Command failed with stderr: {result.stderr}"
+    # Should output version number (check both stdout and stderr)
+    output = result.stdout + result.stderr
+    assert any(char.isdigit() for char in output), f"No version found in output. stdout: {result.stdout!r}, stderr: {result.stderr!r}"
