@@ -150,12 +150,14 @@ class TestGetClaudeConfigDir:
     def test_claude_config_dir(self) -> None:
         """Test Claude config directory (same on all platforms)."""
         config_dir = get_claude_config_dir()
-        assert ".claude/rules" in str(config_dir)
+        # Convert to POSIX path for cross-platform comparison
+        assert ".claude/rules" in config_dir.as_posix()
 
 
 class TestGetClaudeDesktopConfigPath:
     """Test get_claude_desktop_config_path function."""
 
+    @pytest.mark.skipif(os.name == "nt", reason="os.uname not available on Windows")
     @patch("os.name", "posix")
     @patch("os.uname")
     def test_claude_desktop_config_macos(self, mock_uname: MagicMock) -> None:
@@ -165,6 +167,7 @@ class TestGetClaudeDesktopConfigPath:
         assert "Library/Application Support/Claude" in str(config_path)
         assert "claude_desktop_config.json" in str(config_path)
 
+    @pytest.mark.skipif(os.name == "nt", reason="os.uname not available on Windows")
     @patch("os.name", "posix")
     @patch("os.uname")
     def test_claude_desktop_config_linux(self, mock_uname: MagicMock) -> None:
@@ -174,17 +177,15 @@ class TestGetClaudeDesktopConfigPath:
         assert ".config/Claude" in str(config_path)
         assert "claude_desktop_config.json" in str(config_path)
 
-    @patch("os.name", "nt")
-    @patch("aiconfigkit.utils.paths.get_home_directory")
-    def test_claude_desktop_config_windows(self, mock_get_home: MagicMock) -> None:
+    @pytest.mark.skipif(os.name != "nt", reason="Windows-specific test")
+    def test_claude_desktop_config_windows(self) -> None:
         """Test Claude Desktop config path on Windows."""
-        from pathlib import PosixPath
-        mock_get_home.return_value = PosixPath("/Users/TestUser")
         config_path = get_claude_desktop_config_path()
         assert "AppData" in str(config_path)
         assert "Claude" in str(config_path)
         assert "claude_desktop_config.json" in str(config_path)
 
+    @pytest.mark.skipif(os.name == "nt", reason="os.name mocking conflicts on Windows")
     @patch("os.name", "unknown")
     def test_claude_desktop_config_unsupported_os(self) -> None:
         """Test that unsupported OS raises error."""
@@ -195,6 +196,7 @@ class TestGetClaudeDesktopConfigPath:
 class TestGetCursorMcpConfigPath:
     """Test get_cursor_mcp_config_path function."""
 
+    @pytest.mark.skipif(os.name == "nt", reason="os.uname not available on Windows")
     @patch("os.name", "posix")
     @patch("os.uname")
     def test_cursor_mcp_config_path(self, mock_uname: MagicMock) -> None:
@@ -208,6 +210,7 @@ class TestGetCursorMcpConfigPath:
 class TestGetWinsurfMcpConfigPath:
     """Test get_windsurf_mcp_config_path function."""
 
+    @pytest.mark.skipif(os.name == "nt", reason="os.uname not available on Windows")
     @patch("os.name", "posix")
     @patch("os.uname")
     def test_windsurf_mcp_config_path(self, mock_uname: MagicMock) -> None:
