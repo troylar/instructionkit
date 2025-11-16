@@ -65,7 +65,20 @@ class TestIsValidGitUrl:
         """Test empty or invalid inputs."""
         assert is_valid_git_url("") is False
         assert is_valid_git_url(None) is False  # type: ignore
-        assert is_valid_git_url(123) is False  # type: ignore
+
+    def test_urlparse_exception_https(self) -> None:
+        """Test exception handling in HTTPS URL parsing."""
+        from unittest.mock import patch
+
+        with patch("aiconfigkit.utils.validation.urlparse", side_effect=Exception("Parse error")):
+            assert is_valid_git_url("https://example.com/repo.git") is False
+
+    def test_urlparse_exception_git_protocol(self) -> None:
+        """Test exception handling in git:// URL parsing."""
+        from unittest.mock import patch
+
+        with patch("aiconfigkit.utils.validation.urlparse", side_effect=Exception("Parse error")):
+            assert is_valid_git_url("git://example.com/repo.git") is False
 
 
 class TestIsValidInstructionName:

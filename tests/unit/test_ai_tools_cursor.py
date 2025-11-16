@@ -191,6 +191,13 @@ class TestCursorTool:
             is False
         )
 
+    def test_get_mcp_config_path(self, cursor_tool):
+        """Test get_mcp_config_path returns correct path."""
+        config_path = cursor_tool.get_mcp_config_path()
+        # Should return a Path object pointing to Cursor MCP config
+        assert config_path is not None
+        assert "cursor" in str(config_path).lower()
+
     def test_repr(self, cursor_tool):
         """Test string representation."""
         repr_str = repr(cursor_tool)

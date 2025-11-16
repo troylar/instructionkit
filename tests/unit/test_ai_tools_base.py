@@ -195,3 +195,10 @@ class TestAIToolBase:
         repr_str = repr(tool)
         assert "MockAITool" in repr_str
         assert AIToolType.CURSOR.value in repr_str
+
+    def test_get_mcp_config_path_not_implemented(self):
+        """Test get_mcp_config_path raises NotImplementedError by default."""
+        tool = MockAITool()
+        with pytest.raises(NotImplementedError) as exc_info:
+            tool.get_mcp_config_path()
+        assert "does not support MCP server configuration" in str(exc_info.value)

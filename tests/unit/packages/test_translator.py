@@ -159,6 +159,19 @@ class TestCursorTranslator:
         with pytest.raises(NotImplementedError, match="does not support hooks"):
             translator.translate_hook(component, temp_package)
 
+    def test_translate_command_raises_error(self, temp_package: Path) -> None:
+        """Test that translating command raises NotImplementedError."""
+        translator = CursorTranslator()
+        component = CommandComponent(
+            name="test-cmd",
+            file="commands/test-cmd.sh",
+            description="Test command",
+            command_type="shell",
+        )
+
+        with pytest.raises(NotImplementedError, match="does not support commands"):
+            translator.translate_command(component, temp_package)
+
     def test_translate_resource(self, temp_package: Path) -> None:
         """Test translating resource file."""
         translator = CursorTranslator()
@@ -320,6 +333,19 @@ class TestWindsurfTranslator:
         with pytest.raises(NotImplementedError, match="does not support hooks"):
             translator.translate_hook(component, temp_package)
 
+    def test_translate_command_raises_error(self, temp_package: Path) -> None:
+        """Test that translating command raises NotImplementedError."""
+        translator = WindsurfTranslator()
+        component = CommandComponent(
+            name="test-cmd",
+            file="commands/test-cmd.sh",
+            description="Test command",
+            command_type="shell",
+        )
+
+        with pytest.raises(NotImplementedError, match="does not support commands"):
+            translator.translate_command(component, temp_package)
+
 
 class TestCopilotTranslator:
     """Test CopilotTranslator."""
@@ -357,6 +383,19 @@ class TestCopilotTranslator:
 
         with pytest.raises(NotImplementedError, match="does not support MCP"):
             translator.translate_mcp_server(component, temp_package)
+
+    def test_translate_command_raises_error(self, temp_package: Path) -> None:
+        """Test that translating command raises NotImplementedError."""
+        translator = CopilotTranslator()
+        component = CommandComponent(
+            name="test-cmd",
+            file="commands/test-cmd.sh",
+            description="Test command",
+            command_type="shell",
+        )
+
+        with pytest.raises(NotImplementedError, match="does not support commands"):
+            translator.translate_command(component, temp_package)
 
 
 class TestGetTranslator:

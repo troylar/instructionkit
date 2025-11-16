@@ -128,6 +128,33 @@ class TestStreamCopyFile:
         # Destination should not exist (cleaned up on error)
         assert not dest.exists()
 
+    def test_stream_copy_error_cleanup_partial_file(self, tmp_path: Path) -> None:
+        """Test cleanup when partial destination file exists."""
+        from unittest.mock import mock_open
+
+        source = tmp_path / "source.txt"
+        source.write_text("test content")
+        dest = tmp_path / "dest.txt"
+
+        # Create partial destination file
+        dest.write_text("partial")
+        assert dest.exists()
+
+        # Mock to raise error after destination exists
+        original_open = open
+
+        def mock_open_func(file, mode="r", *args, **kwargs):
+            if "wb" in mode and str(file) == str(dest):
+                raise IOError("Write error")
+            return original_open(file, mode, *args, **kwargs)
+
+        with patch("builtins.open", side_effect=mock_open_func):
+            with pytest.raises(StreamingError, match="Failed to copy file"):
+                stream_copy_file(source, dest)
+
+        # Destination should be cleaned up
+        assert not dest.exists()
+
 
 class TestStreamCopyWithVerification:
     """Test stream_copy_with_verification function."""
@@ -437,6 +464,19 @@ class TestCopyDirectoryTree:
 
         assert files_copied == 1
         assert (dest / "binary.dat").read_bytes() == binary_content
+
+    def test_copy_directory_error_handling(self, tmp_path: Path) -> None:
+        """Test error handling during directory copy."""
+        source = tmp_path / "source"
+        dest = tmp_path / "dest"
+
+        source.mkdir()
+        (source / "file.txt").write_text("content")
+
+        # Mock stream_copy_file to raise an error
+        with patch("aiconfigkit.utils.streaming.stream_copy_file", side_effect=IOError("Copy error")):
+            with pytest.raises(StreamingError, match="Failed to copy directory tree"):
+                copy_directory_tree(source, dest)
 
 
 class TestStreamingError:

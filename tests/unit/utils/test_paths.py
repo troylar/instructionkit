@@ -53,10 +53,13 @@ class TestGetCursorConfigDir:
         config_dir = get_cursor_config_dir()
         assert ".config/Cursor" in str(config_dir)
 
-    @pytest.mark.skipif(os.name != "nt", reason="Windows path test - skip on non-Windows")
     @patch("os.name", "nt")
-    def test_cursor_config_windows(self) -> None:
+    @patch("aiconfigkit.utils.paths.get_home_directory")
+    def test_cursor_config_windows(self, mock_get_home: MagicMock) -> None:
         """Test Cursor config directory on Windows."""
+        # Use PosixPath to avoid WindowsPath instantiation issue on non-Windows
+        from pathlib import PosixPath
+        mock_get_home.return_value = PosixPath("/Users/TestUser")
         config_dir = get_cursor_config_dir()
         assert "AppData" in str(config_dir) and "Cursor" in str(config_dir)
 
@@ -88,10 +91,12 @@ class TestGetCopilotConfigDir:
         assert ".config/Code" in str(config_dir)
         assert "github.copilot" in str(config_dir)
 
-    @pytest.mark.skipif(os.name != "nt", reason="Windows path test - skip on non-Windows")
     @patch("os.name", "nt")
-    def test_copilot_config_windows(self) -> None:
+    @patch("aiconfigkit.utils.paths.get_home_directory")
+    def test_copilot_config_windows(self, mock_get_home: MagicMock) -> None:
         """Test Copilot config directory on Windows."""
+        from pathlib import PosixPath
+        mock_get_home.return_value = PosixPath("/Users/TestUser")
         config_dir = get_copilot_config_dir()
         assert "AppData" in str(config_dir)
         assert "Code" in str(config_dir)
@@ -123,10 +128,12 @@ class TestGetWinsurfConfigDir:
         config_dir = get_winsurf_config_dir()
         assert ".config/Windsurf" in str(config_dir)
 
-    @pytest.mark.skipif(os.name != "nt", reason="Windows path test - skip on non-Windows")
     @patch("os.name", "nt")
-    def test_winsurf_config_windows(self) -> None:
+    @patch("aiconfigkit.utils.paths.get_home_directory")
+    def test_winsurf_config_windows(self, mock_get_home: MagicMock) -> None:
         """Test Windsurf config directory on Windows."""
+        from pathlib import PosixPath
+        mock_get_home.return_value = PosixPath("/Users/TestUser")
         config_dir = get_winsurf_config_dir()
         assert "AppData" in str(config_dir) and "Windsurf" in str(config_dir)
 
@@ -167,10 +174,12 @@ class TestGetClaudeDesktopConfigPath:
         assert ".config/Claude" in str(config_path)
         assert "claude_desktop_config.json" in str(config_path)
 
-    @pytest.mark.skipif(os.name != "nt", reason="Windows path test - skip on non-Windows")
     @patch("os.name", "nt")
-    def test_claude_desktop_config_windows(self) -> None:
+    @patch("aiconfigkit.utils.paths.get_home_directory")
+    def test_claude_desktop_config_windows(self, mock_get_home: MagicMock) -> None:
         """Test Claude Desktop config path on Windows."""
+        from pathlib import PosixPath
+        mock_get_home.return_value = PosixPath("/Users/TestUser")
         config_path = get_claude_desktop_config_path()
         assert "AppData" in str(config_path)
         assert "Claude" in str(config_path)

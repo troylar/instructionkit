@@ -156,6 +156,80 @@ class TestValidateInstallations:
         assert issues[0].issue_type == "outdated"
         assert "Newer version available" in issues[0].description
 
+    @patch("aiconfigkit.cli.template_validate.calculate_file_checksum")
+    @patch("aiconfigkit.cli.template_validate.TemplateLibraryManager")
+    @patch("aiconfigkit.cli.template_validate.console")
+    def test_checksum_exception_with_verbose(self, mock_console, mock_library, mock_checksum, tmp_path):
+        """Test verbose output when checksum verification fails."""
+        from aiconfigkit.storage.template_tracker import TemplateInstallationTracker
+
+        # Create installed file
+        installed_file = tmp_path / "installed.md"
+        installed_file.write_text("content")
+
+        # Setup tracker
+        tracker = TemplateInstallationTracker.for_project(tmp_path)
+        record = TemplateInstallationRecord(
+            id=str(uuid.uuid4()),
+            namespace="acme",
+            template_name="test",
+            installed_path=str(installed_file),
+            source_repo="https://github.com/acme/templates",
+            source_version="1.0.0",
+            checksum="e" * 64,
+            scope=InstallationScope.PROJECT,
+            installed_at=datetime.now(),
+            ide_type=AIToolType.CLAUDE,
+        )
+        tracker.save_installation_records([record])
+
+        # Mock checksum to raise exception
+        mock_checksum.side_effect = RuntimeError("Checksum error")
+        mock_library.return_value.get_repository_version.return_value = "1.0.0"
+
+        issues = _validate_installations(tracker, "project", verbose=True)
+
+        # Should handle exception gracefully and show verbose message
+        # No modified issue should be created
+        assert all(issue.issue_type != "modified" for issue in issues)
+
+    @patch("aiconfigkit.cli.template_validate.calculate_file_checksum")
+    @patch("aiconfigkit.cli.template_validate.TemplateLibraryManager")
+    @patch("aiconfigkit.cli.template_validate.console")
+    def test_version_check_exception_with_verbose(self, mock_console, mock_library, mock_checksum, tmp_path):
+        """Test verbose output when version check fails."""
+        from aiconfigkit.storage.template_tracker import TemplateInstallationTracker
+
+        # Create installed file
+        installed_file = tmp_path / "installed.md"
+        installed_file.write_text("content")
+
+        # Setup tracker
+        tracker = TemplateInstallationTracker.for_project(tmp_path)
+        record = TemplateInstallationRecord(
+            id=str(uuid.uuid4()),
+            namespace="acme",
+            template_name="test",
+            installed_path=str(installed_file),
+            source_repo="https://github.com/acme/templates",
+            source_version="1.0.0",
+            checksum="f" * 64,
+            scope=InstallationScope.PROJECT,
+            installed_at=datetime.now(),
+            ide_type=AIToolType.CLAUDE,
+        )
+        tracker.save_installation_records([record])
+
+        # Mock to pass checksum but fail version check
+        mock_checksum.return_value = "f" * 64
+        mock_library.return_value.get_repository_version.side_effect = RuntimeError("Version check error")
+
+        issues = _validate_installations(tracker, "project", verbose=True)
+
+        # Should handle exception gracefully and show verbose message
+        # No outdated issue should be created
+        assert all(issue.issue_type != "outdated" for issue in issues)
+
 
 class TestDisplayValidationResults:
     """Tests for _display_validation_results function."""
@@ -278,3 +352,28 @@ class TestValidateCommand:
             validate_command(scope="project", fix=False, verbose=False)
 
         assert exc_info.value.exit_code == 1
+
+    @patch("aiconfigkit.cli.template_validate.find_project_root")
+    @patch("aiconfigkit.cli.template_validate._validate_installations")
+    def test_validate_keyboard_interrupt(self, mock_validate, mock_find_root, tmp_path):
+        """Test handling of keyboard interrupt during validation."""
+        mock_find_root.return_value = tmp_path
+        mock_validate.side_effect = KeyboardInterrupt()
+
+        with pytest.raises(typer.Exit) as exc_info:
+            validate_command(scope="project", fix=False, verbose=False)
+
+        assert exc_info.value.exit_code == 130  # Standard SIGINT exit code
+
+    @patch("aiconfigkit.cli.template_validate.find_project_root")
+    @patch("aiconfigkit.cli.template_validate._validate_installations")
+    def test_validate_generic_exception(self, mock_validate, mock_find_root, tmp_path):
+        """Test handling of unexpected exception during validation."""
+        mock_find_root.return_value = tmp_path
+        mock_validate.side_effect = RuntimeError("Unexpected error")
+
+        with pytest.raises(typer.Exit) as exc_info:
+            validate_command(scope="project", fix=False, verbose=False)
+
+        assert exc_info.value.exit_code == 1
+

@@ -3,7 +3,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -346,3 +346,41 @@ class TestMCPManager:
         metadata = manager._parse_metadata(template_dir)
 
         assert metadata == {}
+
+    @patch("aiconfigkit.core.mcp.manager.GitOperations")
+    def test_install_from_git_clone_failure(self, mock_git_ops_class: MagicMock, manager: MCPManager, tmp_path: Path) -> None:
+        """Test installation from Git when clone fails."""
+        mock_git_ops = MagicMock()
+        mock_git_ops.clone_repository.side_effect = RuntimeError("Clone failed")
+        mock_git_ops_class.return_value = mock_git_ops
+
+        dest_path = tmp_path / "dest"
+
+        with pytest.raises(RuntimeError, match="Failed to clone Git repository"):
+            manager._install_from_git("https://github.com/test/repo.git", dest_path)
+
+    def test_list_templates_nonexistent_directory(self, manager: MCPManager, tmp_path: Path) -> None:
+        """Test listing templates when library directory doesn't exist."""
+        # Set library root to nonexistent directory
+        manager.library_root = tmp_path / "nonexistent"
+
+        templates = manager.list_templates(scope="global")
+
+        # Should return empty list when directory doesn't exist
+        assert templates == []
+
+    def test_list_templates_invalid_metadata(self, manager: MCPManager, tmp_path: Path) -> None:
+        """Test listing templates with corrupted metadata file."""
+        # Create template directory with invalid metadata
+        template_dir = tmp_path / "global" / "test-template"
+        template_dir.mkdir(parents=True)
+
+        metadata_file = template_dir / ".mcp_template.json"
+        metadata_file.write_text("{invalid json")
+
+        manager.library_root = tmp_path
+
+        # Should handle exception gracefully and skip invalid template
+        templates = manager.list_templates(scope="global")
+
+        assert templates == []

@@ -110,6 +110,13 @@ class TestWinsurfTool:
         assert path.read_text() == "Test content"
         assert path.suffix == ".md"
 
+    def test_get_mcp_config_path(self, winsurf_tool):
+        """Test get_mcp_config_path returns correct path."""
+        config_path = winsurf_tool.get_mcp_config_path()
+        # Should return a Path object pointing to Windsurf MCP config
+        assert config_path is not None
+        assert "windsurf" in str(config_path).lower()
+
     def test_repr(self, winsurf_tool):
         """Test string representation."""
         repr_str = repr(winsurf_tool)

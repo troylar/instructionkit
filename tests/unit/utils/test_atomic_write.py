@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -289,3 +290,31 @@ class TestAtomicWrite:
         with atomic_write(test_file, create_backup=False) as f:
             f.write("version 3")
         assert test_file.read_text() == "version 3"
+
+    def test_atomic_write_error_with_cleanup_failure(self, tmp_path: Path) -> None:
+        """Test atomic write handles failure to cleanup temp file (lines 76-77)."""
+        test_file = tmp_path / "test.txt"
+
+        # Mock os.unlink to fail with OSError when cleanup is attempted
+        original_unlink = os.unlink
+        unlink_call_count = [0]
+
+        def mock_unlink(path):
+            """Mock unlink that fails on first call (temp file cleanup)."""
+            unlink_call_count[0] += 1
+            if unlink_call_count[0] == 1:
+                # First call is the temp file cleanup in exception handler
+                raise OSError("Permission denied")
+            # Let subsequent calls through
+            return original_unlink(path)
+
+        with patch("os.unlink", side_effect=mock_unlink):
+            with pytest.raises(ValueError, match="test error"):
+                with atomic_write(test_file, create_backup=False) as f:
+                    f.write("content")
+                    # Raise error to trigger cleanup
+                    raise ValueError("test error")
+
+        # File should not exist (write failed)
+        assert not test_file.exists()
+        # The OSError during cleanup should be silently caught (lines 76-77)

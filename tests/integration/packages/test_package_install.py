@@ -409,3 +409,165 @@ class TestPackageInstall:
         # Verify removed
         assert tracker.get_package("test-package", InstallationScope.PROJECT) is None
         assert not instruction_file.exists()
+
+    def test_installation_result_total_components(self) -> None:
+        """Test InstallationResult.total_components property."""
+        from aiconfigkit.cli.package_install import InstallationResult
+
+        result = InstallationResult(
+            success=True,
+            status=InstallationStatus.PARTIAL,
+            package_name="test",
+            version="1.0.0",
+            installed_count=5,
+            skipped_count=3,
+            failed_count=2,
+        )
+
+        assert result.total_components == 10
+
+    def test_install_mcp_component_with_conflict_skip(self, sample_package_dir: Path, project_root: Path) -> None:
+        """Test that MCP component installation skips on conflict."""
+        from aiconfigkit.cli.package_install import install_package
+        from aiconfigkit.core.models import ConflictResolution
+
+        # Modify package to only have MCP component
+        manifest_content = """name: mcp-only-package
+version: 1.0.0
+description: MCP only package
+author: Test Author
+license: MIT
+namespace: test/repo
+
+components:
+  mcp_servers:
+    - name: filesystem
+      file: mcp/filesystem.json
+      description: Filesystem MCP server
+"""
+        (sample_package_dir / "ai-config-kit-package.yaml").write_text(manifest_content)
+
+        # First install
+        result1 = install_package(
+            package_path=sample_package_dir,
+            project_root=project_root,
+            target_ide=AIToolType.CLAUDE,
+            scope=InstallationScope.PROJECT,
+        )
+        assert result1.success is True
+        assert result1.installed_count == 1
+
+        # Second install with SKIP - should skip the MCP component
+        result2 = install_package(
+            package_path=sample_package_dir,
+            project_root=project_root,
+            target_ide=AIToolType.CLAUDE,
+            scope=InstallationScope.PROJECT,
+            conflict_resolution=ConflictResolution.SKIP,
+        )
+        assert result2.success is True
+        assert result2.skipped_count >= 1
+
+    def test_install_instruction_component_exception_handling(
+        self, sample_package_dir: Path, project_root: Path
+    ) -> None:
+        """Test exception handling in instruction component installation."""
+        from unittest.mock import patch
+
+        from aiconfigkit.cli.package_install import install_package
+
+        # Mock translator to raise exception
+        with patch("aiconfigkit.cli.package_install.get_translator") as mock_translator:
+            mock_translator.return_value.translate_instruction.side_effect = RuntimeError("Translation error")
+
+            result = install_package(
+                package_path=sample_package_dir,
+                project_root=project_root,
+                target_ide=AIToolType.CLAUDE,
+                scope=InstallationScope.PROJECT,
+            )
+
+            # Should complete but skip the failed instruction
+            assert result.success is True
+            assert result.skipped_count >= 1
+
+    def test_install_mcp_component_exception_handling(self, tmp_path: Path, project_root: Path) -> None:
+        """Test exception handling in MCP component installation."""
+        from unittest.mock import patch
+
+        from aiconfigkit.cli.package_install import install_package
+
+        # Create package with MCP only
+        mcp_package = tmp_path / "mcp-package"
+        mcp_package.mkdir()
+
+        manifest = """name: mcp-test
+version: 1.0.0
+description: MCP test
+author: Test
+license: MIT
+namespace: test/repo
+
+components:
+  mcp_servers:
+    - name: test-server
+      file: mcp/server.json
+      description: Test server
+"""
+        (mcp_package / "ai-config-kit-package.yaml").write_text(manifest)
+        (mcp_package / "mcp").mkdir()
+        (mcp_package / "mcp" / "server.json").write_text('{"server": "config"}')
+
+        # Mock translator to raise exception
+        with patch("aiconfigkit.cli.package_install.get_translator") as mock_translator:
+            mock_translator.return_value.translate_mcp_server.side_effect = RuntimeError("MCP error")
+
+            result = install_package(
+                package_path=mcp_package, project_root=project_root, target_ide=AIToolType.CLAUDE
+            )
+
+            # Should complete but skip the failed MCP
+            assert result.success is True
+            assert result.skipped_count >= 1
+
+    def test_install_hook_component_exception_handling(self, tmp_path: Path, project_root: Path) -> None:
+        """Test exception handling in hook component installation."""
+        from unittest.mock import patch
+
+        from aiconfigkit.cli.package_install import install_package
+
+        # Create package with hook only
+        hook_package = tmp_path / "hook-package"
+        hook_package.mkdir()
+
+        manifest = """name: hook-test
+version: 1.0.0
+description: Hook test
+author: Test
+license: MIT
+namespace: test/repo
+
+components:
+  hooks:
+    - name: test-hook
+      file: hooks/test.sh
+      description: Test hook
+      hook_type: pre-commit
+"""
+        (hook_package / "ai-config-kit-package.yaml").write_text(manifest)
+        (hook_package / "hooks").mkdir()
+        (hook_package / "hooks" / "test.sh").write_text("#!/bin/bash\necho test")
+
+        # Mock translator to raise exception
+        with patch("aiconfigkit.cli.package_install.get_translator") as mock_translator:
+            mock_translator.return_value.translate_hook.side_effect = RuntimeError("Hook error")
+
+            result = install_package(
+                package_path=hook_package, project_root=project_root, target_ide=AIToolType.CLAUDE
+            )
+
+            # Should complete but skip the failed hook
+            assert result.success is True
+            assert result.skipped_count >= 1
+
+

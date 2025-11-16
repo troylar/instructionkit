@@ -215,3 +215,44 @@ class TestComponentInstallation:
         assert result is None
         # Original file preserved
         assert existing_file.read_text() == "existing content"
+
+    def test_install_resource_without_source_path(
+        self, temp_package: Path, temp_project: Path
+    ) -> None:
+        """Test resource installation fallback when no source_path in metadata."""
+        from unittest.mock import MagicMock
+        from aiconfigkit.ai_tools.translator import TranslatedComponent
+
+        component = ResourceComponent(
+            name="test",
+            file="resources/test.txt",
+            description="Test",
+            install_path=".testfile",
+            checksum="sha256:abc",
+            size=100,
+        )
+
+        # Create mock translator that returns TranslatedComponent without source_path
+        from aiconfigkit.core.models import ComponentType
+
+        translator = MagicMock()
+        translator.translate_resource.return_value = TranslatedComponent(
+            component_type=ComponentType.RESOURCE,
+            component_name="test",
+            target_path=".testfile",
+            content="test content",
+            metadata={}  # No source_path - triggers fallback
+        )
+
+        # Install resource
+        result = _install_resource_component(
+            component, temp_package, temp_project, translator, ConflictResolution.OVERWRITE
+        )
+
+        # Should install successfully using content fallback
+        assert result is not None
+        assert result.name == "test"
+        # File should contain the content
+        installed_file = temp_project / ".testfile"
+        assert installed_file.exists()
+        assert installed_file.read_text() == "test content"

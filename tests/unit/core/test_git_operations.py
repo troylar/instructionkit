@@ -3,7 +3,7 @@
 import subprocess
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
 import pytest
 from git import Repo
@@ -722,3 +722,64 @@ class TestWithTemporaryClone:
 
         # Cleanup should still happen
         mock_cleanup.assert_called_once_with(clone_path)
+
+
+class TestCloneRepositoryEdgeCases:
+    """Test edge cases in clone_repository."""
+
+    @patch("subprocess.run")
+    @patch("aiconfigkit.utils.validation.is_valid_git_url")
+    @patch("tempfile.mkdtemp")
+    def test_clone_without_target_dir_creates_tempdir(
+        self, mock_mkdtemp: MagicMock, mock_valid: MagicMock, mock_run: MagicMock
+    ) -> None:
+        """Test cloning without target_dir creates temporary directory."""
+        mock_valid.return_value = True
+        mock_mkdtemp.return_value = "/tmp/instructionkit-abc123"
+        mock_run.return_value = Mock(returncode=0, stderr="", stdout="")
+
+        result = GitOperations.clone_repository("https://github.com/user/repo.git")
+
+        mock_mkdtemp.assert_called_once()
+        assert "instructionkit-" in mock_mkdtemp.call_args[1]["prefix"]
+
+    @patch("subprocess.run")
+    @patch("shutil.rmtree")
+    @patch("aiconfigkit.utils.validation.is_valid_git_url")
+    def test_clone_generic_exception_cleanup(
+        self, mock_valid: MagicMock, mock_rmtree: MagicMock, mock_run: MagicMock, tmp_path: Path
+    ) -> None:
+        """Test that generic exception in clone triggers cleanup."""
+        mock_valid.return_value = True
+        mock_run.side_effect = Exception("Unexpected error")
+
+        target_dir = tmp_path / "target"
+        target_dir.mkdir()
+
+        with pytest.raises(GitOperationError, match="Unexpected error during clone"):
+            GitOperations.clone_repository("https://github.com/user/repo.git", target_dir=target_dir)
+
+
+class TestGetRepoInfoEdgeCases:
+    """Test edge cases in get_repo_info."""
+
+    @patch("git.Repo")
+    def test_get_repo_info_exception_getting_branch(self, mock_repo_class: MagicMock) -> None:
+        """Test get_repo_info handles exception when getting active branch."""
+        mock_repo = MagicMock()
+        mock_repo.head.is_detached = False
+        # Simulate exception when accessing active_branch property
+        type(mock_repo).active_branch = PropertyMock(side_effect=Exception("Branch error"))
+        mock_repo.remotes = []
+        mock_repo.head.commit.hexsha = "abc123"
+        mock_repo.is_dirty.return_value = False
+        mock_repo.git.rev_parse.return_value = "false"
+        mock_repo.tags = []
+        mock_repo.heads = []
+
+        info = GitOperations.get_repo_info(mock_repo)
+
+        # Should handle exception gracefully, set current_branch to None
+        assert info["current_branch"] is None
+
+

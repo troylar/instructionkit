@@ -241,3 +241,14 @@ class TestTemplateInit:
         assert "Purpose" in hook
         assert "Hook Types" in hook or "hook" in hook.lower()
         assert len(hook) > 500
+
+    @patch("aiconfigkit.cli.template_init.Path.mkdir")
+    def test_init_exception_handling(self, mock_mkdir, tmp_path):
+        """Test exception handling during init."""
+        repo_name = "my-templates"
+        mock_mkdir.side_effect = RuntimeError("Permission denied")
+
+        with pytest.raises(typer.Exit) as exc_info:
+            init_command(directory=repo_name)
+
+        assert exc_info.value.exit_code == 1

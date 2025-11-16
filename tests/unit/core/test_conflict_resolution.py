@@ -215,6 +215,21 @@ class TestConflictResolver:
 
         assert result == original_path  # Fallback to original
 
+    def test_get_install_path_prompt_fallback(self) -> None:
+        """Test get_install_path with PROMPT resolution (fallback case)."""
+        resolver = ConflictResolver()
+        original_path = Path("/test/instruction.md")
+        conflict_info = ConflictInfo(
+            instruction_name="test",
+            existing_path=str(original_path),
+            resolution=ConflictResolution.PROMPT,  # Not handled in if/elif chain
+            new_path=None,
+        )
+
+        result = resolver.get_install_path(original_path, conflict_info)
+
+        assert result == original_path  # Fallback to original path
+
 
 class TestPromptConflictResolution:
     """Test interactive conflict resolution prompt."""

@@ -335,6 +335,23 @@ templates: []
         repos = manager.list_installed_repositories()
         assert repos == []
 
+    def test_list_repositories_deleted_after_init(self, tmp_path):
+        """Test listing repositories when library is deleted after initialization."""
+        import shutil
+
+        library_path = tmp_path / "library"
+        manager = TemplateLibraryManager(library_path=library_path)
+
+        # Verify library was created by __init__
+        assert library_path.exists()
+
+        # Delete the library directory
+        shutil.rmtree(library_path)
+
+        # Should return empty list when library doesn't exist
+        repos = manager.list_installed_repositories()
+        assert repos == []
+
 
 class TestRemoveRepository:
     """Tests for remove_repository method."""

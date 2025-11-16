@@ -346,3 +346,145 @@ class TestPackageManifestParser:
         package = parser.parse()
 
         assert package.namespace == "local/local"
+
+    def test_parse_empty_components(self, temp_package_dir: Path) -> None:
+        """Test parsing manifest with empty/None components."""
+        manifest_data = {
+            "name": "test",
+            "version": "1.0.0",
+            "description": "Test",
+            "author": "Author",
+            "license": "MIT",
+            "components": None,  # Will be parsed as None by YAML
+        }
+
+        manifest_path = temp_package_dir / "ai-config-kit-package.yaml"
+        with open(manifest_path, "w") as f:
+            yaml.dump(manifest_data, f)
+
+        parser = PackageManifestParser(temp_package_dir)
+        package = parser.parse()
+
+        assert package.components.total_count == 0
+        assert len(package.components.instructions) == 0
+        assert len(package.components.mcp_servers) == 0
+
+    def test_validate_invalid_version_format(self, temp_package_dir: Path) -> None:
+        """Test validation detects invalid version format."""
+        manifest_data = {
+            "name": "test",
+            "version": "invalid-version",  # Not semantic versioning
+            "description": "Test",
+            "author": "Author",
+            "license": "MIT",
+            "components": {},
+        }
+
+        manifest_path = temp_package_dir / "ai-config-kit-package.yaml"
+        with open(manifest_path, "w") as f:
+            yaml.dump(manifest_data, f)
+
+        parser = PackageManifestParser(temp_package_dir)
+        package = parser.parse()
+        errors = parser.validate(package)
+
+        assert len(errors) == 1
+        assert "Invalid version format" in errors[0]
+        assert "semantic versioning" in errors[0]
+
+    def test_validate_missing_hook_file(self, temp_package_dir: Path) -> None:
+        """Test validation detects missing hook file."""
+        manifest_data = {
+            "name": "test",
+            "version": "1.0.0",
+            "description": "Test",
+            "author": "Author",
+            "license": "MIT",
+            "components": {
+                "hooks": [
+                    {
+                        "name": "test-hook",
+                        "file": "hooks/missing.sh",
+                        "description": "Test hook",
+                        "hook_type": "pre-commit",
+                    }
+                ],
+            },
+        }
+
+        manifest_path = temp_package_dir / "ai-config-kit-package.yaml"
+        with open(manifest_path, "w") as f:
+            yaml.dump(manifest_data, f)
+
+        parser = PackageManifestParser(temp_package_dir)
+        package = parser.parse()
+        errors = parser.validate(package)
+
+        assert len(errors) == 1
+        assert "Hook file not found" in errors[0]
+        assert "hooks/missing.sh" in errors[0]
+
+    def test_validate_missing_command_file(self, temp_package_dir: Path) -> None:
+        """Test validation detects missing command file."""
+        manifest_data = {
+            "name": "test",
+            "version": "1.0.0",
+            "description": "Test",
+            "author": "Author",
+            "license": "MIT",
+            "components": {
+                "commands": [
+                    {
+                        "name": "test-command",
+                        "file": "commands/missing.sh",
+                        "description": "Test command",
+                        "command_type": "shell",
+                    }
+                ],
+            },
+        }
+
+        manifest_path = temp_package_dir / "ai-config-kit-package.yaml"
+        with open(manifest_path, "w") as f:
+            yaml.dump(manifest_data, f)
+
+        parser = PackageManifestParser(temp_package_dir)
+        package = parser.parse()
+        errors = parser.validate(package)
+
+        assert len(errors) == 1
+        assert "Command file not found" in errors[0]
+        assert "commands/missing.sh" in errors[0]
+
+    def test_validate_missing_resource_file(self, temp_package_dir: Path) -> None:
+        """Test validation detects missing resource file."""
+        manifest_data = {
+            "name": "test",
+            "version": "1.0.0",
+            "description": "Test",
+            "author": "Author",
+            "license": "MIT",
+            "components": {
+                "resources": [
+                    {
+                        "name": "test-resource",
+                        "file": "resources/missing.png",
+                        "description": "Test resource",
+                        "checksum": "sha256:abc123",
+                        "size": 1024,
+                    }
+                ],
+            },
+        }
+
+        manifest_path = temp_package_dir / "ai-config-kit-package.yaml"
+        with open(manifest_path, "w") as f:
+            yaml.dump(manifest_data, f)
+
+        parser = PackageManifestParser(temp_package_dir)
+        package = parser.parse()
+        errors = parser.validate(package)
+
+        assert len(errors) == 1
+        assert "Resource file not found" in errors[0]
+        assert "resources/missing.png" in errors[0]

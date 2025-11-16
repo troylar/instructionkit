@@ -583,3 +583,45 @@ class TestErrorHandling:
         # Should handle gracefully and return empty list
         records = tracker.get_installed_packages()
         assert records == []
+
+    def test_file_deleted_after_init(self, tmp_path: Path) -> None:
+        """Test handling when tracker file is deleted after initialization."""
+        import shutil
+
+        tracker_file = tmp_path / ".ai-config-kit" / "packages.json"
+        tracker = PackageTracker(tracker_file)
+
+        # File should be created by __init__
+        assert tracker_file.exists()
+
+        # Delete the file and its parent directory
+        shutil.rmtree(tracker_file.parent)
+
+        # Should handle FileNotFoundError gracefully
+        records = tracker._read_records()
+        assert records == []
+
+    def test_write_failure_permission_error(self, tmp_path: Path) -> None:
+        """Test handling write failures due to permissions."""
+        from unittest.mock import patch, mock_open
+
+        tracker_file = tmp_path / ".ai-config-kit" / "packages.json"
+        tracker = PackageTracker(tracker_file)
+
+        sample_record = PackageInstallationRecord(
+            package_name="test-package",
+            version="1.0.0",
+            namespace="test/repo",
+            scope=InstallationScope.PROJECT,
+            installed_at=datetime.now(),
+            updated_at=datetime.now(),
+            components=[],
+            status=InstallationStatus.COMPLETE,
+        )
+
+        # Mock open to raise PermissionError
+        with patch("builtins.open", mock_open()) as mock_file:
+            mock_file.side_effect = PermissionError("Permission denied")
+
+            with pytest.raises(PermissionError):
+                tracker._write_records([sample_record])
