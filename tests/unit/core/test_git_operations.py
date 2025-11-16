@@ -152,16 +152,22 @@ class TestCleanupRepository:
         assert not temp_dir.exists()
 
     def test_cleanup_non_temp_directory_skipped(self, tmp_path: Path) -> None:
-        """Test that non-temp directories are not cleaned up."""
-        regular_dir = tmp_path / "my-repo"
-        regular_dir.mkdir()
-        test_file = regular_dir / "test.txt"
-        test_file.write_text("test")
+        """Test that non-temp directories outside /tmp are not cleaned up."""
+        # Create a directory outside /tmp that doesn't match temp patterns
+        from unittest.mock import patch
 
-        GitOperations.cleanup_repository(regular_dir, is_temp=True)
+        # Mock a path that's not in /tmp and doesn't have instructionkit- prefix
+        regular_dir = Path("/home/user/my-repo")
 
-        # Should not be deleted (doesn't have instructionkit- or /tmp/)
-        assert regular_dir.exists()
+        # Mock exists() and is_dir() to return True
+        with patch.object(Path, 'exists', return_value=True), \
+             patch.object(Path, 'is_dir', return_value=True), \
+             patch('shutil.rmtree') as mock_rmtree:
+
+            GitOperations.cleanup_repository(regular_dir, is_temp=True)
+
+            # Should NOT call rmtree because path doesn't match temp patterns
+            mock_rmtree.assert_not_called()
 
     def test_cleanup_non_temp_flag(self, tmp_path: Path) -> None:
         """Test cleanup with is_temp=False doesn't delete."""
