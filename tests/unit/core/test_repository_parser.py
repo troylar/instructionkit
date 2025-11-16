@@ -158,7 +158,12 @@ class TestRepositoryParser:
         metadata = {
             "name": "Test",
             "instructions": [
-                {"name": "test", "description": "Test instruction", "file": "test.md", "ai_tools": ["claude", "cursor", "winsurf"]}
+                {
+                    "name": "test",
+                    "description": "Test instruction",
+                    "file": "test.md",
+                    "ai_tools": ["claude", "cursor", "winsurf"],
+                }
             ],
         }
 
@@ -180,7 +185,12 @@ class TestRepositoryParser:
         metadata = {
             "name": "Test",
             "instructions": [
-                {"name": "test", "description": "Test instruction", "file": "test.md", "ai_tools": ["claude", "unknown-tool", "cursor"]}
+                {
+                    "name": "test",
+                    "description": "Test instruction",
+                    "file": "test.md",
+                    "ai_tools": ["claude", "unknown-tool", "cursor"],
+                }
             ],
         }
 

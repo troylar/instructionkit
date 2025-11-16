@@ -89,9 +89,12 @@ class TestBasicInstallation:
         assert (test_project / ".claude/commands/test.sh").exists()
         assert (test_project / ".gitignore").exists()
 
-        # Verify hook is executable
-        hook_path = test_project / ".claude/hooks/pre-commit.sh"
-        assert hook_path.stat().st_mode & 0o111  # Has execute permission
+        # Verify hook is executable (Unix-only)
+        import os
+
+        if os.name != "nt":  # Skip permission check on Windows
+            hook_path = test_project / ".claude/hooks/pre-commit.sh"
+            assert hook_path.stat().st_mode & 0o111  # Has execute permission
 
     def test_install_to_different_project_locations(
         self, package_builder, tmp_path: Path
@@ -305,7 +308,6 @@ class TestReinstallation:
 
         # Modify installed file
         guide_path = test_project / ".claude/rules/guide.md"
-        original_content = guide_path.read_text()
         guide_path.write_text("# Modified content")
 
         # Force reinstall

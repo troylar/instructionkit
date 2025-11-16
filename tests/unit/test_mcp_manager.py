@@ -348,7 +348,9 @@ class TestMCPManager:
         assert metadata == {}
 
     @patch("aiconfigkit.core.mcp.manager.GitOperations")
-    def test_install_from_git_clone_failure(self, mock_git_ops_class: MagicMock, manager: MCPManager, tmp_path: Path) -> None:
+    def test_install_from_git_clone_failure(
+        self, mock_git_ops_class: MagicMock, manager: MCPManager, tmp_path: Path
+    ) -> None:
         """Test installation from Git when clone fails."""
         mock_git_ops = MagicMock()
         mock_git_ops.clone_repository.side_effect = RuntimeError("Clone failed")

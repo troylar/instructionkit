@@ -308,7 +308,7 @@ class TestLibraryManager:
         manager = LibraryManager(temp_dir / "library")
 
         # Add repository with URL
-        repo = manager.add_repository(
+        _repo = manager.add_repository(
             repo_name="Test Repo",
             repo_description="Test",
             repo_url="https://github.com/test/repo",
@@ -330,7 +330,7 @@ class TestLibraryManager:
         local_path = temp_dir / "my-repo"
         local_path.mkdir()
 
-        repo = manager.add_repository(
+        _repo = manager.add_repository(
             repo_name="Local Repo",
             repo_description="Test",
             repo_url=str(local_path),
@@ -432,7 +432,7 @@ class TestLibraryManager:
         # Get file path
         path = manager.get_instruction_file_path("test/python-style")
         assert path is not None
-        assert str(path) == "/path/to/file.md"
+        assert path.as_posix() == "/path/to/file.md"
 
     def test_get_instruction_file_path_not_found(self, temp_dir: Path):
         """Test get_instruction_file_path returns None when not found."""

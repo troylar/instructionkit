@@ -402,12 +402,15 @@ class TestRenameStrategy:
             conflict_resolution=ConflictResolution.RENAME,
         )
 
-        # Verify both are executable
-        original = test_project / ".claude/hooks/pre-commit.sh"
-        renamed = test_project / ".claude/hooks/pre-commit-1.sh"
+        # Verify both are executable (Unix-only)
+        import os
 
-        assert original.stat().st_mode & 0o111  # Executable
-        assert renamed.stat().st_mode & 0o111  # Executable
+        if os.name != "nt":  # Skip permission check on Windows
+            original = test_project / ".claude/hooks/pre-commit.sh"
+            renamed = test_project / ".claude/hooks/pre-commit-1.sh"
+
+            assert original.stat().st_mode & 0o111  # Executable
+            assert renamed.stat().st_mode & 0o111  # Executable
 
 
 class TestConflictResolutionCombinations:

@@ -418,9 +418,8 @@ class TestPackageOrdering:
         install_package(pkg2, test_project, AIToolType.CLAUDE)
         install_package(pkg3, test_project, AIToolType.CLAUDE)
 
+        # Get tracker
         tracker = PackageTracker(test_project / ".ai-config-kit/packages.json")
-        packages = tracker.get_installed_packages()
-        first_order = [p.package_name for p in packages]
 
         # Reinstall in order 3, 1, 2
         install_package(

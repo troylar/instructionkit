@@ -53,7 +53,7 @@ class TestPackageTrackerInitialization:
     def test_creates_tracker_file(self, tmp_path: Path) -> None:
         """Test that tracker file is created on initialization."""
         tracker_file = tmp_path / ".ai-config-kit" / "packages.json"
-        tracker = PackageTracker(tracker_file)
+        _tracker = PackageTracker(tracker_file)
 
         assert tracker_file.exists()
         assert tracker_file.parent.exists()
@@ -100,7 +100,9 @@ class TestPackageTrackerInitialization:
 class TestRecordInstallation:
     """Test recording package installations."""
 
-    def test_record_new_installation(self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord) -> None:
+    def test_record_new_installation(
+        self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord
+    ) -> None:
         """Test recording a new package installation."""
         temp_tracker.record_installation(sample_record)
 
@@ -148,7 +150,9 @@ class TestRecordInstallation:
         assert len(records) == 2
         assert {r.package_name for r in records} == {"package1", "package2"}
 
-    def test_update_existing_installation(self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord) -> None:
+    def test_update_existing_installation(
+        self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord
+    ) -> None:
         """Test updating an existing package installation."""
         # Record initial installation
         temp_tracker.record_installation(sample_record)
@@ -272,7 +276,9 @@ class TestGetPackage:
         record = temp_tracker.get_package("nonexistent", InstallationScope.PROJECT)
         assert record is None
 
-    def test_get_package_wrong_scope(self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord) -> None:
+    def test_get_package_wrong_scope(
+        self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord
+    ) -> None:
         """Test getting a package with wrong scope."""
         # Record with project scope
         temp_tracker.record_installation(sample_record)
@@ -285,7 +291,9 @@ class TestGetPackage:
 class TestUpdatePackage:
     """Test updating package records."""
 
-    def test_update_package_status(self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord) -> None:
+    def test_update_package_status(
+        self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord
+    ) -> None:
         """Test updating package status."""
         temp_tracker.record_installation(sample_record)
 
@@ -300,7 +308,9 @@ class TestUpdatePackage:
         assert updated is not None
         assert updated.status == InstallationStatus.PARTIAL
 
-    def test_update_package_version(self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord) -> None:
+    def test_update_package_version(
+        self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord
+    ) -> None:
         """Test updating package version."""
         temp_tracker.record_installation(sample_record)
 
@@ -315,7 +325,9 @@ class TestUpdatePackage:
         assert updated is not None
         assert updated.version == "2.0.0"
 
-    def test_update_package_both_fields(self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord) -> None:
+    def test_update_package_both_fields(
+        self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord
+    ) -> None:
         """Test updating both status and version."""
         temp_tracker.record_installation(sample_record)
 
@@ -332,7 +344,9 @@ class TestUpdatePackage:
         assert updated.status == InstallationStatus.FAILED
         assert updated.version == "3.0.0"
 
-    def test_update_updates_timestamp(self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord) -> None:
+    def test_update_updates_timestamp(
+        self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord
+    ) -> None:
         """Test that update changes the updated_at timestamp."""
         temp_tracker.record_installation(sample_record)
         original = temp_tracker.get_package("test-package", InstallationScope.PROJECT)
@@ -340,6 +354,7 @@ class TestUpdatePackage:
 
         # Small delay to ensure timestamp changes
         import time
+
         time.sleep(0.01)
 
         temp_tracker.update_package(
@@ -365,7 +380,9 @@ class TestUpdatePackage:
 class TestRemovePackage:
     """Test removing package records."""
 
-    def test_remove_existing_package(self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord) -> None:
+    def test_remove_existing_package(
+        self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord
+    ) -> None:
         """Test removing an existing package."""
         temp_tracker.record_installation(sample_record)
 
@@ -381,7 +398,9 @@ class TestRemovePackage:
         result = temp_tracker.remove_package("nonexistent", InstallationScope.PROJECT)
         assert result is False
 
-    def test_remove_package_wrong_scope(self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord) -> None:
+    def test_remove_package_wrong_scope(
+        self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord
+    ) -> None:
         """Test removing a package with wrong scope."""
         # Record with project scope
         temp_tracker.record_installation(sample_record)
@@ -430,7 +449,9 @@ class TestRemovePackage:
 class TestIsPackageInstalled:
     """Test checking if package is installed."""
 
-    def test_installed_package_returns_true(self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord) -> None:
+    def test_installed_package_returns_true(
+        self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord
+    ) -> None:
         """Test that installed package returns True."""
         temp_tracker.record_installation(sample_record)
 
@@ -440,7 +461,9 @@ class TestIsPackageInstalled:
         """Test that nonexistent package returns False."""
         assert temp_tracker.is_package_installed("nonexistent", InstallationScope.PROJECT) is False
 
-    def test_wrong_scope_returns_false(self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord) -> None:
+    def test_wrong_scope_returns_false(
+        self, temp_tracker: PackageTracker, sample_record: PackageInstallationRecord
+    ) -> None:
         """Test that package with wrong scope returns False."""
         # Record with project scope
         temp_tracker.record_installation(sample_record)

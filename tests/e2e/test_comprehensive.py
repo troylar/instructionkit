@@ -486,7 +486,7 @@ components:
         # Should either create directory or raise appropriate error
         # (depending on implementation)
         try:
-            result = install_package(pkg, nonexistent, AIToolType.CLAUDE)
+            _result = install_package(pkg, nonexistent, AIToolType.CLAUDE)
             # If it succeeds, directory should be created
             assert nonexistent.exists()
         except Exception as e:

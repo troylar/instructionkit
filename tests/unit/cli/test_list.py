@@ -142,8 +142,12 @@ class TestListAvailable:
 
         # Setup repository parser with mixed tags
         instructions = [
-            Instruction(name="test1", description="Test 1", content="# Test 1", file_path="test1.md", tags=["python"]),
-            Instruction(name="test2", description="Test 2", content="# Test 2", file_path="test2.md", tags=["javascript"]),
+            Instruction(
+                name="test1", description="Test 1", content="# Test 1", file_path="test1.md", tags=["python"]
+            ),
+            Instruction(
+                name="test2", description="Test 2", content="# Test 2", file_path="test2.md", tags=["javascript"]
+            ),
         ]
 
         mock_repo = MagicMock()

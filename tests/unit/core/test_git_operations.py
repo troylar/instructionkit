@@ -274,7 +274,9 @@ class TestCloneRepository:
     @patch("subprocess.run")
     @patch("shutil.rmtree")
     @patch("aiconfigkit.utils.validation.is_valid_git_url")
-    def test_clone_failure_cleanup(self, mock_valid: MagicMock, mock_rmtree: MagicMock, mock_run: MagicMock, tmp_path: Path) -> None:
+    def test_clone_failure_cleanup(
+        self, mock_valid: MagicMock, mock_rmtree: MagicMock, mock_run: MagicMock, tmp_path: Path
+    ) -> None:
         """Test that failed clone cleans up target directory."""
         mock_valid.return_value = True
         mock_run.side_effect = subprocess.CalledProcessError(1, "git", stderr="Clone failed")
@@ -288,7 +290,9 @@ class TestCloneRepository:
     @patch("subprocess.run")
     @patch("shutil.rmtree")
     @patch("aiconfigkit.utils.validation.is_valid_git_url")
-    def test_clone_timeout_cleanup(self, mock_valid: MagicMock, mock_rmtree: MagicMock, mock_run: MagicMock, tmp_path: Path) -> None:
+    def test_clone_timeout_cleanup(
+        self, mock_valid: MagicMock, mock_rmtree: MagicMock, mock_run: MagicMock, tmp_path: Path
+    ) -> None:
         """Test that timed out clone cleans up."""
         mock_valid.return_value = True
         mock_run.side_effect = subprocess.TimeoutExpired("git", 300)
@@ -401,7 +405,9 @@ class TestValidateRemoteRef:
 
         result = GitOperations.validate_remote_ref("https://github.com/user/repo.git", "v1.0.0", RefType.TAG)
         assert result is True
-        mock_git.ls_remote.assert_called_once_with("--exit-code", "--tags", "https://github.com/user/repo.git", "v1.0.0")
+        mock_git.ls_remote.assert_called_once_with(
+            "--exit-code", "--tags", "https://github.com/user/repo.git", "v1.0.0"
+        )
 
     @patch("git.cmd.Git")
     def test_validate_commit_always_true(self, mock_git_cls: MagicMock) -> None:
@@ -715,14 +721,16 @@ class TestWithTemporaryClone:
 
     @patch.object(GitOperations, "clone_repository")
     @patch.object(GitOperations, "cleanup_repository")
-    def test_temporary_clone_cleanup_on_error(self, mock_cleanup: MagicMock, mock_clone: MagicMock, tmp_path: Path) -> None:
+    def test_temporary_clone_cleanup_on_error(
+        self, mock_cleanup: MagicMock, mock_clone: MagicMock, tmp_path: Path
+    ) -> None:
         """Test cleanup happens even on error."""
         clone_path = tmp_path / "clone"
         clone_path.mkdir()
         mock_clone.return_value = clone_path
 
         with pytest.raises(RuntimeError):
-            with with_temporary_clone("https://github.com/user/repo.git") as repo_path:
+            with with_temporary_clone("https://github.com/user/repo.git") as _repo_path:
                 raise RuntimeError("Test error")
 
         # Cleanup should still happen
@@ -743,7 +751,7 @@ class TestCloneRepositoryEdgeCases:
         mock_mkdtemp.return_value = "/tmp/instructionkit-abc123"
         mock_run.return_value = Mock(returncode=0, stderr="", stdout="")
 
-        result = GitOperations.clone_repository("https://github.com/user/repo.git")
+        _result = GitOperations.clone_repository("https://github.com/user/repo.git")
 
         mock_mkdtemp.assert_called_once()
         assert "instructionkit-" in mock_mkdtemp.call_args[1]["prefix"]

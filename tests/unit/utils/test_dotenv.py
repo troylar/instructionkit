@@ -121,9 +121,7 @@ class TestSaveEnvConfig:
     def test_save_env_config_creates_directory(self, tmp_path: Path) -> None:
         """Test saving creates parent directories."""
         env_path = tmp_path / "nested" / "dirs" / ".env"
-        config = EnvironmentConfig(
-            variables={"KEY": "value"}, file_path=str(env_path), scope=InstallationScope.PROJECT
-        )
+        config = EnvironmentConfig(variables={"KEY": "value"}, file_path=str(env_path), scope=InstallationScope.PROJECT)
 
         save_env_config(config)
 
@@ -381,7 +379,9 @@ class TestMergeEnvConfigs:
     def test_merge_env_configs_basic(self, tmp_path: Path) -> None:
         """Test basic merge of environment configs."""
         project_config = EnvironmentConfig(
-            variables={"PROJECT_KEY": "project_value"}, file_path=str(tmp_path / ".env"), scope=InstallationScope.PROJECT
+            variables={"PROJECT_KEY": "project_value"},
+            file_path=str(tmp_path / ".env"),
+            scope=InstallationScope.PROJECT,
         )
         global_config = EnvironmentConfig(
             variables={"GLOBAL_KEY": "global_value"},
@@ -427,7 +427,9 @@ class TestMergeEnvConfigs:
     def test_merge_env_configs_empty_global(self, tmp_path: Path) -> None:
         """Test merge with empty global config."""
         project_config = EnvironmentConfig(
-            variables={"PROJECT_KEY": "project_value"}, file_path=str(tmp_path / ".env"), scope=InstallationScope.PROJECT
+            variables={"PROJECT_KEY": "project_value"},
+            file_path=str(tmp_path / ".env"),
+            scope=InstallationScope.PROJECT,
         )
         global_config = EnvironmentConfig(
             variables={}, file_path=str(Path.home() / ".env"), scope=InstallationScope.GLOBAL
