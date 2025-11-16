@@ -1,7 +1,7 @@
 """Unit tests for streaming utilities."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -130,7 +130,6 @@ class TestStreamCopyFile:
 
     def test_stream_copy_error_cleanup_partial_file(self, tmp_path: Path) -> None:
         """Test cleanup when partial destination file exists."""
-        from unittest.mock import mock_open
 
         source = tmp_path / "source.txt"
         source.write_text("test content")

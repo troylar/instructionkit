@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+from aiconfigkit.ai_tools.capability_registry import get_capability
+from aiconfigkit.ai_tools.translator import get_translator
 from aiconfigkit.cli.package_install import (
     _filter_components_by_capability,
     _install_command_component,
@@ -11,8 +13,6 @@ from aiconfigkit.cli.package_install import (
     _install_mcp_component,
     _install_resource_component,
 )
-from aiconfigkit.ai_tools.capability_registry import get_capability
-from aiconfigkit.ai_tools.translator import get_translator
 from aiconfigkit.core.models import (
     AIToolType,
     CommandComponent,
@@ -221,6 +221,7 @@ class TestComponentInstallation:
     ) -> None:
         """Test resource installation fallback when no source_path in metadata."""
         from unittest.mock import MagicMock
+
         from aiconfigkit.ai_tools.translator import TranslatedComponent
 
         component = ResourceComponent(

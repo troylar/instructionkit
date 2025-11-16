@@ -1,7 +1,6 @@
 """Unit tests for git_operations module."""
 
 import subprocess
-import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, PropertyMock, patch
 

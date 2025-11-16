@@ -1,13 +1,16 @@
 """Unit tests for delete CLI command."""
 
 from datetime import datetime
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from aiconfigkit.cli.delete import delete_from_library
-from aiconfigkit.core.models import AIToolType, InstallationRecord, InstallationScope, LibraryInstruction, LibraryRepository
+from aiconfigkit.core.models import (
+    AIToolType,
+    InstallationRecord,
+    InstallationScope,
+    LibraryInstruction,
+    LibraryRepository,
+)
 
 
 class TestDeleteFromLibrary:

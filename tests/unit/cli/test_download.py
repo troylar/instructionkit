@@ -1,14 +1,11 @@
 """Unit tests for download CLI command."""
 
-from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from aiconfigkit.cli.download import download_instructions
 from aiconfigkit.core.git_operations import RepositoryOperationError
-from aiconfigkit.core.models import Instruction, LibraryRepository
+from aiconfigkit.core.models import Instruction
 
 
 class TestDownloadInstructions:

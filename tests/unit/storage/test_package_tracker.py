@@ -603,7 +603,7 @@ class TestErrorHandling:
 
     def test_write_failure_permission_error(self, tmp_path: Path) -> None:
         """Test handling write failures due to permissions."""
-        from unittest.mock import patch, mock_open
+        from unittest.mock import mock_open, patch
 
         tracker_file = tmp_path / ".ai-config-kit" / "packages.json"
         tracker = PackageTracker(tracker_file)

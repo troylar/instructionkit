@@ -4,8 +4,6 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from aiconfigkit.cli.uninstall import uninstall_instruction
 from aiconfigkit.core.models import AIToolType, InstallationRecord, InstallationScope
 

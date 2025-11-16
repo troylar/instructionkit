@@ -1,7 +1,5 @@
 """Unit tests for backup utilities."""
 
-import shutil
-import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch

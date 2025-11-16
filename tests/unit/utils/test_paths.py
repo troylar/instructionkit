@@ -17,8 +17,8 @@ from aiconfigkit.utils.paths import (
     get_installation_tracker_path,
     get_instructionkit_data_dir,
     get_library_dir,
-    get_winsurf_config_dir,
     get_windsurf_mcp_config_path,
+    get_winsurf_config_dir,
     resolve_conflict_name,
     safe_file_name,
 )

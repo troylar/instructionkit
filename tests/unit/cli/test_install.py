@@ -1,13 +1,10 @@
 """Unit tests for install CLI command."""
 
-from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from aiconfigkit.cli.install import _get_ai_tool, install_instruction
-from aiconfigkit.core.models import ConflictResolution, Instruction
+from aiconfigkit.core.models import Instruction
 
 
 class TestInstallInstruction:

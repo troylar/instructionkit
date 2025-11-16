@@ -1,6 +1,5 @@
 """Unit tests for package CLI commands."""
 
-from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -15,14 +14,8 @@ from aiconfigkit.cli.package import (
 )
 from aiconfigkit.cli.package_install import InstallationResult
 from aiconfigkit.core.models import (
-    AIToolType,
-    ComponentStatus,
     ComponentType,
-    ConflictResolution,
-    InstalledComponent,
-    InstallationScope,
     InstallationStatus,
-    PackageInstallationRecord,
 )
 
 

@@ -1,7 +1,6 @@
 """Fixtures for end-to-end package tests."""
 
 import hashlib
-import shutil
 import subprocess
 from pathlib import Path
 from typing import Callable
@@ -164,7 +163,7 @@ components:
       tags: [mcp, test]
 """
                 if mcp_creds:
-                    manifest += f"      requires_credentials:\n"
+                    manifest += "      requires_credentials:\n"
                     for cred in mcp_creds:
                         manifest += f"        - {cred}\n"
 

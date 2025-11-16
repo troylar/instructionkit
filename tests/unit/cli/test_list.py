@@ -4,14 +4,12 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from aiconfigkit.cli.list import list_available, list_installed, list_library
 from aiconfigkit.core.models import (
     AIToolType,
-    Instruction,
     InstallationRecord,
     InstallationScope,
+    Instruction,
     InstructionBundle,
     LibraryInstruction,
     LibraryRepository,

@@ -3,8 +3,6 @@
 import subprocess
 from pathlib import Path
 
-import pytest
-
 from aiconfigkit.cli.package_install import install_package
 from aiconfigkit.core.models import AIToolType, ConflictResolution, InstallationScope
 from aiconfigkit.storage.package_tracker import PackageTracker

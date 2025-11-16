@@ -1,6 +1,5 @@
 """Unit tests for validation utilities."""
 
-import pytest
 
 from aiconfigkit.utils.validation import (
     is_valid_checksum,
