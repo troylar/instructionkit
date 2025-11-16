@@ -78,7 +78,7 @@ aiconfig template update <namespace>
 # Uninstall templates
 aiconfig template uninstall <namespace>
 
-# Create new template repository
+# Create new template repository (creates directory in current location)
 aiconfig template init <name>
 
 # Validate repository
@@ -138,7 +138,10 @@ aiconfig template install https://github.com/owasp/security --as owasp
 ### Creating Your Own Templates
 
 ```bash
-# Initialize new template repository
+# Navigate to where you want to create the template
+cd ~/projects  # or your preferred location
+
+# Initialize new template repository (creates 'my-standards' directory here)
 aiconfig template init my-standards
 
 # Edit templatekit.yaml and add your content

@@ -40,10 +40,13 @@ pip install ai-config-kit
 ### Templates: Share Coding Standards (30 seconds)
 
 ```bash
-# Create a template repository with examples
+# Navigate to where you want to create the template
+cd ~/projects  # or your preferred location
+
+# Create template repository (creates 'my-standards' directory here)
 aiconfig template init my-standards
 
-# Install it locally
+# Work inside it and install locally to test
 cd my-standards
 aiconfig template install . --as demo
 
@@ -276,10 +279,13 @@ aiconfig --version
 # Check which AI tools are installed
 aiconfig tools
 
-# Create your first template repository
+# Navigate to where you want to create templates
+cd ~/projects  # or your preferred location
+
+# Create template repository (creates 'my-standards' directory here)
 aiconfig template init my-standards
 
-# Install and test it
+# Work inside it and install to test
 cd my-standards
 aiconfig template install . --as demo
 

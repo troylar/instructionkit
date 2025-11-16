@@ -114,21 +114,24 @@ aiconfig template uninstall personal --scope global
 
 ### `aiconfig template init`
 
-Create a new template repository.
+Create a new template repository (creates directory in current location).
 
 ```bash
 aiconfig template init <name> [options]
 ```
 
 **Arguments:**
-- `<name>` - Directory name for new repository
+- `<name>` - Directory name for new repository (created in current directory)
 
 **Options:**
 - `--minimal` - Create minimal structure (no examples)
 
 **Examples:**
 ```bash
-# Create with examples
+# Navigate to where you want to create the template
+cd ~/projects  # or your preferred location
+
+# Create with examples (creates 'my-standards' directory here)
 aiconfig template init my-standards
 
 # Create minimal structure
