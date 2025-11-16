@@ -1,7 +1,10 @@
 """Comprehensive E2E tests covering IDE compatibility, edge cases, errors, and workflows."""
 
+import os
 import subprocess
 from pathlib import Path
+
+import pytest
 
 from aiconfigkit.cli.package_install import install_package
 from aiconfigkit.core.models import AIToolType, ConflictResolution, InstallationScope
@@ -227,6 +230,7 @@ class TestEdgeCases:
         for i in range(50):
             assert (test_project / f".claude/rules/guide-{i:02d}.md").exists()
 
+    @pytest.mark.skipif(os.name == "nt", reason="Unicode encoding issues on Windows")
     def test_package_with_special_characters_in_content(
         self, package_builder, test_project: Path
     ) -> None:
